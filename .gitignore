@@ -1,0 +1,15 @@
+# Google credentials and member tokens
+credentials_web.json
+drive-reader.json
+tokens/
+
+# Local environment settings
+.env
+
+# Python virtual environments
+venv/
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
