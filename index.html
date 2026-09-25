@@ -130,6 +130,31 @@
 </head>
 
 <body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <img
+        src="{{ url_for('static', filename='images/logo.png') }}"
+        alt="Ahmadiyya Muslim Jamaat Deutschland Kdör logo"
+        class="header-logo"
+      />
+      <div class="header-title">
+        Ahmadiyya Muslim Jamaat<br>
+        Deutschland Kdör
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <a href="/connect_google" class="connect-btn">
+        Connect Your Google Calendar For Prayer Times Reminder
+      </a>
+    </div>
+  </main>
+  
   <header>
     <h1>Prayer Times Automation</h1>
     <p>
@@ -227,5 +252,15 @@
     <a href="privacy.html">Privacy Policy</a>
     <a href="terms.html">Terms of Service</a>
   </footer>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-text">
+        © Copyright: {{ current_year }} | Ahmadiyya Muslim Jamaat Deutschland Kdör | Alle Rechte vorbehalten
+      </div>
+    </div>
+  </footer>
+  
 </body>
 </html>
