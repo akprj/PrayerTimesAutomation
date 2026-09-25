@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+        content="Prayer Times Automation helps Jamaat Ahmadiyya members add prayer timetable events to Google Calendar.">
+
+  <title>Prayer Times Automation</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7fb;
+      color: #243247;
+      line-height: 1.7;
+    }
+
+    header {
+      padding: 64px 20px;
+      text-align: center;
+      color: white;
+      background: linear-gradient(135deg, #123c35, #226b59);
+    }
+
+    header h1 {
+      margin: 0 0 16px;
+      font-size: clamp(2rem, 6vw, 3rem);
+      line-height: 1.2;
+    }
+
+    header p {
+      max-width: 650px;
+      margin: 0 auto;
+      color: #e2f3ec;
+      font-size: 1.1rem;
+    }
+
+    main {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    section {
+      margin-bottom: 24px;
+      padding: 28px;
+      background: white;
+      border: 1px solid #e0e7ef;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgb(0 0 0 / 4%);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #174e40;
+      font-size: 1.4rem;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    a {
+      color: #155b48;
+      overflow-wrap: anywhere;
+    }
+
+    a:hover {
+      text-decoration-thickness: 2px;
+    }
+
+    a:focus-visible {
+      outline: 3px solid #bd8200;
+      outline-offset: 4px;
+    }
+
+    .notice {
+      padding: 16px;
+      border-left: 4px solid #bd8200;
+      background: #fff8e8;
+      border-radius: 6px;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 11px 20px;
+      border-radius: 8px;
+      background: #174e40;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      background: #103c31;
+    }
+
+    footer {
+      padding: 12px 20px 32px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #586579;
+    }
+
+    footer a {
+      margin: 0 8px;
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 44px 20px;
+      }
+
+      section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Prayer Times Automation</h1>
+    <p>
+      Helping Jamaat Ahmadiyya members keep prayer timetable events
+      in their Google Calendar.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>About the app</h2>
+      <p>
+        Prayer Times Automation reads prayer timetable images from a
+        designated Google Drive folder and uses the extracted dates and
+        times to create or update prayer events in your selected
+        Google Calendar, with your permission.
+      </p>
+      <p>
+        It is intended to reduce manual entry and help members keep
+        track of their local prayer schedule.
+      </p>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <ol>
+        <li>
+          Authorize Calendar access through Google's sign-in and
+          consent process in the application.
+        </li>
+        <li>
+          The app reads the prayer timetable and identifies its dates
+          and prayer times.
+        </li>
+        <li>
+          Prayer events are added to your selected calendar.
+          Stored authorization allows scheduled updates without
+          signing in each time.
+        </li>
+      </ol>
+      <p class="notice">
+        This website provides information about the app. It does not
+        itself connect your Google account. Contact the developer
+        below for access.
+      </p>
+    </section>
+
+    <section>
+      <h2>Google Calendar access</h2>
+      <p>
+        The app requests Calendar permissions to find the destination
+        calendar, check existing prayer events, and create or update
+        prayer events. Your Google password is not provided to the app.
+      </p>
+      <p>
+        You can revoke its access at any time through
+        <a href="https://myaccount.google.com/connections">
+          your Google Account connections
+        </a>.
+        Read our <a href="privacy.html">Privacy Policy</a>
+        for details about data use.
+      </p>
+    </section>
+
+    <section>
+      <h2>Please check your local timetable</h2>
+      <p>
+        Image recognition and automated updates can produce errors or
+        be delayed. Please compare calendar events with your Jamaat's
+        published timetable. The published timetable should be your
+        reference if there is a discrepancy.
+      </p>
+    </section>
+
+    <section>
+      <h2>Developer and support</h2>
+      <p>
+        Operated by Nouman Ahmad. For access, support, privacy questions,
+        or data deletion requests, contact:
+      </p>
+      <a class="button" href="mailto:noumanahmad1987@gmail.com">
+        Contact the developer
+      </a>
+      <p>
+        <a href="mailto:noumanahmad1987@gmail.com">
+          noumanahmad1987@gmail.com
+        </a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Prayer Times Automation</p>
+    <a href="index.html">Home</a>
+    <a href="privacy.html">Privacy Policy</a>
+  </footer>
+</body>
+</html>
