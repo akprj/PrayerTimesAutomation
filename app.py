@@ -1,5 +1,4 @@
 import os
-import warnings
 import secrets
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -241,17 +240,6 @@ def oauth_callback():
         </body>
         </html>
         """
-
-    except Warning as exc:
-        app.logger.error(
-            "Google onboarding warning: %s",
-            str(exc),
-        )
-        return failure_page(
-            "We could not finish connecting your account. "
-            "Please try again later.",
-            500,
-        )
 
     except Exception as exc:
         app.logger.error(
