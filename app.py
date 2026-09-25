@@ -162,12 +162,9 @@ def oauth_callback():
 
         # State was checked explicitly above. Using the code directly
         # avoids relying on the proxy-generated request URL.
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", Warning)
-            flow.fetch_token(code=code)
+        flow.fetch_token(code=code)
 
         credentials = flow.credentials
-
 
         if not credentials.has_scopes(
             ["https://www.googleapis.com/auth/calendar"]
@@ -244,11 +241,22 @@ def oauth_callback():
         </html>
         """
 
-    except Exception as exc:
-        # Avoid logging tokens, authorization codes, or raw API responses.
+    except Warning as exc:
         app.logger.error(
-            "Google onboarding failed; exception type: %s",
+            "Google onboarding warning: %s",
+            str(exc),
+        )
+        return failure_page(
+            "We could not finish connecting your account. "
+            "Please try again later.",
+            500,
+        )
+
+    except Exception as exc:
+        app.logger.error(
+            "Google onboarding failed; exception type: %s; message: %s",
             type(exc).__name__,
+            str(exc),
         )
         return failure_page(
             "We could not finish connecting your account. "
