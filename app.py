@@ -29,8 +29,6 @@ if not REDIRECT_URI.startswith("https://"):
 
 SCOPES = [
     "https://www.googleapis.com/auth/calendar",
-    "https://www.googleapis.com/auth/userinfo.email",
-    "openid",
 ]
 
 app = Flask(__name__)
