@@ -523,11 +523,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </nav>
 
       <p class="footer-text">
-        © {{ current_year }} |
+        &copy; <span id="current-year"></span>
         Ahmadiyya Muslim Jamaat Deutschland Kdör |
         Alle Rechte vorbehalten
       </p>
     </div>
   </footer>
+  <script>
+    document.getElementById("current-year").textContent =
+      new Date().getFullYear();
+  </script>
 </body>
 </html>
