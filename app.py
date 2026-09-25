@@ -1,4 +1,5 @@
 import os
+import warnings
 import secrets
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -29,6 +30,8 @@ if not REDIRECT_URI.startswith("https://"):
 
 SCOPES = [
     "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "openid",
 ]
 
 app = Flask(__name__)
@@ -159,8 +162,12 @@ def oauth_callback():
 
         # State was checked explicitly above. Using the code directly
         # avoids relying on the proxy-generated request URL.
-        flow.fetch_token(code=code)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", Warning)
+            flow.fetch_token(code=code)
+
         credentials = flow.credentials
+
 
         if not credentials.has_scopes(
             ["https://www.googleapis.com/auth/calendar"]
