@@ -3,71 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description"
-        content="Prayer Times Automation helps Jamaat Ahmadiyya members add prayer timetable events to Google Calendar.">
+  <meta
+    name="description"
+    content="Prayer Times Automation helps Jamaat Ahmadiyya members add prayer timetable events to Google Calendar."
+  >
 
   <title>Prayer Times Automation</title>
 
   <style>
+    :root {
+      --background: #f4f7fb;
+      --surface: #ffffff;
+      --text: #243247;
+      --muted: #586579;
+      --green: #174e40;
+      --blue: #4285f4;
+      --border: #e0e7ef;
+    }
+
     * {
       box-sizing: border-box;
     }
 
     body {
       margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--background);
+      color: var(--text);
       font-family: Arial, Helvetica, sans-serif;
-      background: #f4f7fb;
-      color: #243247;
       line-height: 1.7;
-    }
-
-    header {
-      padding: 64px 20px;
-      text-align: center;
-      color: white;
-      background: linear-gradient(135deg, #123c35, #226b59);
-    }
-
-    header h1 {
-      margin: 0 0 16px;
-      font-size: clamp(2rem, 6vw, 3rem);
-      line-height: 1.2;
-    }
-
-    header p {
-      max-width: 650px;
-      margin: 0 auto;
-      color: #e2f3ec;
-      font-size: 1.1rem;
-    }
-
-    main {
-      width: min(900px, 100%);
-      margin: 0 auto;
-      padding: 32px 20px;
-    }
-
-    section {
-      margin-bottom: 24px;
-      padding: 28px;
-      background: white;
-      border: 1px solid #e0e7ef;
-      border-radius: 14px;
-      box-shadow: 0 4px 16px rgb(0 0 0 / 4%);
-    }
-
-    h2 {
-      margin-top: 0;
-      color: #174e40;
-      font-size: 1.4rem;
-    }
-
-    p:last-child {
-      margin-bottom: 0;
-    }
-
-    li {
-      margin-bottom: 10px;
     }
 
     a {
@@ -81,64 +47,289 @@
 
     a:focus-visible {
       outline: 3px solid #bd8200;
-      outline-offset: 4px;
+      outline-offset: 5px;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      z-index: 10;
+      padding: 10px 16px;
+      background: white;
+      color: black;
+    }
+
+    .skip-link:focus {
+      top: 12px;
+    }
+
+    /* Organization header */
+    .site-header {
+      width: 100%;
+      background: #0b0b0b;
+      color: white;
+    }
+
+    .header-inner {
+      width: min(1100px, 100%);
+      min-height: 120px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-logo {
+      display: block;
+      width: auto;
+      height: 74px;
+      max-width: 110px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      font-size: clamp(1.15rem, 3vw, 1.75rem);
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+    }
+
+    /* App introduction and connection button */
+    .hero {
+      padding: 60px 20px;
+      text-align: center;
+      color: white;
+      background: linear-gradient(135deg, #123c35, #226b59);
+    }
+
+    .hero-inner {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2rem, 6vw, 3rem);
+      line-height: 1.2;
+    }
+
+    .hero-description {
+      max-width: 650px;
+      margin: 0 auto 28px;
+      font-size: 1.1rem;
+      color: #e2f3ec;
+    }
+
+    .connect-btn {
+      display: inline-block;
+      width: min(420px, 100%);
+      padding: 19px 24px;
+      border-radius: 12px;
+      background: var(--blue);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      line-height: 1.5;
+      text-decoration: none;
+      box-shadow: 0 6px 18px rgb(0 0 0 / 20%);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .connect-btn:hover {
+      background: #3367d6;
+      transform: translateY(-2px);
+    }
+
+    .connection-note {
+      max-width: 580px;
+      margin: 18px auto 0;
+      font-size: 0.9rem;
+      color: #e2f3ec;
+    }
+
+    .hero-links {
+      margin: 12px 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px 24px;
+    }
+
+    .hero-links a {
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    /* App information */
+    .content {
+      width: min(940px, 100%);
+      margin: 0 auto;
+      padding: 36px 20px;
+    }
+
+    .info-card {
+      margin-bottom: 24px;
+      padding: 30px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgb(0 0 0 / 4%);
+    }
+
+    .info-card:last-child {
+      margin-bottom: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      color: var(--green);
+      font-size: 1.4rem;
+      line-height: 1.4;
+    }
+
+    p {
+      margin: 0 0 16px;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    ol,
+    ul {
+      padding-left: 24px;
+      margin: 0 0 16px;
+    }
+
+    li {
+      margin-bottom: 12px;
+    }
+
+    li:last-child {
+      margin-bottom: 0;
     }
 
     .notice {
-      padding: 16px;
+      padding: 18px;
       border-left: 4px solid #bd8200;
-      background: #fff8e8;
       border-radius: 6px;
+      background: #fff8e8;
     }
 
-    .button {
+    .support-btn {
       display: inline-block;
-      margin-top: 12px;
+      margin-bottom: 16px;
       padding: 11px 20px;
       border-radius: 8px;
-      background: #174e40;
+      background: var(--green);
       color: white;
       font-weight: bold;
       text-decoration: none;
     }
 
-    .button:hover {
+    .support-btn:hover {
       background: #103c31;
     }
 
-    footer {
-      padding: 12px 20px 32px;
+    /* Single combined footer */
+    .site-footer {
+      width: 100%;
+      padding: 28px 20px;
+      background: #0b0b0b;
+      color: #bdbdbd;
       text-align: center;
-      font-size: 0.9rem;
-      color: #586579;
     }
 
-    footer a {
-      margin: 0 8px;
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .footer-app-name {
+      margin: 0 0 12px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px 24px;
+      margin-bottom: 20px;
+    }
+
+    .footer-links a {
+      color: #e2f3ec;
+      font-size: 0.95rem;
+    }
+
+    .footer-text {
+      margin: 0;
+      font-size: 0.8rem;
     }
 
     @media (max-width: 480px) {
-      header {
-        padding: 44px 20px;
+      .header-inner {
+        min-height: 100px;
+        padding: 20px 16px;
+        gap: 14px;
       }
 
-      section {
-        padding: 20px;
+      .header-logo {
+        height: 58px;
+        max-width: 78px;
+      }
+
+      .hero {
+        padding: 42px 20px;
+      }
+
+      .content {
+        padding: 24px 16px;
+      }
+
+      .info-card {
+        padding: 22px;
+      }
+
+      .connect-btn {
+        font-size: 1rem;
+        padding: 17px 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .connect-btn {
+        transition: none;
+      }
+
+      .connect-btn:hover {
+        transform: none;
       }
     }
   </style>
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
-  <!-- HEADER -->
+  <!-- ORGANIZATION HEADER -->
   <header class="site-header">
     <div class="header-inner">
       <img
         src="{{ url_for('static', filename='images/logo.png') }}"
         alt="Ahmadiyya Muslim Jamaat Deutschland Kdör logo"
         class="header-logo"
-      />
+      >
+
       <div class="header-title">
         Ahmadiyya Muslim Jamaat<br>
         Deutschland Kdör
@@ -146,121 +337,189 @@
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main>
-    <div class="container">
-      <a href="/connect_google" class="connect-btn">
-        Connect Your Google Calendar For Prayer Times Reminder
-      </a>
+  <main id="main-content">
+
+    <!-- APP TITLE AND GOOGLE CONNECTION -->
+    <section class="hero" aria-labelledby="app-title">
+      <div class="hero-inner">
+        <h1 id="app-title">Prayer Times Automation</h1>
+
+        <p class="hero-description">
+          Helping Jamaat Ahmadiyya members keep their local prayer
+          timetable events in Google Calendar.
+        </p>
+
+        <a href="/connect_google" class="connect-btn">
+          Connect Your Google Calendar<br>
+          for Prayer Time Reminders
+        </a>
+
+        <p class="connection-note">
+          Continue to Google's sign-in and consent process to review
+          the requested permissions. Your Google password is not
+          provided to this application.
+        </p>
+
+        <nav class="hero-links" aria-label="Application policies">
+          <a href="https://akprj.github.io/PrayerTimesAutomation/privacy.html">
+            Privacy Policy
+          </a>
+          <a href="https://akprj.github.io/PrayerTimesAutomation/terms.html">
+            Terms of Service
+          </a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- APPLICATION DETAILS -->
+    <div class="content">
+
+      <section class="info-card" aria-labelledby="about-title">
+        <h2 id="about-title">About the app</h2>
+
+        <p>
+          Prayer Times Automation reads prayer timetable images from
+          a designated Google Drive folder and uses the extracted
+          dates and times to create or update prayer events in your
+          selected Google Calendar, with your permission.
+        </p>
+
+        <p>
+          It is intended to reduce manual entry and help members keep
+          track of their local prayer schedule.
+        </p>
+      </section>
+
+      <section class="info-card" aria-labelledby="how-title">
+        <h2 id="how-title">How it works</h2>
+
+        <ol>
+          <li>
+            <strong>Connect your Google Calendar.</strong>
+            Use the button above to start Google's sign-in and
+            consent process and review the requested permissions.
+          </li>
+
+          <li>
+            <strong>Read the prayer timetable.</strong>
+            The application reads the designated timetable image
+            and identifies its dates and prayer times.
+          </li>
+
+          <li>
+            <strong>Create or update prayer events.</strong>
+            The extracted schedule is used to add or update events
+            in your selected Google Calendar.
+          </li>
+
+          <li>
+            <strong>Keep your schedule up to date.</strong>
+            Stored authorization allows configured scheduled updates
+            without asking you to sign in each time.
+          </li>
+        </ol>
+
+        <p class="notice">
+          Please review the permissions shown by Google before
+          granting access. You can revoke the application's access
+          at any time through your Google Account settings.
+        </p>
+      </section>
+
+      <section class="info-card" aria-labelledby="access-title">
+        <h2 id="access-title">Google Calendar access</h2>
+
+        <p>
+          The app requests Calendar permissions to find the
+          destination calendar, check existing prayer events, and
+          create or update prayer events.
+        </p>
+
+        <p>
+          Your Google password is not provided to the app.
+          Authorization is handled through Google's sign-in and
+          consent process.
+        </p>
+
+        <p>
+          You can revoke access through
+          <a href="https://myaccount.google.com/connections">
+            your Google Account connections
+          </a>.
+          Read our
+          <a href="https://akprj.github.io/PrayerTimesAutomation/privacy.html">
+            Privacy Policy
+          </a>
+          for details about data use.
+        </p>
+      </section>
+
+      <section class="info-card" aria-labelledby="check-title">
+        <h2 id="check-title">Please check your local timetable</h2>
+
+        <p>
+          Image recognition and automated updates can produce errors
+          or be delayed. Please compare calendar events with your
+          Jamaat's published timetable.
+        </p>
+
+        <p class="notice">
+          <strong>
+            The published timetable should be your reference if
+            there is a discrepancy.
+          </strong>
+          Calendar reminders also depend on your Google Calendar
+          notification settings and device permissions.
+        </p>
+      </section>
+
+      <section class="info-card" aria-labelledby="support-title">
+        <h2 id="support-title">Developer and support</h2>
+
+        <p>
+          Operated by Nouman Ahmad. For access, support, privacy
+          questions, or data deletion requests, contact:
+        </p>
+
+        <a
+          class="support-btn"
+          href="mailto:noumanahmad1987@gmail.com"
+        >
+          Contact the developer
+        </a>
+
+        <p>
+          <a href="mailto:noumanahmad1987@gmail.com">
+            noumanahmad1987@gmail.com
+          </a>
+        </p>
+      </section>
+
     </div>
   </main>
-  
-  <header>
-    <h1>Prayer Times Automation</h1>
-    <p>
-      Helping Jamaat Ahmadiyya members keep prayer timetable events
-      in their Google Calendar.
-    </p>
-  </header>
 
-  <main>
-    <section>
-      <h2>About the app</h2>
-      <p>
-        Prayer Times Automation reads prayer timetable images from a
-        designated Google Drive folder and uses the extracted dates and
-        times to create or update prayer events in your selected
-        Google Calendar, with your permission.
-      </p>
-      <p>
-        It is intended to reduce manual entry and help members keep
-        track of their local prayer schedule.
-      </p>
-    </section>
-
-    <section>
-      <h2>How it works</h2>
-      <ol>
-        <li>
-          Authorize Calendar access through Google's sign-in and
-          consent process in the application.
-        </li>
-        <li>
-          The app reads the prayer timetable and identifies its dates
-          and prayer times.
-        </li>
-        <li>
-          Prayer events are added to your selected calendar.
-          Stored authorization allows scheduled updates without
-          signing in each time.
-        </li>
-      </ol>
-      <p class="notice">
-        This website provides information about the app. It does not
-        itself connect your Google account. Contact the developer
-        below for access.
-      </p>
-    </section>
-
-    <section>
-      <h2>Google Calendar access</h2>
-      <p>
-        The app requests Calendar permissions to find the destination
-        calendar, check existing prayer events, and create or update
-        prayer events. Your Google password is not provided to the app.
-      </p>
-      <p>
-        You can revoke its access at any time through
-        <a href="https://myaccount.google.com/connections">
-          your Google Account connections
-        </a>.
-        Read our <a href="privacy.html">Privacy Policy</a>
-        for details about data use.
-      </p>
-    </section>
-
-    <section>
-      <h2>Please check your local timetable</h2>
-      <p>
-        Image recognition and automated updates can produce errors or
-        be delayed. Please compare calendar events with your Jamaat's
-        published timetable. The published timetable should be your
-        reference if there is a discrepancy.
-      </p>
-    </section>
-
-    <section>
-      <h2>Developer and support</h2>
-      <p>
-        Operated by Nouman Ahmad. For access, support, privacy questions,
-        or data deletion requests, contact:
-      </p>
-      <a class="button" href="mailto:noumanahmad1987@gmail.com">
-        Contact the developer
-      </a>
-      <p>
-        <a href="mailto:noumanahmad1987@gmail.com">
-          noumanahmad1987@gmail.com
-        </a>
-      </p>
-    </section>
-  </main>
-
-  <footer>
-    <p>Prayer Times Automation</p>
-    <a href="index.html">Home</a>
-    <a href="privacy.html">Privacy Policy</a>
-    <a href="terms.html">Terms of Service</a>
-  </footer>
-
-  <!-- FOOTER -->
+  <!-- COMBINED FOOTER -->
   <footer class="site-footer">
     <div class="footer-inner">
-      <div class="footer-text">
-        © Copyright: {{ current_year }} | Ahmadiyya Muslim Jamaat Deutschland Kdör | Alle Rechte vorbehalten
-      </div>
+      <p class="footer-app-name">Prayer Times Automation</p>
+
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Home</a>
+        <a href="https://akprj.github.io/PrayerTimesAutomation/privacy.html">
+          Privacy Policy
+        </a>
+        <a href="https://akprj.github.io/PrayerTimesAutomation/terms.html">
+          Terms of Service
+        </a>
+        <a href="mailto:noumanahmad1987@gmail.com">Contact</a>
+      </nav>
+
+      <p class="footer-text">
+        © {{ current_year }} |
+        Ahmadiyya Muslim Jamaat Deutschland Kdör |
+        Alle Rechte vorbehalten
+      </p>
     </div>
   </footer>
-  
 </body>
 </html>
