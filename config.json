@@ -1,0 +1,13 @@
+{
+  "calendar_id": "40410bc222fc283cfa9bdd3134dd74304de39235e75d7a13a3ea9f5d07917ef2@group.calendar.google.com",
+  "timezone": "Europe/Berlin",
+  "friday_replaces_zohar": true,
+  "reminder_minutes": {
+    "Fajr": 15,
+    "Zohar": 15,
+    "Assr": 15,
+    "Maghrib": 15,
+    "Ishaa": 15,
+    "Juma": 90
+  }
+}
