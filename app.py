@@ -42,7 +42,13 @@ def get_google_client_config():
         return None
     return json.loads(blob)
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=".",
+    static_folder="styles",
+    static_url_path="/styles",
+)
+
 app.config.update(
     SECRET_KEY=os.environ["FLASK_SECRET_KEY"],
     SESSION_COOKIE_SECURE=True,
