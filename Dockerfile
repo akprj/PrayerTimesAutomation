@@ -16,6 +16,7 @@ COPY . .
 
 # If your app file is app.py and Flask app is `app`
 # Ensure your Render Start Command matches this gunicorn target.
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "180", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--workers", "1", "--worker-class", "gthread", "--threads", "4", "--timeout", "180", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+
 
 
