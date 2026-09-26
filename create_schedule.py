@@ -8,16 +8,12 @@ from supabase import create_client
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
-
-from cryptography.fernet import Fernet
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from PIL import Image, ImageOps
 import pytesseract
-from supabase import create_client
-
 from drive_timetable import fetch_latest_timetable
 
 
