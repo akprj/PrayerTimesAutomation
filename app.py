@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from cryptography.fernet import Fernet
-from flask import Flask, redirect, request, session
+from flask import Flask, redirect, request, session, render_template
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from supabase import create_client
