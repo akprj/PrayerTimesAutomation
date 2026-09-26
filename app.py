@@ -123,7 +123,7 @@ def connect_google():
             autogenerate_code_verifier=True,
         )
 
-        flow.redirect_uri = REDIRECT_URI
+    flow.redirect_uri = REDIRECT_URI
 
 
     authorization_url, state = flow.authorization_url(
@@ -188,7 +188,7 @@ def oauth_callback():
                 autogenerate_code_verifier=False,
             )
 
-         flow.redirect_uri = REDIRECT_URI
+        flow.redirect_uri = REDIRECT_URI
 
         # State was checked explicitly above. Using the code directly
         # avoids relying on the proxy-generated request URL.
