@@ -181,11 +181,11 @@ def oauth_callback():
             )
         else:
             flow = Flow.from_client_secrets_file(
-               CLIENT_SECRETS_FILE,
-               scopes=SCOPES,
-               state=expected_state,
-               code_verifier=code_verifier,
-               autogenerate_code_verifier=False,
+                CLIENT_SECRETS_FILE,
+                scopes=SCOPES,
+                state=expected_state,
+                code_verifier=code_verifier,
+                autogenerate_code_verifier=False,
             )
 
          flow.redirect_uri = REDIRECT_URI
