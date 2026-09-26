@@ -126,11 +126,11 @@ def connect_google():
     flow.redirect_uri = REDIRECT_URI
 
 
-authorization_url, state = flow.authorization_url(
-access_type="offline",
-prompt="consent",
-include_granted_scopes="true",
-)
+    authorization_url, state = flow.authorization_url(
+        access_type="offline",
+        prompt="consent",
+        include_granted_scopes="true",
+    )
 
     session["state"] = state
     session["code_verifier"] = flow.code_verifier
