@@ -153,8 +153,8 @@ main {
 
  .header-logo {
   display: block;
-  flex: 0 1 80%;
-  width: 57%;
+  flex: 0 1 67%;
+  width: 77%;
   min-width: 0;
   max-width: 320px;
   height: auto;
@@ -172,7 +172,7 @@ main {
     margin: 0;
     padding: 0;
     color: #ffffff;
-    font-size: clamp(11px, 3.3vw, 15px);
+    font-size: clamp(17px, 3.3vw, 15px);
     font-weight: 600;
     line-height: 1.3;
     text-align: left;
