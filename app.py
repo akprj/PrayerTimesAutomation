@@ -267,8 +267,6 @@ def oauth_callback():
             current_year=datetime.now().year,
         )
 
-            
-
     except Exception as exc:
         app.logger.error(
             "Google onboarding failed; exception type: %s; message: %s",
