@@ -30,6 +30,16 @@ SCOPES = [
     "openid",
 ]
 
+cipher = Fernet(
+    os.environ["TOKEN_ENCRYPTION_KEY"].encode("utf-8")
+)
+
+supabase = create_client(
+    os.environ["SUPABASE_URL"],
+    os.environ["SUPABASE_SERVICE_ROLE_KEY"],
+)
+
+
 MAX_RETRIES = 8
 BASE_SLEEP = 1.0
 
