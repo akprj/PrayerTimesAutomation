@@ -123,7 +123,7 @@ def connect_google():
             autogenerate_code_verifier=True,
         )
 
-    flow.redirect_uri = REDIRECT_URI
+        flow.redirect_uri = REDIRECT_URI
 
 
     authorization_url, state = flow.authorization_url(
