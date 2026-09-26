@@ -44,14 +44,6 @@ MAX_RETRIES = 8
 BASE_SLEEP = 1.0
 
 
-cipher = Fernet(os.environ["TOKEN_ENCRYPTION_KEY"].encode("utf-8"))
-
-supabase = create_client(
-    os.environ["SUPABASE_URL"],
-    os.environ["SUPABASE_SERVICE_ROLE_KEY"],
-)
-
-
 def load_google_client_config():
     client_secrets_file = os.environ.get(
         "GOOGLE_CLIENT_SECRETS_FILE",
