@@ -1,1 +1,106 @@
+/* static/styles.css */
+
+/* --- Header / Footer (dark full width like your screenshot) --- */
+.site-header,
+.site-footer {
+  background: #0b0b0b;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* Adjust these heights to match your screenshot exactly */
+.site-header {
+  height: 120px;
+}
+.site-footer {
+  height: 48px;
+}
+
+.header-inner,
+.footer-inner {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+}
+
+.header-logo {
+  height: 70px; /* adjust to fit your logo */
+  width: auto;
+  display: block;
+}
+
+.header-title {
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+/* footer text centered like screenshot */
+.footer-text {
+  width: 100%;
+  color: #bdbdbd;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* --- Page button styles (your existing styles) --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+
+  /* IMPORTANT:
+     keep header/footer, and center content in remaining area */
+  display: flex;
+  flex-direction: column;
+
+  background: #2f2f2f;
+  font-family: Arial, sans-serif;
+}
+
+/* Put your main content centered */
+main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  text-align: center;
+  padding: 20px;
+}
+
+.connect-btn {
+  display: inline-block;
+  width: 320px;
+  max-width: 90vw;
+  padding: 22px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1.4;
+  color: white;
+  background: #4285F4;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+  word-wrap: break-word;
+}
+
+.connect-btn:hover {
+  background: #3367D6;
+  transform: translateY(-2px);
+}
 
