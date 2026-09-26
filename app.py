@@ -261,23 +261,13 @@ def oauth_callback():
                 str(exc),
             )
 
-        return """
+        return render_template(
+            "success.html",
+            user_email=user_email,
+            current_year=datetime.now().year,
+        )
 
-        <!doctype html>
-          return render_template(
-        "success.html",
-        user_email=user_email,
-        current_year=datetime.now().year,
-    )
-
-            <p>
-                <a href="https://akprj.github.io/PrayerTimesAutomation/">
-                    Return to the website
-                </a>
-            </p>
-        </body>
-        </html>
-        """
+            
 
     except Exception as exc:
         app.logger.error(
