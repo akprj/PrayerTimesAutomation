@@ -264,15 +264,12 @@ def oauth_callback():
         return """
 
         <!doctype html>
-        <html lang="en">
-        <head>
-            <meta charset="utf-8">
-            <title>Google Calendar connected</title>
-        </head>
-        <body>
-            <h1>Google Calendar connected successfully</h1>
-            <p>Your account has been registered for prayer-time updates.</p>
-            <p>Your first calendar update is pending processing.</p>
+          return render_template(
+        "success.html",
+        user_email=user_email,
+        current_year=datetime.now().year,
+    )
+
             <p>
                 <a href="https://akprj.github.io/PrayerTimesAutomation/">
                     Return to the website
