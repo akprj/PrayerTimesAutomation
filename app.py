@@ -269,7 +269,7 @@ def oauth_callback():
 
         return render_template(
             "success.html",
-            user_email=user_email,
+            user_email=email,
             current_year=datetime.now().year,
         )
 
