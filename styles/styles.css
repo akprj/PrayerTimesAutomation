@@ -151,18 +151,19 @@ main {
     gap: 10px;
   }
 
-  .header-logo {
-    display: block;
-    flex: 0 1 40%;
-    width: 40%;
-    min-width: 0;
-    max-width: 160px;
-    height: auto;
-    max-height: 74px;
-    margin: 0;
-    object-fit: contain;
-    object-position: left center;
-  }
+ .header-logo {
+  display: block;
+  flex: 0 1 80%;
+  width: 80%;
+  min-width: 0;
+  max-width: 320px;
+  height: auto;
+  max-height: 148px;
+  margin: 0;
+  object-fit: contain;
+  object-position: left center;
+}
+
 
   .header-title {
     flex: 1 1 auto;
