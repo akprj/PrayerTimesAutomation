@@ -3,6 +3,8 @@ import json
 import os
 import re
 import time
+from cryptography.fernet import Fernet
+from supabase import create_client
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
