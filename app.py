@@ -110,6 +110,15 @@ def health():
     return {"status": "ok"}
 
 
+@app.route("/test-success")
+def test_success():
+    return render_template(
+        "success.html",
+        user_email="test@example.com",
+        current_year=datetime.now().year,
+    )
+
+
 @app.route("/connect_google")
 def connect_google():
     session.clear()
