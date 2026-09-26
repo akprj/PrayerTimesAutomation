@@ -1,6 +1,7 @@
 import os
 import json
 import secrets
+from create_schedule import main as create_schedule_main
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
