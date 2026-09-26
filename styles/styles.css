@@ -1,66 +1,24 @@
-/* static/styles.css */
-
-/* --- Header / Footer (dark full width like your screenshot) --- */
-.site-header,
-.site-footer {
-  background: #0b0b0b;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-
-/* Adjust these heights to match your screenshot exactly */
-.site-header {
-  height: 120px;
-}
-.site-footer {
-  height: 48px;
-}
-
-.header-inner,
-.footer-inner {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 18px;
-}
-
-.header-logo {
-  height: 70px; /* adjust to fit your logo */
-  width: auto;
-  display: block;
-}
-
-.header-title {
-  color: #ffffff;
-  font-size: 28px;
-  line-height: 1.1;
-  font-weight: 600;
-}
-
-/* footer text centered like screenshot */
-.footer-text {
-  width: 100%;
-  color: #bdbdbd;
-  font-size: 12px;
-  text-align: center;
-}
-
-/* --- Page button styles (your existing styles) --- */
-* {
+/* --- Global layout --- */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-body {
+html {
+  width: 100%;
   margin: 0;
-  min-height: 100vh;
+  padding: 0;
+}
 
-  /* IMPORTANT:
-     keep header/footer, and center content in remaining area */
+body {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+
   display: flex;
   flex-direction: column;
 
@@ -68,19 +26,91 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* Put your main content centered */
+/* --- Full-width header and footer --- */
+.site-header,
+.site-footer {
+  width: 100%;
+  flex-shrink: 0;
+  background: #0b0b0b;
+}
+
+/* --- Header --- */
+.header-inner {
+  width: 100%;
+  max-width: 1100px;
+  min-height: 120px;
+  margin: 0 auto;
+  padding: 16px 24px;
+
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.header-logo {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 70px;
+  margin: 0;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.header-title {
+  min-width: 0;
+  margin: 0;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1.25;
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* --- Footer --- */
+.footer-inner {
+  width: 100%;
+  max-width: 1100px;
+  min-height: 48px;
+  margin: 0 auto;
+  padding: 12px 24px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-text {
+  width: 100%;
+  min-width: 0;
+  color: #bdbdbd;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* --- Main content --- */
 main {
   flex: 1;
+  width: 100%;
+  min-width: 0;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .container {
+  width: 100%;
+  min-width: 0;
   text-align: center;
   padding: 20px;
 }
 
+/* --- Connect button --- */
 .connect-btn {
   display: inline-block;
   width: 320px;
@@ -104,3 +134,26 @@ main {
   transform: translateY(-2px);
 }
 
+/* --- Mobile layout --- */
+@media (max-width: 480px) {
+  .header-inner {
+    /* Small logo on the left; remaining width for the title */
+    grid-template-columns: 64px minmax(0, 1fr);
+    min-height: 80px;
+    padding: 12px 8px;
+    gap: 8px;
+  }
+
+  .header-title {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .footer-inner {
+    padding: 12px 10px;
+  }
+
+  .footer-text {
+    font-size: 11px;
+  }
+}
