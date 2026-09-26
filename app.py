@@ -1,4 +1,5 @@
 import os
+import json
 import secrets
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -33,6 +34,12 @@ SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
     "openid",
 ]
+
+def get_google_client_config():
+    blob = os.environ.get("GOOGLE_OAUTH_CLIENT_JSON")
+    if not blob:
+        return None
+    return json.loads(blob)
 
 app = Flask(__name__)
 app.config.update(
