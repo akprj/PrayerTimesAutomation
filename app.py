@@ -168,13 +168,25 @@ def oauth_callback():
         )
 
     try:
-        flow = Flow.from_client_secrets_file(
-            CLIENT_SECRETS_FILE,
-            scopes=SCOPES,
-            state=expected_state,
-            code_verifier=code_verifier,
-            autogenerate_code_verifier=False,
+        config = get_google_client_config()
+
+    if config:
+        flow = Flow.from_client_config(
+        config,
+        scopes=SCOPES,
+        state=expected_state,
+        code_verifier=code_verifier,
+        autogenerate_code_verifier=False,
         )
+    else:
+        flow = Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE,
+        scopes=SCOPES,
+        state=expected_state,
+        code_verifier=code_verifier,
+        autogenerate_code_verifier=False,
+        )
+
         flow.redirect_uri = REDIRECT_URI
 
         # State was checked explicitly above. Using the code directly
