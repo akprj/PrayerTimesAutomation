@@ -251,8 +251,18 @@ def oauth_callback():
             member_data,
             on_conflict="google_sub",
         ).execute()
+        
+        try:
+            create_schedule_main()
+        except Exception as exc:
+            app.logger.error(
+                "Initial schedule creation failed; exception type: %s; message: %s",
+                type(exc).__name__,
+                str(exc),
+            )
 
         return """
+
         <!doctype html>
         <html lang="en">
         <head>
