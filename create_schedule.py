@@ -322,6 +322,81 @@ def mark_member_reconnect_required(member_id: str):
     ).eq("id", member_id).execute()
 
 
+def insert_event_handling_deleted(service, calendar_id, body):
+    original_id = body["id"]
+    candidate_id = original_id
+
+    for generation in range(50):
+        candidate_body = dict(body)
+        candidate_body["id"] = candidate_id
+
+        try:
+            return service.events().insert(
+                calendarId=calendar_id,
+                body=candidate_body,
+            ).execute()
+
+        except HttpError as insert_error:
+            insert_status = getattr(
+                insert_error.resp, "status", None
+            )
+
+            if insert_status != 409:
+                raise
+
+            # A conflict does not necessarily mean an active event.
+            # Inspect the record associated with this ID.
+            try:
+                existing = service.events().get(
+                    calendarId=calendar_id,
+                    eventId=candidate_id,
+                ).execute()
+
+            except HttpError as lookup_error:
+                lookup_status = getattr(
+                    lookup_error.resp, "status", None
+                )
+
+                if lookup_status == 410:
+                    existing = {"status": "cancelled"}
+                else:
+                    # Do not create a duplicate if the lookup
+                    # failed for an unknown reason.
+                    raise
+
+            event_status = existing.get("status", "unknown")
+
+            print(
+                f"ID CONFLICT: {body['summary']} "
+                f"on {body['start']['dateTime']} "
+                f"-> Google status: {event_status}",
+                flush=True,
+            )
+
+            if event_status != "cancelled":
+                # Let the existing outer handler skip this event.
+                raise insert_error
+
+            # Deleted IDs may remain reserved by Google.
+            # Use a repeatable replacement ID instead.
+            replacement_key = (
+                f"{original_id}:replacement:{generation + 1}"
+            )
+            candidate_id = hashlib.sha256(
+                replacement_key.encode("utf-8")
+            ).hexdigest()
+
+            print(
+                "Deleted event detected; trying replacement ID "
+                f"number {generation + 1}.",
+                flush=True,
+            )
+
+    raise RuntimeError(
+        "Reached the replacement-ID limit for a deleted event."
+    )
+
+
 def sync_member(member, config, timezone_obj, start_date, day_count, prayer_times):
     email = member.get("email") or "(unknown)"
     member_id = member["id"]
@@ -405,10 +480,11 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
                 last_err = None
                 for attempt in range(MAX_RETRIES):
                     try:
-                        service.events().insert(
-                            calendarId=calendar_id,
-                            body=body,
-                        ).execute()
+                        insert_event_handling_deleted(
+                            service,
+                            calendar_id,
+                            body,
+                        )
 
                         total_created += 1
                         print(
