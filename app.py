@@ -105,31 +105,31 @@ def health():
 
 @app.route("/connect_google")
 def connect_google():
-    session.clear()
-    session.permanent = True
+session.clear()
+session.permanent = True
 
 config = get_google_client_config()
 
 if config:
-    flow = Flow.from_client_config(
-        config,
-        scopes=SCOPES,
-        autogenerate_code_verifier=True,
-    )
+flow = Flow.from_client_config(
+config,
+scopes=SCOPES,
+autogenerate_code_verifier=True,
+)
 else:
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE,
-        scopes=SCOPES,
-        autogenerate_code_verifier=True,
-    )
+flow = Flow.from_client_secrets_file(
+CLIENT_SECRETS_FILE,
+scopes=SCOPES,
+autogenerate_code_verifier=True,
+)
 
-    flow.redirect_uri = REDIRECT_URI
+flow.redirect_uri = REDIRECT_URI
 
-    authorization_url, state = flow.authorization_url(
-        access_type="offline",
-        prompt="consent",
-        include_granted_scopes="true",
-    )
+authorization_url, state = flow.authorization_url(
+access_type="offline",
+prompt="consent",
+include_granted_scopes="true",
+)
 
     session["state"] = state
     session["code_verifier"] = flow.code_verifier
