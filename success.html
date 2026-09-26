@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Calendar Connected</title>
+
+  <!-- Same stylesheet as index.html -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <style>
+    .success-main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+      padding: 40px 20px;
+    }
+
+    .success-card {
+      box-sizing: border-box;
+      background: #3a3a3a;
+      padding: 30px 25px;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .success-title {
+      font-size: 26px;
+      font-weight: bold;
+      margin: 0 0 15px;
+      color: #7CFC98;
+    }
+
+    .success-message {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.6;
+      color: #f1f1f1;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER: Same as index.html -->
+  <header class="site-header">
+    <div class="header-inner">
+      <img
+        src="{{ url_for('static', filename='images/logo.png') }}"
+        alt="Ahmadiyya Muslim Jamaat Deutschland Kdör logo"
+        class="header-logo"
+      />
+      <div class="header-title">
+        Ahmadiyya Muslim Jamaat<br>
+        Deutschland Kdör
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="success-main">
+    <div class="success-card">
+      <h1 class="success-title">Google Calendar Connected</h1>
+
+      <p class="success-message">
+        Prayer events have been processed successfully for
+        <strong>{{ user_email }}</strong>.
+      </p>
+    </div>
+  </main>
+
+  <!-- FOOTER: Same as index.html -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-text">
+        © Copyright: {{ current_year }} | Ahmadiyya Muslim Jamaat Deutschland Kdör | Alle Rechte vorbehalten
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
