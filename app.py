@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from cryptography.fernet import Fernet
-from flask import Flask, redirect, request, session, render_template
+from flask import Flask, redirect, request, session, render_template, send_from_directory
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from supabase import create_client
@@ -48,6 +48,14 @@ app = Flask(
     static_folder="styles",
     static_url_path="/styles",
 )
+
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, 'images'),
+        filename
+    )
+
 
 app.config.update(
     SECRET_KEY=os.environ["FLASK_SECRET_KEY"],
