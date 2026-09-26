@@ -438,8 +438,8 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
                 if last_err is not None:
                     raise last_err
 
-            except Exception as exc:
-                if "409" in str(exc):
+            except HttpError as exc:
+                if getattr(exc.resp, "status", None) == 409:
                     total_skipped += 1
                     print(
                         f"SKIPPED (exists): {current_date:%Y-%m-%d} "
@@ -447,6 +447,7 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
                     )
                 else:
                     raise
+
 
     print("\nMember sync complete.")
     print(f"Total attempted: {total_attempted}")
