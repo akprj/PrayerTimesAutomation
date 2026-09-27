@@ -485,20 +485,19 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
 
             total_attempted += 1
 
-            try:
-               last_err = None
-               for attempt in range(MAX_RETRIES):
-                   try:
-                       _, action = upsert_event_handling_deleted(
-                           service,
-                           calendar_id,
-                           body,
-                       )
+            last_err = None
+            for attempt in range(MAX_RETRIES):
+                try:
+                    _, action = upsert_event_handling_deleted(
+                        service,
+                        calendar_id,
+                        body,
+                    )
 
                     if action == "created":
                         total_created += 1
                         print(
-                            f"CREATED: {current_date:%Y-%m-%d}"
+                            f"CREATED: {current_date:%Y-%m-%d} "
                             f"{prayer:<8} at {starts_at:%H:%M}"
                         )
                     else:
@@ -530,7 +529,6 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
 
             if last_err is not None:
                 raise last_err
-
 
 
     print("\nMember sync complete.")
