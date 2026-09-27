@@ -486,58 +486,58 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
             total_attempted += 1
 
             try:
-                last_err = None
-                for attempt in range(MAX_RETRIES):
-                    try:
-                        insert_event_handling_deleted(
-                            service,
-                            calendar_id,
-                            body,
-                        )
+               last_err = None
+               for attempt in range(MAX_RETRIES):
+                   try:
+                       _, action = upsert_event_handling_deleted(
+                           service,
+                           calendar_id,
+                           body,
+                       )
 
+                    if action == "created":
                         total_created += 1
                         print(
-                            f"CREATED: {current_date:%Y-%m-%d} "
+                            f"CREATED: {current_date:%Y-%m-%d}"
                             f"{prayer:<8} at {starts_at:%H:%M}"
                         )
-                        last_err = None
-                        break
+                    else:
+                        total_updated += 1
+                        print(
+                            f"UPDATED: {current_date:%Y-%m-%d} "
+                            f"{prayer:<8} at {starts_at:%H:%M}"
+                        )
 
-                    except HttpError as exc:
-                        last_err = exc
-                        status = getattr(exc.resp, "status", None)
-                        message = str(exc)
+                    last_err = None
+                    break
 
-                        if status == 403 and "rateLimitExceeded" in message:
-                            sleep_seconds = BASE_SLEEP * (2 ** attempt)
-                            print(
-                                f"RATE LIMITED -> retrying in "
-                                f"{sleep_seconds:.1f}s "
-                                f"(attempt {attempt + 1}/{MAX_RETRIES})"
-                            )
-                            time.sleep(sleep_seconds)
-                            continue
+                except HttpError as exc:
+                    last_err = exc
+                    status = getattr(exc.resp, "status", None)
+                    message = str(exc)
 
-                        raise
+                    if status == 403 and "rateLimitExceeded" in message:
+                        sleep_seconds = BASE_SLEEP * (2 ** attempt)
+                        print(
+                            f"RATE LIMITED -> retrying in "
+                            f"{sleep_seconds:.1f}s "
+                            f"(attempt {attempt + 1}/{MAX_RETRIES})"
+                        )
+                        time.sleep(sleep_seconds)
+                        continue
 
-                if last_err is not None:
-                    raise last_err
-
-            except HttpError as exc:
-                if getattr(exc.resp, "status", None) == 409:
-                    total_skipped += 1
-                    print(
-                        f"SKIPPED (exists): {current_date:%Y-%m-%d} "
-                        f"{prayer:<8} at {starts_at:%H:%M}"
-                    )
-                else:
                     raise
+
+            if last_err is not None:
+                raise last_err
+
 
 
     print("\nMember sync complete.")
     print(f"Total attempted: {total_attempted}")
     print(f"Created:         {total_created}")
-    print(f"Skipped:         {total_skipped}")
+    print(f"Updated:         {total_updated}")
+
 
     mark_member_synced(member_id, calendar_id)
 
@@ -549,8 +549,9 @@ def main():
 
     print(f"Timetable covers: {start_date} through {end_date}")
 
-    members = fetch_pending_members()
-    print(f"Pending members found: {len(members)}")
+    members = fetch_connected_members()
+    print(f"Connected members found: {len(members)}")
+
 
     for member in members:
         try:
