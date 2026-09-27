@@ -142,21 +142,20 @@ def build_prayer_times_and_dates():
         "sonntag": 6,
     }
 
-pattern = (
-    r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)"
-    r"\s*,?\s*(?:dem\s+)?(\d{1,2})\s*\.\s*([A-Za-zÄÖÜäöü0-9]+)"
-)
-
-matches = re.findall(pattern, date_text, flags=re.IGNORECASE)
-
-print("DEBUG DATE MATCHES:")
-print(matches)
-
-if len(matches) != 2:
-    raise RuntimeError(
-        f"Could not identify both timetable dates. OCR text was: {repr(date_text)}"
+    pattern = (
+        r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)"
+        r"\s*,?\s*(?:dem\s+)?(\d{1,2})\s*\.\s*([A-Za-zÄÖÜäöü0-9]+)"
     )
 
+    matches = re.findall(pattern, date_text, flags=re.IGNORECASE)
+
+    print("DEBUG DATE MATCHES:")
+    print(matches)
+
+    if len(matches) != 2:
+        raise RuntimeError(
+            f"Could not identify both timetable dates. OCR text was: {repr(date_text)}"
+        )
 
     dates = []
     for weekday, day, month_text in matches:
@@ -225,6 +224,7 @@ if len(matches) != 2:
             prayer_times[prayer] = datetime.strptime(result, "%H:%M").time()
 
     return config, timezone_obj, start_date, end_date, day_count, prayer_times
+
 
 
 def choose_target_calendar(service):
