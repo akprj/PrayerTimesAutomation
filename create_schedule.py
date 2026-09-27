@@ -300,6 +300,7 @@ def fetch_connected_members():
     )
     return response.data or []
 
+
 def mark_member_synced(member_id: str, calendar_id: str):
     supabase.table("prayer_members").update(
         {
@@ -384,7 +385,21 @@ def upsert_event_handling_deleted(service, calendar_id, body):
             )
 
             if existing and event_status != "cancelled":
-                raise insert_error
+                updated_body = dict(candidate_body)
+                updated_body["id"] = candidate_id
+
+                print(
+                    f"EXISTS -> updating after conflict check: "
+                    f"{candidate_body['summary']} "
+                    f"on {candidate_body['start']['dateTime']}",
+                    flush=True,
+                )
+
+                return service.events().update(
+                    calendarId=calendar_id,
+                    eventId=candidate_id,
+                    body=updated_body,
+                ).execute(), "updated"
 
             replacement_key = (
                 f"{original_id}:replacement:{generation + 1}"
@@ -402,7 +417,6 @@ def upsert_event_handling_deleted(service, calendar_id, body):
     raise RuntimeError(
         "Reached the replacement-ID limit for a deleted event."
     )
-
 
 
 def sync_member(member, config, timezone_obj, start_date, day_count, prayer_times):
