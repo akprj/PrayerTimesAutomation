@@ -105,8 +105,10 @@ def build_prayer_times_and_dates():
     try:
         date_text = pytesseract.image_to_string(
             date_image,
-            lang="eng",
+            lang="deu+eng",
         )
+        print("DEBUG DATE OCR TEXT:")
+        print(repr(date_text))
     finally:
         date_image.close()
 
@@ -140,14 +142,21 @@ def build_prayer_times_and_dates():
         "sonntag": 6,
     }
 
-    pattern = (
-        r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)"
-        r"\s*,?\s*dem\s+(\d{1,2})\s*\.\s*([A-Za-zÄÖÜäöü]+)"
+pattern = (
+    r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)"
+    r"\s*,?\s*(?:dem\s+)?(\d{1,2})\s*\.\s*([A-Za-zÄÖÜäöü0-9]+)"
+)
+
+matches = re.findall(pattern, date_text, flags=re.IGNORECASE)
+
+print("DEBUG DATE MATCHES:")
+print(matches)
+
+if len(matches) != 2:
+    raise RuntimeError(
+        f"Could not identify both timetable dates. OCR text was: {repr(date_text)}"
     )
 
-    matches = re.findall(pattern, date_text, flags=re.IGNORECASE)
-    if len(matches) != 2:
-        raise RuntimeError("Could not identify both timetable dates.")
 
     dates = []
     for weekday, day, month_text in matches:
