@@ -291,16 +291,14 @@ def build_member_credentials(refresh_token: str) -> Credentials:
     return credentials
 
 
-def fetch_pending_members():
+def fetch_connected_members():
     response = (
         supabase.table("prayer_members")
         .select("*")
-        .eq("initial_sync_pending", True)
         .eq("connection_status", "connected")
         .execute()
     )
     return response.data or []
-
 
 def mark_member_synced(member_id: str, calendar_id: str):
     supabase.table("prayer_members").update(
@@ -322,7 +320,7 @@ def mark_member_reconnect_required(member_id: str):
     ).eq("id", member_id).execute()
 
 
-def insert_event_handling_deleted(service, calendar_id, body):
+def upsert_event_handling_deleted(service, calendar_id, body):
     original_id = body["id"]
     candidate_id = original_id
 
@@ -334,37 +332,49 @@ def insert_event_handling_deleted(service, calendar_id, body):
             return service.events().insert(
                 calendarId=calendar_id,
                 body=candidate_body,
-            ).execute()
+            ).execute(), "created"
 
         except HttpError as insert_error:
-            insert_status = getattr(
-                insert_error.resp, "status", None
-            )
+            insert_status = getattr(insert_error.resp, "status", None)
 
             if insert_status != 409:
                 raise
 
-            # A conflict does not necessarily mean an active event.
-            # Inspect the record associated with this ID.
             try:
                 existing = service.events().get(
                     calendarId=calendar_id,
                     eventId=candidate_id,
                 ).execute()
 
-            except HttpError as lookup_error:
-                lookup_status = getattr(
-                    lookup_error.resp, "status", None
+                print(
+                    f"EXISTS -> updating: {candidate_body['summary']} "
+                    f"on {candidate_body['start']['dateTime']}",
+                    flush=True,
                 )
+
+                updated_body = dict(candidate_body)
+                updated_body["id"] = candidate_id
+
+                return service.events().update(
+                    calendarId=calendar_id,
+                    eventId=candidate_id,
+                    body=updated_body,
+                ).execute(), "updated"
+
+            except HttpError as lookup_error:
+                lookup_status = getattr(lookup_error.resp, "status", None)
 
                 if lookup_status == 410:
                     existing = {"status": "cancelled"}
+                elif lookup_status == 404:
+                    existing = None
                 else:
-                    # Do not create a duplicate if the lookup
-                    # failed for an unknown reason.
                     raise
 
-            event_status = existing.get("status", "unknown")
+            event_status = (
+                existing.get("status", "unknown")
+                if existing else "not_found"
+            )
 
             print(
                 f"ID CONFLICT: {body['summary']} "
@@ -373,12 +383,9 @@ def insert_event_handling_deleted(service, calendar_id, body):
                 flush=True,
             )
 
-            if event_status != "cancelled":
-                # Let the existing outer handler skip this event.
+            if existing and event_status != "cancelled":
                 raise insert_error
 
-            # Deleted IDs may remain reserved by Google.
-            # Use a repeatable replacement ID instead.
             replacement_key = (
                 f"{original_id}:replacement:{generation + 1}"
             )
@@ -395,6 +402,7 @@ def insert_event_handling_deleted(service, calendar_id, body):
     raise RuntimeError(
         "Reached the replacement-ID limit for a deleted event."
     )
+
 
 
 def sync_member(member, config, timezone_obj, start_date, day_count, prayer_times):
@@ -428,7 +436,8 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
 
     total_attempted = 0
     total_created = 0
-    total_skipped = 0
+    total_updated = 0
+
 
     for offset in range(day_count):
         current_date = start_date + timedelta(days=offset)
