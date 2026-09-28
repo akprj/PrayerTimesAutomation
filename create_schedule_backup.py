@@ -3,6 +3,7 @@ import json
 import os
 import re
 import time
+from google.auth.exceptions import RefreshError
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -242,7 +243,13 @@ def choose_target_calendar(service):
 
     while True:
         response = service.calendarList().list(pageToken=page_token).execute()
-        calendars.extend(response.get("items", []))
+        calendars.extend(
+            calendar
+            for calendar in response.get("items", [])
+            if calendar.get("accessRole") in ("owner", "writer")
+            and not calendar.get("deleted", False)
+        )
+
         page_token = response.get("nextPageToken")
         if not page_token:
             break
@@ -396,6 +403,41 @@ def insert_event_handling_deleted(service, calendar_id, body):
         "Reached the replacement-ID limit for a deleted event."
     )
 
+def resolve_member_calendar(service, member):
+    saved_calendar_id = member.get("calendar_id")
+
+    if saved_calendar_id and saved_calendar_id != "primary":
+        try:
+            service.calendars().get(
+                calendarId=saved_calendar_id
+            ).execute()
+
+            return saved_calendar_id
+
+        except HttpError as exc:
+            status = getattr(exc.resp, "status", None)
+
+            if status not in (404, 410):
+                raise
+
+            print(
+                f"Saved calendar is no longer available: "
+                f"{saved_calendar_id!r}. Resolving another destination.",
+                flush=True,
+            )
+
+    calendar_id = choose_target_calendar(service)
+
+    if calendar_id != saved_calendar_id:
+        print(
+            f"Calendar destination changed: "
+            f"{saved_calendar_id!r} -> {calendar_id!r}",
+            flush=True,
+        )
+
+    return calendar_id
+
+
 
 def sync_member(member, config, timezone_obj, start_date, day_count, prayer_times):
     email = member.get("email") or "(unknown)"
@@ -413,9 +455,7 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
         cache_discovery=False,
     )
 
-    calendar_id = member.get("calendar_id")
-    if not calendar_id:
-        calendar_id = choose_target_calendar(service)
+    calendar_id = resolve_member_calendar(service, member)
 
     print(f"Using calendar_id: {calendar_id}")
     print(f"Timezone: {timezone_obj.key}")
@@ -553,18 +593,45 @@ def main():
                 day_count,
                 prayer_times,
             )
+
+        except RefreshError as exc:
+            invalid_grant = any(
+                isinstance(arg, dict)
+                and arg.get("error") == "invalid_grant"
+                for arg in exc.args
+            )
+
+            if invalid_grant:
+                mark_member_reconnect_required(member["id"])
+
+                print(
+                    f"SYNC DISABLED: {member.get('email')} — "
+                    "Google refresh token is no longer valid. "
+                    "Member must reconnect.",
+                    flush=True,
+                )
+            else:
+                print(
+                    f"Token refresh failed for {member.get('email')}: "
+                    "not a confirmed invalid_grant; "
+                    "connection status unchanged.",
+                    flush=True,
+                )
+
         except HttpError as exc:
             status = getattr(exc.resp, "status", None)
+
             print(
                 f"Google API error for {member.get('email')}: "
-                f"status={status}, message={exc}"
+                f"status={status}, message={exc}",
+                flush=True,
             )
-            if status in (400, 401):
-                mark_member_reconnect_required(member["id"])
+
         except Exception as exc:
             print(
                 f"Sync failed for {member.get('email')}: "
-                f"{type(exc).__name__}: {exc}"
+                f"{type(exc).__name__}: {exc}",
+                flush=True,
             )
 
 
