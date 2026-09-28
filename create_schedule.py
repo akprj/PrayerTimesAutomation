@@ -3,6 +3,7 @@ import json
 import os
 import re
 import time
+from google.auth.exceptions import RefreshError
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -568,18 +569,45 @@ def main():
                 day_count,
                 prayer_times,
             )
+
+        except RefreshError as exc:
+            invalid_grant = any(
+                isinstance(arg, dict)
+                and arg.get("error") == "invalid_grant"
+                for arg in exc.args
+            )
+
+            if invalid_grant:
+                mark_member_reconnect_required(member["id"])
+
+                print(
+                    f"SYNC DISABLED: {member.get('email')} — "
+                    "Google refresh token is no longer valid. "
+                    "Member must reconnect.",
+                    flush=True,
+                )
+            else:
+                print(
+                    f"Token refresh failed for {member.get('email')}: "
+                    "not a confirmed invalid_grant; "
+                    "connection status unchanged.",
+                    flush=True,
+                )
+
         except HttpError as exc:
             status = getattr(exc.resp, "status", None)
+
             print(
                 f"Google API error for {member.get('email')}: "
-                f"status={status}, message={exc}"
+                f"status={status}, message={exc}",
+                flush=True,
             )
-            if status in (400, 401):
-                mark_member_reconnect_required(member["id"])
+
         except Exception as exc:
             print(
                 f"Sync failed for {member.get('email')}: "
-                f"{type(exc).__name__}: {exc}"
+                f"{type(exc).__name__}: {exc}",
+                flush=True,
             )
 
 
