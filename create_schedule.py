@@ -146,25 +146,31 @@ def ocr_prepared_text(image, label: str, psm: int = 6) -> str:
             ("deu+eng", "deu+eng"),
         ]
 
-        results = []
+        results: list[tuple[str, str]] = []
 
-        for suffix, lang in variants:
+        for lang_name, lang in variants:
             text = pytesseract.image_to_string(
                 prepared,
                 lang=lang,
                 config=f"--psm {psm}",
             )
-            print(f"DEBUG {label} OCR TEXT ({lang}):")
+            print(f"DEBUG {label} OCR TEXT ({lang_name}):")
             print(repr(text))
-            results.append((lang, text))
+            results.append((lang_name, text))
 
-        for lang, text in results:
+        # Prefer any OCR output that contains digits (dates)
+        for _, text in results:
             if any(ch.isdigit() for ch in text):
                 return text
 
-        return results
+        # Fallback: best-effort return (or empty string)
+        if results:
+            return max((t for _, t in results), key=lambda s: len(s or "")) or ""
+        return ""
+
     finally:
         prepared.close()
+
 
 
 def resolve_timetable_dates(image, year: int):
