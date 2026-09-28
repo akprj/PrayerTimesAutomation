@@ -11,10 +11,12 @@ html {
   padding: 0;
 }
 
-/* Hide header/footer contents only on the success page */
-.success-page header > *,
-.success-page footer > * {
-    visibility: hidden;
+
+/* Hide header logo, header text, and footer text on success.html */
+body.success .header-logo,
+body.success .header-title,
+body.success .footer-text {
+    visibility: hidden !important;
 }
 
 
