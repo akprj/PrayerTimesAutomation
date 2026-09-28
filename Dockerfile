@@ -8,7 +8,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
+
 WORKDIR /app
+
 
 # Install Python deps first (faster rebuilds)
 COPY requirements.txt .
