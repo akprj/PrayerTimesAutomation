@@ -161,30 +161,31 @@ def resolve_timetable_dates(image, year: int):
             "DATE BLOCK A",
             (
                 int(width * 0.00),
-                int(height * 0.875),
+                int(height * 0.865),
                 int(width * 1.00),
-                int(height * 0.995),
+                int(height * 0.945),
             ),
         ),
         (
             "DATE BLOCK B",
             (
                 int(width * 0.02),
-                int(height * 0.870),
+                int(height * 0.862),
                 int(width * 0.98),
-                int(height * 0.995),
+                int(height * 0.944),
             ),
         ),
         (
             "DATE BLOCK C",
             (
                 int(width * 0.00),
-                int(height * 0.865),
+                int(height * 0.858),
                 int(width * 1.00),
-                int(height * 0.990),
+                int(height * 0.940),
             ),
         ),
     ]
+
 
     best_start = None
     best_end = None
