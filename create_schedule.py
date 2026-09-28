@@ -169,6 +169,7 @@ def ocr_prepared_text(image, label: str, psm: int = 6) -> str:
 
 
 
+
 def resolve_timetable_dates(image, year: int):
     width, height = image.size
 
