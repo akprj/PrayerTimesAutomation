@@ -201,6 +201,8 @@ def resolve_timetable_dates(image, year: int):
             full_end = extract_labeled_date(full_text, year, "end")
 
             half_height = date_block.height // 2
+            half_start = None
+            half_end = None
 
             start_crop = date_block.crop((0, 0, date_block.width, half_height))
             end_crop = date_block.crop((0, half_height, date_block.width, date_block.height))
