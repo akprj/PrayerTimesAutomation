@@ -163,7 +163,7 @@ def resolve_timetable_dates(image, year: int):
                 int(width * 0.00),
                 int(height * 0.865),
                 int(width * 1.00),
-                int(height * 0.945),
+                int(height * 0.932),
             ),
         ),
         (
@@ -172,7 +172,7 @@ def resolve_timetable_dates(image, year: int):
                 int(width * 0.02),
                 int(height * 0.862),
                 int(width * 0.98),
-                int(height * 0.944),
+                int(height * 0.930),
             ),
         ),
         (
@@ -181,10 +181,11 @@ def resolve_timetable_dates(image, year: int):
                 int(width * 0.00),
                 int(height * 0.858),
                 int(width * 1.00),
-                int(height * 0.940),
+                int(height * 0.928),
             ),
         ),
     ]
+
 
 
     best_start = None
