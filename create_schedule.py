@@ -401,7 +401,24 @@ def resolve_member_calendar(service, member):
     saved_calendar_id = member.get("calendar_id")
 
     if saved_calendar_id and saved_calendar_id != "primary":
-        return saved_calendar_id
+        try:
+            service.calendars().get(
+                calendarId=saved_calendar_id
+            ).execute()
+
+            return saved_calendar_id
+
+        except HttpError as exc:
+            status = getattr(exc.resp, "status", None)
+
+            if status not in (404, 410):
+                raise
+
+            print(
+                f"Saved calendar is no longer available: "
+                f"{saved_calendar_id!r}. Resolving another destination.",
+                flush=True,
+            )
 
     calendar_id = choose_target_calendar(service)
 
@@ -413,6 +430,7 @@ def resolve_member_calendar(service, member):
         )
 
     return calendar_id
+
 
 
 def sync_member(member, config, timezone_obj, start_date, day_count, prayer_times):
