@@ -193,6 +193,7 @@ def resolve_timetable_dates(image, year: int):
     seen_debug = []
 
     for block_label, box in candidate_boxes:
+        print(f"DEBUG {block_label} BOX: {box}")
         date_block = image.crop(box)
 
         try:
