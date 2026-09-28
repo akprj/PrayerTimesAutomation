@@ -396,6 +396,23 @@ def insert_event_handling_deleted(service, calendar_id, body):
         "Reached the replacement-ID limit for a deleted event."
     )
 
+def resolve_member_calendar(service, member):
+    saved_calendar_id = member.get("calendar_id")
+
+    if saved_calendar_id and saved_calendar_id != "primary":
+        return saved_calendar_id
+
+    calendar_id = choose_target_calendar(service)
+
+    if calendar_id != saved_calendar_id:
+        print(
+            f"Calendar destination changed: "
+            f"{saved_calendar_id!r} -> {calendar_id!r}",
+            flush=True,
+        )
+
+    return calendar_id
+
 
 def sync_member(member, config, timezone_obj, start_date, day_count, prayer_times):
     email = member.get("email") or "(unknown)"
