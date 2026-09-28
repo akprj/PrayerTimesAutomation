@@ -1,21 +1,11 @@
 FROM python:3.11-slim
 
-# Install tesseract + dependencies (including German/English traineddata)
+# Install tesseract + dependencies
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
-    tesseract-ocr-deu \
-    tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
-ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
-RUN echo "TESSDATA_PREFIX=$TESSDATA_PREFIX" && \
-    ls -la "$TESSDATA_PREFIX" && \
-    test -f "$TESSDATA_PREFIX/deu.traineddata" && \
-    test -f "$TESSDATA_PREFIX/eng.traineddata"
-
-
 WORKDIR /app
-
 
 # Install Python deps first (faster rebuilds)
 COPY requirements.txt .
@@ -26,7 +16,5 @@ COPY . .
 
 # If your app file is app.py and Flask app is `app`
 # Ensure your Render Start Command matches this gunicorn target.
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--workers", "1", "--worker-class", "gthread", "--threads", "4", "--timeout", "180", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
-
-
+CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
 
