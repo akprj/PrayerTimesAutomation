@@ -41,259 +41,6 @@ supabase = create_client(
 MAX_RETRIES = 8
 BASE_SLEEP = 1.0
 
-def normalize_ocr_text(text: str) -> str:
-    text = text.lower()
-
-    replacements = {
-        "gültig": "gultig",
-        "gültig": "gultig",
-        "giltig": "gultig",
-        "guitig": "gultig",
-        "okt.": "okt",
-        "sep.": "sep",
-        "nov.": "nov",
-        "dez.": "dez",
-        "mär.": "mär",
-        "maerz.": "maerz",
-    }
-
-    for old, new in replacements.items():
-        text = text.replace(old, new)
-
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
-
-
-def parse_german_date_fragment(fragment: str, year: int) -> date | None:
-    months = {
-        "jan": 1,
-        "feb": 2,
-        "mär": 3,
-        "mar": 3,
-        "maerz": 3,
-        "apr": 4,
-        "mai": 5,
-        "may": 5,
-        "jun": 6,
-        "jul": 7,
-        "aug": 8,
-        "sep": 9,
-        "okt": 10,
-        "oct": 10,
-        "nov": 11,
-        "dez": 12,
-        "dec": 12,
-    }
-
-    fragment = normalize_ocr_text(fragment)
-
-    match = re.search(
-        r"(\d{1,2})\s*\.\s*([a-zA-ZäöüÄÖÜ]+)",
-        fragment,
-        flags=re.IGNORECASE,
-    )
-    if not match:
-        return None
-
-    day = int(match.group(1))
-    month_text = match.group(2).lower().strip(". ")
-    month = months.get(month_text) or months.get(month_text[:3])
-
-    if month is None:
-        return None
-
-    return date(year, month, day)
-
-
-def extract_labeled_date(text: str, year: int, kind: str) -> date | None:
-    normalized = normalize_ocr_text(text)
-
-    if kind == "start":
-        patterns = [
-            r"gultig\s*ab\s*.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
-            r"\bab\s*samstag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
-            r"\bsamstag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
-        ]
-    else:
-        patterns = [
-            r"bis\s*zum\s*.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
-            r"\bbis\s*freitag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
-            r"\bfreitag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
-        ]
-
-    for pattern in patterns:
-        match = re.search(pattern, normalized, flags=re.IGNORECASE)
-        if match:
-            parsed = parse_german_date_fragment(match.group(1), year)
-            if parsed:
-                return parsed
-
-    return parse_german_date_fragment(normalized, year)
-
-def ocr_prepared_text(image, label: str, psm: int = 6) -> str:
-    prepared = ImageOps.grayscale(image)
-    prepared = prepared.resize(
-        (prepared.width * 4, prepared.height * 4),
-        Image.Resampling.LANCZOS,
-    )
-    prepared = ImageOps.autocontrast(prepared)
-    prepared = ImageOps.expand(prepared, border=20, fill="white")
-
-    try:
-        variants = [
-            ("deu", "deu"),
-            ("eng", "eng"),
-            ("deu+eng", "deu+eng"),
-        ]
-
-        results: list[tuple[str, str]] = []
-
-        for lang_name, lang in variants:
-            text = pytesseract.image_to_string(
-                prepared,
-                lang=lang,
-                config=f"--psm {psm}",
-            )
-            print(f"DEBUG {label} OCR TEXT ({lang_name}):")
-            print(repr(text))
-            results.append((lang_name, text))
-
-        # Prefer any OCR output that contains digits (dates)
-        for _, text in results:
-            if any(ch.isdigit() for ch in text):
-                return text
-
-        # Fallback: best-effort return (or empty string)
-        if results:
-            return max((t for _, t in results), key=lambda s: len(s or "")) or ""
-        return ""
-
-    finally:
-        prepared.close()
-
-
-
-def resolve_timetable_dates(image, year: int):
-    width, height = image.size
-
-    candidate_boxes = [
-        (
-            "DATE BLOCK A",
-            (
-                int(width * 0.00),
-                int(height * 0.865),
-                int(width * 1.00),
-                int(height * 0.932),
-            ),
-        ),
-        (
-            "DATE BLOCK B",
-            (
-                int(width * 0.02),
-                int(height * 0.862),
-                int(width * 0.98),
-                int(height * 0.930),
-            ),
-        ),
-        (
-            "DATE BLOCK C",
-            (
-                int(width * 0.00),
-                int(height * 0.858),
-                int(width * 1.00),
-                int(height * 0.928),
-            ),
-        ),
-    ]
-
-
-
-    best_start = None
-    best_end = None
-    seen_debug = []
-
-    for block_label, box in candidate_boxes:
-        print(f"DEBUG {block_label} BOX: {box}")
-        date_block = image.crop(box)
-
-        try:
-            full_text = ocr_prepared_text(date_block, f"{block_label} FULL", psm=6)
-            seen_debug.append(f"{block_label} FULL={full_text!r}")
-
-            full_start = extract_labeled_date(full_text, year, "start")
-            full_end = extract_labeled_date(full_text, year, "end")
-            print(f"DEBUG {block_label} PARSED FULL: start={full_start} end={full_end}")
-
-
-            half_height = date_block.height // 2
-            half_start = None
-            print(f"DEBUG {block_label} PARSED START HALF: {half_start}")
-            half_end = None
-            print(f"DEBUG {block_label} PARSED END HALF: {half_end}")
-
-
-            start_crop = date_block.crop((0, 0, date_block.width, half_height))
-            end_crop = date_block.crop((0, half_height, date_block.width, date_block.height))
-
-            try:
-                start_text = ocr_prepared_text(
-                    start_crop,
-                    f"{block_label} START HALF",
-                    psm=6,
-                )
-                seen_debug.append(f"{block_label} START={start_text!r}")
-                half_start = extract_labeled_date(start_text, year, "start")
-            finally:
-                start_crop.close()
-
-            try:
-                end_text = ocr_prepared_text(
-                    end_crop,
-                    f"{block_label} END HALF",
-                    psm=6,
-                )
-                seen_debug.append(f"{block_label} END={end_text!r}")
-                half_end = extract_labeled_date(end_text, year, "end")
-            finally:
-                end_crop.close()
-
-        finally:
-            date_block.close()
-
-        start_candidate = half_start or full_start
-        end_candidate = half_end or full_end
-
-        if start_candidate and start_candidate.weekday() == 5 and not best_start:
-            best_start = start_candidate
-
-        if end_candidate and end_candidate.weekday() == 4 and not best_end:
-            best_end = end_candidate
-
-        if best_start and best_end:
-            break
-
-    if best_start and best_end:
-        if (best_end - best_start).days != 6:
-            print(
-                f"WARNING: OCR found both dates but span was not 7 days: "
-                f"{best_start} -> {best_end}. Rebuilding end from start."
-            )
-            best_end = best_start + timedelta(days=6)
-
-    elif best_start and not best_end:
-        best_end = best_start + timedelta(days=6)
-
-    elif best_end and not best_start:
-        best_start = best_end - timedelta(days=6)
-
-    if not best_start or not best_end:
-        raise RuntimeError(
-            "Could not resolve timetable dates from OCR crops. "
-            + " | ".join(seen_debug)
-        )
-
-    return best_start, best_end
-
 
 def load_google_client_config():
     client_secrets_file = os.environ.get(
@@ -348,11 +95,75 @@ def build_prayer_times_and_dates():
         with Image.open(stream) as source:
             timetable_image = ImageOps.exif_transpose(source).convert("RGB")
 
-    start_date, end_date = resolve_timetable_dates(
-        timetable_image,
-        year,
+    date_image = ImageOps.grayscale(timetable_image)
+    date_image = date_image.resize(
+        (date_image.width * 3, date_image.height * 3),
+        Image.Resampling.LANCZOS,
+    )
+    date_image = ImageOps.autocontrast(date_image)
+
+    try:
+        date_text = pytesseract.image_to_string(
+            date_image,
+            lang="eng",
+        )
+    finally:
+        date_image.close()
+
+    months = {
+        "jan": 1,
+        "feb": 2,
+        "mär": 3,
+        "mar": 3,
+        "maerz": 3,
+        "apr": 4,
+        "mai": 5,
+        "may": 5,
+        "jun": 6,
+        "jul": 7,
+        "aug": 8,
+        "sep": 9,
+        "okt": 10,
+        "oct": 10,
+        "nov": 11,
+        "dez": 12,
+        "dec": 12,
+    }
+
+    weekdays = {
+        "montag": 0,
+        "dienstag": 1,
+        "mittwoch": 2,
+        "donnerstag": 3,
+        "freitag": 4,
+        "samstag": 5,
+        "sonntag": 6,
+    }
+
+    pattern = (
+        r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)"
+        r"\s*,?\s*dem\s+(\d{1,2})\s*\.\s*([A-Za-zÄÖÜäöü]+)"
     )
 
+    matches = re.findall(pattern, date_text, flags=re.IGNORECASE)
+    if len(matches) != 2:
+        raise RuntimeError("Could not identify both timetable dates.")
+
+    dates = []
+    for weekday, day, month_text in matches:
+        month_name = month_text.lower()
+        month = months.get(month_name) or months.get(month_name[:3])
+        if month is None:
+            raise RuntimeError(f"Unrecognised month: {month_text}")
+
+        parsed_date = date(year, month, int(day))
+
+        if parsed_date.weekday() != weekdays[weekday.lower()]:
+            raise RuntimeError(f"Weekday mismatch for {parsed_date}")
+
+        dates.append(parsed_date)
+
+    start_date, end_date = dates
     day_count = (end_date - start_date).days + 1
 
     if day_count != 7:
@@ -405,7 +216,6 @@ def build_prayer_times_and_dates():
             prayer_times[prayer] = datetime.strptime(result, "%H:%M").time()
 
     return config, timezone_obj, start_date, end_date, day_count, prayer_times
-
 
 
 def choose_target_calendar(service):
@@ -481,10 +291,11 @@ def build_member_credentials(refresh_token: str) -> Credentials:
     return credentials
 
 
-def fetch_connected_members():
+def fetch_pending_members():
     response = (
         supabase.table("prayer_members")
         .select("*")
+        .eq("initial_sync_pending", True)
         .eq("connection_status", "connected")
         .execute()
     )
@@ -511,7 +322,7 @@ def mark_member_reconnect_required(member_id: str):
     ).eq("id", member_id).execute()
 
 
-def upsert_event_handling_deleted(service, calendar_id, body):
+def insert_event_handling_deleted(service, calendar_id, body):
     original_id = body["id"]
     candidate_id = original_id
 
@@ -523,49 +334,37 @@ def upsert_event_handling_deleted(service, calendar_id, body):
             return service.events().insert(
                 calendarId=calendar_id,
                 body=candidate_body,
-            ).execute(), "created"
+            ).execute()
 
         except HttpError as insert_error:
-            insert_status = getattr(insert_error.resp, "status", None)
+            insert_status = getattr(
+                insert_error.resp, "status", None
+            )
 
             if insert_status != 409:
                 raise
 
+            # A conflict does not necessarily mean an active event.
+            # Inspect the record associated with this ID.
             try:
                 existing = service.events().get(
                     calendarId=calendar_id,
                     eventId=candidate_id,
                 ).execute()
 
-                print(
-                    f"EXISTS -> updating: {candidate_body['summary']} "
-                    f"on {candidate_body['start']['dateTime']}",
-                    flush=True,
-                )
-
-                updated_body = dict(candidate_body)
-                updated_body["id"] = candidate_id
-
-                return service.events().update(
-                    calendarId=calendar_id,
-                    eventId=candidate_id,
-                    body=updated_body,
-                ).execute(), "updated"
-
             except HttpError as lookup_error:
-                lookup_status = getattr(lookup_error.resp, "status", None)
+                lookup_status = getattr(
+                    lookup_error.resp, "status", None
+                )
 
                 if lookup_status == 410:
                     existing = {"status": "cancelled"}
-                elif lookup_status == 404:
-                    existing = None
                 else:
+                    # Do not create a duplicate if the lookup
+                    # failed for an unknown reason.
                     raise
 
-            event_status = (
-                existing.get("status", "unknown")
-                if existing else "not_found"
-            )
+            event_status = existing.get("status", "unknown")
 
             print(
                 f"ID CONFLICT: {body['summary']} "
@@ -574,23 +373,12 @@ def upsert_event_handling_deleted(service, calendar_id, body):
                 flush=True,
             )
 
-            if existing and event_status != "cancelled":
-                updated_body = dict(candidate_body)
-                updated_body["id"] = candidate_id
+            if event_status != "cancelled":
+                # Let the existing outer handler skip this event.
+                raise insert_error
 
-                print(
-                    f"EXISTS -> updating after conflict check: "
-                    f"{candidate_body['summary']} "
-                    f"on {candidate_body['start']['dateTime']}",
-                    flush=True,
-                )
-
-                return service.events().update(
-                    calendarId=calendar_id,
-                    eventId=candidate_id,
-                    body=updated_body,
-                ).execute(), "updated"
-
+            # Deleted IDs may remain reserved by Google.
+            # Use a repeatable replacement ID instead.
             replacement_key = (
                 f"{original_id}:replacement:{generation + 1}"
             )
@@ -640,8 +428,7 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
 
     total_attempted = 0
     total_created = 0
-    total_updated = 0
-
+    total_skipped = 0
 
     for offset in range(day_count):
         current_date = start_date + timedelta(days=offset)
@@ -689,57 +476,59 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
 
             total_attempted += 1
 
-            last_err = None
-            for attempt in range(MAX_RETRIES):
-                try:
-                    _, action = upsert_event_handling_deleted(
-                        service,
-                        calendar_id,
-                        body,
-                    )
+            try:
+                last_err = None
+                for attempt in range(MAX_RETRIES):
+                    try:
+                        insert_event_handling_deleted(
+                            service,
+                            calendar_id,
+                            body,
+                        )
 
-                    if action == "created":
                         total_created += 1
                         print(
                             f"CREATED: {current_date:%Y-%m-%d} "
                             f"{prayer:<8} at {starts_at:%H:%M}"
                         )
-                    else:
-                        total_updated += 1
-                        print(
-                            f"UPDATED: {current_date:%Y-%m-%d} "
-                            f"{prayer:<8} at {starts_at:%H:%M}"
-                        )
+                        last_err = None
+                        break
 
-                    last_err = None
-                    break
+                    except HttpError as exc:
+                        last_err = exc
+                        status = getattr(exc.resp, "status", None)
+                        message = str(exc)
 
-                except HttpError as exc:
-                    last_err = exc
-                    status = getattr(exc.resp, "status", None)
-                    message = str(exc)
+                        if status == 403 and "rateLimitExceeded" in message:
+                            sleep_seconds = BASE_SLEEP * (2 ** attempt)
+                            print(
+                                f"RATE LIMITED -> retrying in "
+                                f"{sleep_seconds:.1f}s "
+                                f"(attempt {attempt + 1}/{MAX_RETRIES})"
+                            )
+                            time.sleep(sleep_seconds)
+                            continue
 
-                    if status == 403 and "rateLimitExceeded" in message:
-                        sleep_seconds = BASE_SLEEP * (2 ** attempt)
-                        print(
-                            f"RATE LIMITED -> retrying in "
-                            f"{sleep_seconds:.1f}s "
-                            f"(attempt {attempt + 1}/{MAX_RETRIES})"
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
+                        raise
 
+                if last_err is not None:
+                    raise last_err
+
+            except HttpError as exc:
+                if getattr(exc.resp, "status", None) == 409:
+                    total_skipped += 1
+                    print(
+                        f"SKIPPED (exists): {current_date:%Y-%m-%d} "
+                        f"{prayer:<8} at {starts_at:%H:%M}"
+                    )
+                else:
                     raise
-
-            if last_err is not None:
-                raise last_err
 
 
     print("\nMember sync complete.")
     print(f"Total attempted: {total_attempted}")
     print(f"Created:         {total_created}")
-    print(f"Updated:         {total_updated}")
-
+    print(f"Skipped:         {total_skipped}")
 
     mark_member_synced(member_id, calendar_id)
 
@@ -751,9 +540,8 @@ def main():
 
     print(f"Timetable covers: {start_date} through {end_date}")
 
-    members = fetch_connected_members()
-    print(f"Connected members found: {len(members)}")
-
+    members = fetch_pending_members()
+    print(f"Pending members found: {len(members)}")
 
     for member in members:
         try:
