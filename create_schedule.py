@@ -243,7 +243,13 @@ def choose_target_calendar(service):
 
     while True:
         response = service.calendarList().list(pageToken=page_token).execute()
-        calendars.extend(response.get("items", []))
+        calendars.extend(
+            calendar
+            for calendar in response.get("items", [])
+            if calendar.get("accessRole") in ("owner", "writer")
+            and not calendar.get("deleted", False)
+        )
+
         page_token = response.get("nextPageToken")
         if not page_token:
             break
