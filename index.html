@@ -42,10 +42,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       box-sizing: border-box;
     }
 
-header > *,
-footer > * {
-    visibility: hidden;
+/* Hide header text and logo */
+.site-header .header-title,
+.site-header .header-logo {
+    visibility: hidden !important;
 }
+
+/* Hide footer contents but preserve its background and spacing */
+.site-footer * {
+    visibility: hidden !important;
+}
+
     
     body {
       margin: 0;
