@@ -1,5 +1,6 @@
 import os
 import json
+import glob
 import secrets
 from create_schedule import main as create_schedule_main
 from datetime import datetime, timedelta, timezone
@@ -10,6 +11,18 @@ from flask import Flask, redirect, request, session, render_template, send_from_
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from supabase import create_client
+
+print(
+    "DEBUG TESSDATA_PREFIX:",
+    os.environ.get("TESSDATA_PREFIX"),
+    flush=True,
+)
+print(
+    "DEBUG traineddata:",
+    glob.glob("/usr/share/tesseract-ocr/*/tessdata/*.traineddata"),
+    flush=True,
+)
+
 
 
 # Never permit insecure OAuth transport on the hosted service.
