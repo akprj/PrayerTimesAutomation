@@ -11,6 +11,14 @@ html {
   padding: 0;
 }
 
+/* Hide header/footer contents only on the success page */
+.success-page header > *,
+.success-page footer > * {
+    visibility: hidden;
+}
+
+
+
 body {
   width: 100%;
   min-width: 0;
