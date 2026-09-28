@@ -1,9 +1,12 @@
 FROM python:3.11-slim
 
-# Install tesseract + dependencies
+# Install tesseract + dependencies (including German/English traineddata)
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
+    tesseract-ocr-deu \
+    tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 
