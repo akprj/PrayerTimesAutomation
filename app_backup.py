@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from cryptography.fernet import Fernet
-from flask import Flask, redirect, request, session
+from flask import Flask, redirect, request, session, render_template, send_from_directory
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from supabase import create_client
@@ -42,7 +42,21 @@ def get_google_client_config():
         return None
     return json.loads(blob)
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=".",
+    static_folder="styles",
+    static_url_path="/styles",
+)
+
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, 'images'),
+        filename
+    )
+
+
 app.config.update(
     SECRET_KEY=os.environ["FLASK_SECRET_KEY"],
     SESSION_COOKIE_SECURE=True,
@@ -102,7 +116,6 @@ def index():
 @app.route("/health")
 def health():
     return {"status": "ok"}
-
 
 @app.route("/connect_google")
 def connect_google():
@@ -247,52 +260,49 @@ def oauth_callback():
 
         # On reconnect, preserve calendar_id, created_at, and last_synced_at.
         # For new members, database defaults populate omitted columns.
+        app.logger.warning("OAuth callback: saving connection to Supabase")
+
         supabase.table("prayer_members").upsert(
             member_data,
             on_conflict="google_sub",
         ).execute()
-        
+
+        app.logger.warning("OAuth callback: Supabase save completed")
+
         try:
+            app.logger.warning("OAuth callback: starting calendar creation")
+
             create_schedule_main()
-        except Exception as exc:
-            app.logger.error(
-                "Initial schedule creation failed; exception type: %s; message: %s",
-                type(exc).__name__,
-                str(exc),
+
+            app.logger.warning("OAuth callback: calendar function returned")
+        except Exception:
+            app.logger.exception(
+                "OAuth callback: initial calendar creation failed"
             )
 
-        return """
+        app.logger.warning("OAuth callback: starting success.html rendering")
 
-        <!doctype html>
-        <html lang="en">
-        <head>
-            <meta charset="utf-8">
-            <title>Google Calendar connected</title>
-        </head>
-        <body>
-            <h1>Google Calendar connected successfully</h1>
-            <p>Your account has been registered for prayer-time updates.</p>
-            <p>Your first calendar update is pending processing.</p>
-            <p>
-                <a href="https://akprj.github.io/PrayerTimesAutomation/">
-                    Return to the website
-                </a>
-            </p>
-        </body>
-        </html>
-        """
-
-    except Exception as exc:
-        app.logger.error(
-            "Google onboarding failed; exception type: %s; message: %s",
-            type(exc).__name__,
-            str(exc),
+        success_html = render_template(
+            "success.html",
+            user_email=email,
+            current_year=datetime.now().year,
         )
+
+        app.logger.warning(
+            "OAuth callback: success.html rendered; returning response"
+        )
+
+        return success_html
+
+    except Exception:
+        app.logger.exception("Google onboarding failed")
+
         return failure_page(
             "We could not finish connecting your account. "
             "Please try again later.",
             500,
         )
+
 
 
 if __name__ == "__main__":
