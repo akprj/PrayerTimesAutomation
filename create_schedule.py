@@ -413,9 +413,7 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
         cache_discovery=False,
     )
 
-    calendar_id = member.get("calendar_id")
-    if not calendar_id:
-        calendar_id = choose_target_calendar(service)
+    calendar_id = resolve_member_calendar(service, member)
 
     print(f"Using calendar_id: {calendar_id}")
     print(f"Timezone: {timezone_obj.key}")
