@@ -8,6 +8,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
+RUN echo "TESSDATA_PREFIX=$TESSDATA_PREFIX" && \
+    ls -la "$TESSDATA_PREFIX" && \
+    test -f "$TESSDATA_PREFIX/deu.traineddata" && \
+    test -f "$TESSDATA_PREFIX/eng.traineddata"
+
 
 WORKDIR /app
 
