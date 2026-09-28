@@ -41,6 +41,229 @@ supabase = create_client(
 MAX_RETRIES = 8
 BASE_SLEEP = 1.0
 
+def normalize_ocr_text(text: str) -> str:
+    text = text.lower()
+
+    replacements = {
+        "gültig": "gultig",
+        "gültig": "gultig",
+        "giltig": "gultig",
+        "guitig": "gultig",
+        "okt.": "okt",
+        "sep.": "sep",
+        "nov.": "nov",
+        "dez.": "dez",
+        "mär.": "mär",
+        "maerz.": "maerz",
+    }
+
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def parse_german_date_fragment(fragment: str, year: int) -> date | None:
+    months = {
+        "jan": 1,
+        "feb": 2,
+        "mär": 3,
+        "mar": 3,
+        "maerz": 3,
+        "apr": 4,
+        "mai": 5,
+        "may": 5,
+        "jun": 6,
+        "jul": 7,
+        "aug": 8,
+        "sep": 9,
+        "okt": 10,
+        "oct": 10,
+        "nov": 11,
+        "dez": 12,
+        "dec": 12,
+    }
+
+    fragment = normalize_ocr_text(fragment)
+
+    match = re.search(
+        r"(\d{1,2})\s*\.\s*([a-zA-ZäöüÄÖÜ]+)",
+        fragment,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+
+    day = int(match.group(1))
+    month_text = match.group(2).lower().strip(". ")
+    month = months.get(month_text) or months.get(month_text[:3])
+
+    if month is None:
+        return None
+
+    return date(year, month, day)
+
+
+def extract_labeled_date(text: str, year: int, kind: str) -> date | None:
+    normalized = normalize_ocr_text(text)
+
+    if kind == "start":
+        patterns = [
+            r"gultig\s*ab\s*.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
+            r"\bab\s*samstag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
+            r"\bsamstag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
+        ]
+    else:
+        patterns = [
+            r"bis\s*zum\s*.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
+            r"\bbis\s*freitag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
+            r"\bfreitag.*?(\d{1,2}\s*\.\s*[a-zA-ZäöüÄÖÜ]+)",
+        ]
+
+    for pattern in patterns:
+        match = re.search(pattern, normalized, flags=re.IGNORECASE)
+        if match:
+            parsed = parse_german_date_fragment(match.group(1), year)
+            if parsed:
+                return parsed
+
+    return parse_german_date_fragment(normalized, year)
+
+
+def ocr_prepared_text(image, label: str, psm: int = 6) -> str:
+    prepared = ImageOps.grayscale(image)
+    prepared = prepared.resize(
+        (prepared.width * 4, prepared.height * 4),
+        Image.Resampling.LANCZOS,
+    )
+    prepared = ImageOps.autocontrast(prepared)
+    prepared = ImageOps.expand(prepared, border=20, fill="white")
+
+    try:
+        text = pytesseract.image_to_string(
+            prepared,
+            lang="deu+eng",
+            config=f"--psm {psm}",
+        )
+        print(f"DEBUG {label} OCR TEXT:")
+        print(repr(text))
+        return text
+    finally:
+        prepared.close()
+
+
+def resolve_timetable_dates(image, year: int):
+    width, height = image.size
+
+    candidate_boxes = [
+        (
+            "DATE BLOCK A",
+            (
+                int(width * 0.00),
+                int(height * 0.875),
+                int(width * 1.00),
+                int(height * 0.995),
+            ),
+        ),
+        (
+            "DATE BLOCK B",
+            (
+                int(width * 0.02),
+                int(height * 0.870),
+                int(width * 0.98),
+                int(height * 0.995),
+            ),
+        ),
+        (
+            "DATE BLOCK C",
+            (
+                int(width * 0.00),
+                int(height * 0.865),
+                int(width * 1.00),
+                int(height * 0.990),
+            ),
+        ),
+    ]
+
+    best_start = None
+    best_end = None
+    seen_debug = []
+
+    for block_label, box in candidate_boxes:
+        date_block = image.crop(box)
+
+        try:
+            full_text = ocr_prepared_text(date_block, f"{block_label} FULL", psm=6)
+            seen_debug.append(f"{block_label} FULL={full_text!r}")
+
+            full_start = extract_labeled_date(full_text, year, "start")
+            full_end = extract_labeled_date(full_text, year, "end")
+
+            half_height = date_block.height // 2
+
+            start_crop = date_block.crop((0, 0, date_block.width, half_height))
+            end_crop = date_block.crop((0, half_height, date_block.width, date_block.height))
+
+            try:
+                start_text = ocr_prepared_text(
+                    start_crop,
+                    f"{block_label} START HALF",
+                    psm=6,
+                )
+                seen_debug.append(f"{block_label} START={start_text!r}")
+                half_start = extract_labeled_date(start_text, year, "start")
+            finally:
+                start_crop.close()
+
+            try:
+                end_text = ocr_prepared_text(
+                    end_crop,
+                    f"{block_label} END HALF",
+                    psm=6,
+                )
+                seen_debug.append(f"{block_label} END={end_text!r}")
+                half_end = extract_labeled_date(end_text, year, "end")
+            finally:
+                end_crop.close()
+
+        finally:
+            date_block.close()
+
+        start_candidate = half_start or full_start
+        end_candidate = half_end or full_end
+
+        if start_candidate and start_candidate.weekday() == 5 and not best_start:
+            best_start = start_candidate
+
+        if end_candidate and end_candidate.weekday() == 4 and not best_end:
+            best_end = end_candidate
+
+        if best_start and best_end:
+            break
+
+    if best_start and best_end:
+        if (best_end - best_start).days != 6:
+            print(
+                f"WARNING: OCR found both dates but span was not 7 days: "
+                f"{best_start} -> {best_end}. Rebuilding end from start."
+            )
+            best_end = best_start + timedelta(days=6)
+
+    elif best_start and not best_end:
+        best_end = best_start + timedelta(days=6)
+
+    elif best_end and not best_start:
+        best_start = best_end - timedelta(days=6)
+
+    if not best_start or not best_end:
+        raise RuntimeError(
+            "Could not resolve timetable dates from OCR crops. "
+            + " | ".join(seen_debug)
+        )
+
+    return best_start, best_end
+
 
 def load_google_client_config():
     client_secrets_file = os.environ.get(
@@ -95,83 +318,11 @@ def build_prayer_times_and_dates():
         with Image.open(stream) as source:
             timetable_image = ImageOps.exif_transpose(source).convert("RGB")
 
-    date_image = ImageOps.grayscale(timetable_image)
-    date_image = date_image.resize(
-        (date_image.width * 3, date_image.height * 3),
-        Image.Resampling.LANCZOS,
-    )
-    date_image = ImageOps.autocontrast(date_image)
-
-    try:
-        date_text = pytesseract.image_to_string(
-            date_image,
-            lang="deu+eng",
-        )
-        print("DEBUG DATE OCR TEXT:")
-        print(repr(date_text))
-    finally:
-        date_image.close()
-
-    months = {
-        "jan": 1,
-        "feb": 2,
-        "mär": 3,
-        "mar": 3,
-        "maerz": 3,
-        "apr": 4,
-        "mai": 5,
-        "may": 5,
-        "jun": 6,
-        "jul": 7,
-        "aug": 8,
-        "sep": 9,
-        "okt": 10,
-        "oct": 10,
-        "nov": 11,
-        "dez": 12,
-        "dec": 12,
-    }
-
-    weekdays = {
-        "montag": 0,
-        "dienstag": 1,
-        "mittwoch": 2,
-        "donnerstag": 3,
-        "freitag": 4,
-        "samstag": 5,
-        "sonntag": 6,
-    }
-
-    pattern = (
-        r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)"
-        r"\s*,?\s*(?:dem\s+)?(\d{1,2})\s*\.\s*([A-Za-zÄÖÜäöü0-9]+)"
+    start_date, end_date = resolve_timetable_dates(
+        timetable_image,
+        year,
     )
 
-    matches = re.findall(pattern, date_text, flags=re.IGNORECASE)
-
-    print("DEBUG DATE MATCHES:")
-    print(matches)
-
-    if len(matches) != 2:
-        raise RuntimeError(
-            f"Could not identify both timetable dates. OCR text was: {repr(date_text)}"
-        )
-
-    dates = []
-    for weekday, day, month_text in matches:
-        month_name = month_text.lower()
-        month = months.get(month_name) or months.get(month_name[:3])
-        if month is None:
-            raise RuntimeError(f"Unrecognised month: {month_text}")
-
-        parsed_date = date(year, month, int(day))
-
-        if parsed_date.weekday() != weekdays[weekday.lower()]:
-            raise RuntimeError(f"Weekday mismatch for {parsed_date}")
-
-        dates.append(parsed_date)
-
-    start_date, end_date = dates
     day_count = (end_date - start_date).days + 1
 
     if day_count != 7:
