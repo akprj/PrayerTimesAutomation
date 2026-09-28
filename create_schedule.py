@@ -130,7 +130,6 @@ def extract_labeled_date(text: str, year: int, kind: str) -> date | None:
 
     return parse_german_date_fragment(normalized, year)
 
-
 def ocr_prepared_text(image, label: str, psm: int = 6) -> str:
     prepared = ImageOps.grayscale(image)
     prepared = prepared.resize(
@@ -141,16 +140,33 @@ def ocr_prepared_text(image, label: str, psm: int = 6) -> str:
     prepared = ImageOps.expand(prepared, border=20, fill="white")
 
     try:
-        text = pytesseract.image_to_string(
-            prepared,
-            lang="deu+eng",
-            config=f"--psm {psm}",
-        )
-        print(f"DEBUG {label} OCR TEXT:")
-        print(repr(text))
-        return text
+        variants = [
+            ("deu", "deu"),
+            ("eng", "eng"),
+            ("deu+eng", "deu+eng"),
+        ]
+
+        results = []
+
+        for suffix, lang in variants:
+            text = pytesseract.image_to_string(
+                prepared,
+                lang=lang,
+                config=f"--psm {psm}",
+            )
+            print(f"DEBUG {label} OCR TEXT ({lang}):")
+            print(repr(text))
+            results.append((lang, text))
+
+        for lang, text in results:
+            if any(ch.isdigit() for ch in text):
+                return text
+
+        return results<a href="" class="citation-link" target="_blank" style="vertical-align: super; font-size: 0.8em; margin-left: 3px;">[0]</a><a href="" class="citation-link" target="_blank" style="vertical-align: super; font-size: 0.8em; margin-left: 3px;">[1]</a>
     finally:
         prepared.close()
+
+
 
 
 def resolve_timetable_dates(image, year: int):
