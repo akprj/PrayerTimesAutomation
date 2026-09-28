@@ -23,8 +23,6 @@ print(
     flush=True,
 )
 
-
-
 # Never permit insecure OAuth transport on the hosted service.
 os.environ.pop("OAUTHLIB_INSECURE_TRANSPORT", None)
 
