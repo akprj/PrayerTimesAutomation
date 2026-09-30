@@ -106,11 +106,13 @@ def build_prayer_times_and_dates():
     try:
         date_text = pytesseract.image_to_string(
             date_image,
-            lang="eng",
+            lang="eng+deu",
         )
     finally:
         date_image.close()
-
+    
+    print(f"RAW DATE OCR TEXT: {date_text!r}", flush=True)
+    
     months = {
         "jan": 1,
         "feb": 2,
@@ -141,36 +143,206 @@ def build_prayer_times_and_dates():
         "sonntag": 6,
     }
 
-    pattern = (
-        r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)"
-        r"\s*,?\s*dem\s+(\d{1,2})\s*\.\s*([A-Za-zÄÖÜäöü]+)"
+    weekday_pattern = (
+        r"Montag|Dienstag|Mittwoch|Donnerstag|"
+        r"Freitag|Samstag|Sonntag"
     )
 
-    matches = re.findall(pattern, date_text, flags=re.IGNORECASE)
-    if len(matches) != 2:
-        raise RuntimeError("Could not identify both timetable dates.")
+    pattern = (
+        r"\b(?:"
+        r"(?P<marker>ab|bis\s+zum|zum)\s+"
+        rf"(?:(?P<marked_weekday>{weekday_pattern})\s*,?\s*)?"
+        r"|"
+        rf"(?P<weekday>{weekday_pattern})\s*,?\s*"
+        r")"
+        r"(?:dem\s+)?"
+        r"(?P<day>\d{1,2})\s*[.,]?\s*"
+        r"(?P<month>[A-Za-zÄÖÜäöüß]+)\b"
+    )
 
-    dates = []
-    for weekday, day, month_text in matches:
+    matches = list(
+        re.finditer(pattern, date_text, flags=re.IGNORECASE)
+    )
+
+    print(
+        f"DATE MATCHES: {[match.group(0) for match in matches]!r}",
+        flush=True,
+    )
+
+    if not matches:
+        raise RuntimeError(
+            "Could not identify any timetable date. "
+            "Cannot safely infer the timetable week."
+        )
+
+    candidate_ranges = set()
+    detected_roles = set()
+
+    for match in matches:
+        marker = " ".join(
+            (match.group("marker") or "").lower().split()
+        )
+
+        weekday_text = (
+            match.group("marked_weekday")
+            or match.group("weekday")
+        )
+
+        month_text = match.group("month")
         month_name = month_text.lower()
         month = months.get(month_name) or months.get(month_name[:3])
+
+        # If the existing mapping fails, normalize to English.
         if month is None:
-            raise RuntimeError(f"Unrecognised month: {month_text}")
+            german_to_english = {
+                "jan": "January",
+                "feb": "February",
+                "mär": "March",
+                "mae": "March",
+                "mrz": "March",
+                "mar": "March",
+                "apr": "April",
+                "mai": "May",
+                "may": "May",
+                "jun": "June",
+                "jul": "July",
+                "aug": "August",
+                "sep": "September",
+                "okt": "October",
+                "oct": "October",
+                "nov": "November",
+                "dez": "December",
+                "dec": "December",
+            }
 
-        parsed_date = date(year, month, int(day))
+            english_month_numbers = {
+                "January": 1,
+                "February": 2,
+                "March": 3,
+                "April": 4,
+                "May": 5,
+                "June": 6,
+                "July": 7,
+                "August": 8,
+                "September": 9,
+                "October": 10,
+                "November": 11,
+                "December": 12,
+            }
 
-        if parsed_date.weekday() != weekdays[weekday.lower()]:
-            raise RuntimeError(f"Weekday mismatch for {parsed_date}")
+            english_month = german_to_english.get(month_name[:3])
+            month = english_month_numbers.get(english_month)
 
-        dates.append(parsed_date)
+            if month is not None:
+                print(
+                    f"MONTH FALLBACK: {month_text!r} -> "
+                    f"{english_month} ({month})",
+                    flush=True,
+                )
 
-    start_date, end_date = dates
+
+        if month is None:
+            raise RuntimeError(
+                f"Unrecognised month in date OCR: {month_text!r}"
+            )
+
+        try:
+            parsed_date = date(
+                year,
+                month,
+                int(match.group("day")),
+            )
+        except ValueError as exc:
+            raise RuntimeError(
+                f"Invalid timetable date: {match.group(0)!r}"
+            ) from exc
+
+        # Validate a weekday whenever OCR captured one.
+        if weekday_text:
+            expected_weekday = weekdays[weekday_text.lower()]
+
+            if parsed_date.weekday() != expected_weekday:
+                raise RuntimeError(
+                    f"Weekday mismatch: {match.group(0)!r} "
+                    f"does not agree with {parsed_date}."
+                )
+
+        # Identify which endpoint this date represents.
+        if marker == "ab":
+            role = "start"
+        elif marker in {"bis zum", "zum"}:
+            role = "end"
+        elif weekday_text and weekday_text.lower() == "samstag":
+            role = "start"
+        elif weekday_text and weekday_text.lower() == "freitag":
+            role = "end"
+        else:
+            raise RuntimeError(
+                f"Cannot identify a Saturday/Friday endpoint: "
+                f"{match.group(0)!r}"
+            )
+
+        if role == "start":
+            if parsed_date.weekday() != 5:
+                raise RuntimeError(
+                    f"Timetable start must be Saturday, "
+                    f"but detected {parsed_date}."
+                )
+
+            candidate_start = parsed_date
+            candidate_end = parsed_date + timedelta(days=6)
+
+        else:
+            if parsed_date.weekday() != 4:
+                raise RuntimeError(
+                    f"Timetable end must be Friday, "
+                    f"but detected {parsed_date}."
+                )
+
+            candidate_end = parsed_date
+            candidate_start = parsed_date - timedelta(days=6)
+
+        detected_roles.add(role)
+        candidate_ranges.add((candidate_start, candidate_end))
+
+    # If multiple dates were read, they must identify the same week.
+    if len(candidate_ranges) != 1:
+        raise RuntimeError(
+            "Detected timetable dates identify different weeks. "
+            "Refusing to infer an inconsistent date range."
+        )
+
+    start_date, end_date = next(iter(candidate_ranges))
     day_count = (end_date - start_date).days + 1
 
-    if day_count != 7:
+    if (
+        day_count != 7
+        or start_date.weekday() != 5
+        or end_date.weekday() != 4
+    ):
         raise RuntimeError(
-            f"Expected 7 days in timetable, found {day_count}."
+            f"Invalid Saturday–Friday timetable range: "
+            f"{start_date} to {end_date}."
         )
+
+    if detected_roles == {"start"}:
+        print(
+            f"DATE FALLBACK: Read Saturday {start_date}; "
+            f"inferred Friday {end_date}.",
+            flush=True,
+        )
+    elif detected_roles == {"end"}:
+        print(
+            f"DATE FALLBACK: Read Friday {end_date}; "
+            f"inferred Saturday {start_date}.",
+            flush=True,
+        )
+    else:
+        print(
+            f"DATE RANGE VERIFIED: {start_date} to {end_date}.",
+            flush=True,
+        )
+
 
     rows = [
         ("Fajr", 0.175, 0.255),
