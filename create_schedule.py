@@ -192,6 +192,55 @@ def build_prayer_times_and_dates():
         month_name = month_text.lower()
         month = months.get(month_name) or months.get(month_name[:3])
 
+        # If the existing mapping fails, normalize to English.
+        if month is None:
+            german_to_english = {
+                "jan": "January",
+                "feb": "February",
+                "mär": "March",
+                "mae": "March",
+                "mrz": "March",
+                "mar": "March",
+                "apr": "April",
+                "mai": "May",
+                "may": "May",
+                "jun": "June",
+                "jul": "July",
+                "aug": "August",
+                "sep": "September",
+                "okt": "October",
+                "oct": "October",
+                "nov": "November",
+                "dez": "December",
+                "dec": "December",
+            }
+
+            english_month_numbers = {
+                "January": 1,
+                "February": 2,
+                "March": 3,
+                "April": 4,
+                "May": 5,
+                "June": 6,
+                "July": 7,
+                "August": 8,
+                "September": 9,
+                "October": 10,
+                "November": 11,
+                "December": 12,
+            }
+
+            english_month = german_to_english.get(month_name[:3])
+            month = english_month_numbers.get(english_month)
+
+            if month is not None:
+                print(
+                    f"MONTH FALLBACK: {month_text!r} -> "
+                    f"{english_month} ({month})",
+                    flush=True,
+                )
+
+
         if month is None:
             raise RuntimeError(
                 f"Unrecognised month in date OCR: {month_text!r}"
