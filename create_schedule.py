@@ -106,7 +106,7 @@ def build_prayer_times_and_dates():
     try:
         date_text = pytesseract.image_to_string(
             date_image,
-            lang="eng",
+            lang="eng+deu",
         )
     finally:
         date_image.close()
