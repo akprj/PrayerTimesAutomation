@@ -267,12 +267,30 @@ def oauth_callback():
             on_conflict="google_sub",
         ).execute()
 
+        member_response = (
+            supabase.table("prayer_members")
+            .select("id")
+            .eq("google_sub", google_sub)
+            .single()
+            .execute()
+        )
+
+        saved_member = member_response.data
+
+        if not saved_member or not saved_member.get("id"):
+            raise RuntimeError(
+                "Could not retrieve the saved member ID."
+            )
+
+        current_member_id = saved_member["id"]
+
         app.logger.warning("OAuth callback: Supabase save completed")
+
 
         try:
             app.logger.warning("OAuth callback: starting calendar creation")
 
-            create_schedule_main()
+            create_schedule_main(member_id=current_member_id)
 
             app.logger.warning("OAuth callback: calendar function returned")
         except Exception:
