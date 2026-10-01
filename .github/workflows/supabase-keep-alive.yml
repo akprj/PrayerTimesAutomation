@@ -1,0 +1,32 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every 3 days (Monday, Thursday, Sunday, etc.)
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # Allows you to trigger it manually from GitHub anytime
+
+jobs:
+  ping-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          echo "Sending Keep-Alive ping to Supabase..."
+          
+          # Sends a lightweight HTTP POST to Supabase's built-in REST API.
+          # This triggers an internal database read without needing a custom table.
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "$SUPABASE_URL/rest/v1/" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+
+          if [ "$RESPONSE" -eq 200 ] || [ "$RESPONSE" -eq 404 ]; then
+            echo "Success! Database is awake. HTTP Status: $RESPONSE"
+          else
+            echo "Error: Ping failed with HTTP Status: $RESPONSE"
+            exit 1
+          fi
