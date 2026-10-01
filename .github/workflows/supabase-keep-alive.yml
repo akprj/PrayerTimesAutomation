@@ -21,15 +21,14 @@ jobs:
           URL=$(echo "$SUPABASE_URL" | xargs)
           KEY=$(echo "$SUPABASE_ANON_KEY" | xargs)
           
-          # Appending /rest/v1/ to make sure it hits the API root directly
-          # Sending the key in both the apikey header and Authorization header
+          # Querying the auth config health check which accepts public keys natively
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X GET "$URL/rest/v1/" \
+            -X GET "$URL/auth/v1/settings" \
             -H "apikey: $KEY" \
             -H "Authorization: Bearer $KEY")
 
-          if [ "$RESPONSE" -eq 200 ] || [ "$RESPONSE" -eq 404 ]; then
-            echo "Success! Database is awake. HTTP Status: $RESPONSE"
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "Success! Database wrapper is awake. HTTP Status: $RESPONSE"
           else
             echo "Error: Ping failed with HTTP Status: $RESPONSE"
             exit 1
