@@ -2,9 +2,9 @@ name: Supabase Keep-Alive Ping
 
 on:
   schedule:
-    # Runs at 00:00 UTC every 3 days (Monday, Thursday, Sunday, etc.)
+    # Runs at 00:00 UTC every 3 days (e.g., Monday, Thursday, Sunday)
     - cron: '0 0 */3 * *'
-  workflow_dispatch: # Allows you to trigger it manually from GitHub anytime
+  workflow_dispatch: # Allows you to manually click "Run workflow" anytime
 
 jobs:
   ping-db:
@@ -12,17 +12,21 @@ jobs:
     steps:
       - name: Ping Supabase Database
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.GH_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.GH_SUPABASE_KEY }}
         run: |
           echo "Sending Keep-Alive ping to Supabase..."
           
-          # Sends a lightweight HTTP POST to Supabase's built-in REST API.
-          # This triggers an internal database read without needing a custom table.
+          # Clean up any accidental leading/trailing spaces from secrets
+          URL=$(echo "$SUPABASE_URL" | xargs)
+          KEY=$(echo "$SUPABASE_ANON_KEY" | xargs)
+          
+          # Appending /rest/v1/ to make sure it hits the API root directly
+          # Sending the key in both the apikey header and Authorization header
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X GET "$SUPABASE_URL/rest/v1/" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+            -X GET "$URL/rest/v1/" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY")
 
           if [ "$RESPONSE" -eq 200 ] || [ "$RESPONSE" -eq 404 ]; then
             echo "Success! Database is awake. HTTP Status: $RESPONSE"
