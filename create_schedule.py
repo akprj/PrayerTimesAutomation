@@ -377,7 +377,7 @@ def build_prayer_times_and_dates():
 
             result = pytesseract.image_to_string(
                 crop,
-                lang="eng",
+                lang="eng+deu",
                 config="--psm 7 -c tessedit_char_whitelist=0123456789:",
             ).strip()
 
@@ -387,6 +387,12 @@ def build_prayer_times_and_dates():
                 )
 
             prayer_times[prayer] = datetime.strptime(result, "%H:%M").time()
+
+            print(
+                f"RECTANGLE OCR [{prayer}] VALIDATED TIME: "
+                f"{prayer_times[prayer].strftime('%H:%M')}",
+                flush=True,
+            )
 
     return config, timezone_obj, start_date, end_date, day_count, prayer_times
 
