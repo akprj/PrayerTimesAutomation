@@ -801,7 +801,7 @@ def build_prayer_times_and_dates():
         ("Juma", 0.685, 0.765),
     ]
 
-        prayer_times = {}
+    prayer_times = {}
 
     with timetable_image as image:
         width, height = image.size
