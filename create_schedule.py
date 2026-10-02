@@ -134,8 +134,110 @@ def extract_original_whole_image_times(text):
 
     return candidates
 
+def extract_prayer_band_times(image, words):
+    # "words" contains coordinates from the 4x enhanced whole-image scan.
+    scale = 4
 
-def extract_second_whole_image_times(image):
+    start_labels = {"fa", "fair", "fajr"}
+    end_labels = {"juma", "ju", "jum", "jumma", "jumuah"}
+
+    start_words = [
+        word
+        for word in words
+        if normalize_prayer_label(word["text"]) in start_labels
+        and word["confidence"] >= 30
+    ]
+
+    end_words = [
+        word
+        for word in words
+        if normalize_prayer_label(word["text"]) in end_labels
+        and word["confidence"] >= 30
+    ]
+
+    if not start_words or not end_words:
+        print(
+            "PRAYER BAND OCR SKIPPED: "
+            "could not locate both a Fajr/Fair/Fa start anchor "
+            "and a Juma/Ju/Jum end anchor.",
+            flush=True,
+        )
+        return {}
+
+    anchor_pairs = []
+
+    for start in start_words:
+        for end in end_words:
+            if end["center_y"] <= start["center_y"]:
+                continue
+
+            # Prayer labels should be in approximately the same column.
+            horizontal_tolerance = 3 * max(
+                start["height"],
+                end["height"],
+            )
+
+            if abs(start["left"] - end["left"]) > horizontal_tolerance:
+                continue
+
+            anchor_pairs.append((start, end))
+
+    if len(anchor_pairs) != 1:
+        print(
+            "PRAYER BAND OCR SKIPPED: "
+            f"expected one reliable anchor pair, found {len(anchor_pairs)}.",
+            flush=True,
+        )
+        return {}
+
+    # Include padding so the first and last rows are not clipped.
+    padding = max(start["height"], end["height"])
+
+    top = max(
+        0,
+        int((start["top"] - padding) / scale),
+    )
+
+    bottom = min(
+        image.height,
+        int(
+            (end["top"] + end["height"] + padding) / scale
+        ) + 1,
+    )
+
+    if bottom <= top:
+        print(
+            "PRAYER BAND OCR SKIPPED: invalid crop boundaries.",
+            flush=True,
+        )
+        return {}
+
+    print(
+        "PRAYER BAND OCR: "
+        f"start={start['text']!r}, end={end['text']!r}, "
+        f"full-width crop={(0, top, image.width, bottom)!r}",
+        flush=True,
+    )
+
+    with image.crop((0, top, image.width, bottom)) as band:
+        return extract_second_whole_image_times(
+            band,
+            allow_band_retry=False,
+        )
+
+
+def extract_second_whole_image_times(image, *, allow_band_retry=True):
+    aliases = dict(PRAYER_OCR_ALIASES)
+
+    if not allow_band_retry:
+        aliases.update(
+            {
+                "fa": "Fajr",
+                "ju": "Juma",
+                "jum": "Juma",
+            }
+        )
+
     # This timetable has dark text and a pale watermark.
     # Thresholding aims to suppress the watermark before sparse-text OCR.
     prepared = ImageOps.grayscale(image)
@@ -147,6 +249,7 @@ def extract_second_whole_image_times(image):
         )
     finally:
         prepared.close()
+
 
     try:
         contrasted = ImageOps.autocontrast(resized)
@@ -161,12 +264,17 @@ def extract_second_whole_image_times(image):
         contrasted.close()
 
     try:
+        # Whole image: sparse text.
+        # Cropped prayer band: a single text block.
+        psm = 11 if allow_band_retry else 6
+
         data = pytesseract.image_to_data(
             binary,
             lang="eng+deu",
-            config="--oem 3 --psm 11",
+            config=f"--oem 3 --psm {psm}",
             output_type=pytesseract.Output.DICT,
         )
+        
     finally:
         binary.close()
 
@@ -200,16 +308,14 @@ def extract_second_whole_image_times(image):
         f"{[word['text'] for word in words]!r}",
         flush=True,
     )
-
-
-
     
     candidates = {}
 
     for label in words:
-        prayer = PRAYER_OCR_ALIASES.get(
+        prayer = aliases.get(
             normalize_prayer_label(label["text"])
         )
+
 
         if prayer is None:
             continue
@@ -276,8 +382,61 @@ def extract_second_whole_image_times(image):
             flush=True,
         )
 
-    return candidates
+        if allow_band_retry:
+        expected_prayers = (
+            "Fajr",
+            "Zohar",
+            "Assr",
+            "Maghrib",
+            "Ishaa",
+            "Juma",
+        )
 
+        unresolved_prayers = [
+            prayer
+            for prayer in expected_prayers
+            if len(candidates.get(prayer, set())) != 1
+        ]
+
+        if unresolved_prayers:
+            print(
+                "SECOND WHOLE IMAGE OCR: "
+                "missing or ambiguous name/time pairs for "
+                + ", ".join(unresolved_prayers)
+                + "; attempting full-width prayer-band OCR.",
+                flush=True,
+            )
+
+            try:
+                band_candidates = extract_prayer_band_times(
+                    image,
+                    words,
+                )
+            except pytesseract.TesseractError as exc:
+                print(
+                    f"PRAYER BAND OCR FAILED: {exc}",
+                    flush=True,
+                )
+                band_candidates = {}
+
+                        for prayer, times in band_candidates.items():
+                candidates.setdefault(prayer, set()).update(times)
+
+            formatted_candidates = {
+                prayer: sorted(
+                    value.strftime("%H:%M") for value in times
+                )
+                for prayer, times in candidates.items()
+            }
+
+            print(
+                "SECOND WHOLE IMAGE OCR WITH BAND RETRY: "
+                f"{formatted_candidates!r}",
+                flush=True,
+            )
+
+    return candidates
+    
 
 def select_whole_image_fallback(prayer, original, second):
     original_times = original.get(prayer, set())
