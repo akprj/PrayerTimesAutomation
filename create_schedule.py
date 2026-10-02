@@ -111,7 +111,7 @@ def build_prayer_times_and_dates():
     finally:
         date_image.close()
     
-    print(f"RAW DATE OCR TEXT: {date_text!r}", flush=True)
+    print(f"WHOLE IMAGE OCR SCAN TEXT FOR WEEKSPAN: {date_text!r}", flush=True)
     
     months = {
         "jan": 1,
