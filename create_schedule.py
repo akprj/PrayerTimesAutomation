@@ -792,119 +792,116 @@ def build_prayer_times_and_dates():
     ]
 
     prayer_times = {}
-second_whole_image_times = None
+    second_whole_image_times = None
 
-with timetable_image as image:
-    width, height = image.size
+    with timetable_image as image:
+        width, height = image.size
 
-    for prayer, top, bottom in rows:
-        rectangle_time = None
+        for prayer, top, bottom in rows:
+            rectangle_time = None
 
-        with ExitStack() as stack:
-            crop = stack.enter_context(
-                image.crop(
-                    (
-                        int(width * 0.36),
-                        int(height * top),
-                        int(width * 0.67),
-                        int(height * bottom),
+            with ExitStack() as stack:
+                crop = stack.enter_context(
+                    image.crop(
+                        (
+                            int(width * 0.36),
+                            int(height * top),
+                            int(width * 0.67),
+                            int(height * bottom),
+                        )
                     )
                 )
-            )
 
-            crop = stack.enter_context(
-                ImageOps.grayscale(crop)
-            )
-            crop = stack.enter_context(
-                crop.resize(
-                    (crop.width * 4, crop.height * 4),
-                    Image.Resampling.LANCZOS,
+                crop = stack.enter_context(
+                    ImageOps.grayscale(crop)
                 )
-            )
-            crop = stack.enter_context(
-                ImageOps.autocontrast(crop)
-            )
-            crop = stack.enter_context(
-                ImageOps.expand(
-                    crop,
-                    border=20,
-                    fill="white",
+                crop = stack.enter_context(
+                    crop.resize(
+                        (crop.width * 4, crop.height * 4),
+                        Image.Resampling.LANCZOS,
+                    )
                 )
-            )
+                crop = stack.enter_context(
+                    ImageOps.autocontrast(crop)
+                )
+                crop = stack.enter_context(
+                    ImageOps.expand(
+                        crop,
+                        border=20,
+                        fill="white",
+                    )
+                )
 
-            try:
-                result = pytesseract.image_to_string(
-                    crop,
-                    lang="eng+deu",
-                    config=(
-                        "--psm 7 "
-                        "-c tessedit_char_whitelist=0123456789:"
-                    ),
-                ).strip()
+                try:
+                    result = pytesseract.image_to_string(
+                        crop,
+                        lang="eng+deu",
+                        config=(
+                            "--psm 7 "
+                            "-c tessedit_char_whitelist=0123456789:"
+                        ),
+                    ).strip()
 
-                if not re.fullmatch(r"\d\d:\d\d", result):
-                    raise ValueError(
-                        f"Invalid OCR time format: {result!r}"
+                    if not re.fullmatch(r"\d\d:\d\d", result):
+                        raise ValueError(
+                            f"Invalid OCR time format: {result!r}"
+                        )
+
+                    rectangle_time = datetime.strptime(
+                        result,
+                        "%H:%M",
+                    ).time()
+
+                except (pytesseract.TesseractError, ValueError) as exc:
+                    print(
+                        f"RECTANGLE OCR [{prayer}] FAILED: "
+                        f"{type(exc).__name__}: {exc}. "
+                        "Trying whole-image fallback.",
+                        flush=True,
                     )
 
-                rectangle_time = datetime.strptime(
-                    result,
-                    "%H:%M",
-                ).time()
+            if rectangle_time is not None:
+                prayer_times[prayer] = rectangle_time
 
-            except (pytesseract.TesseractError, ValueError) as exc:
                 print(
-                    f"RECTANGLE OCR [{prayer}] FAILED: "
-                    f"{type(exc).__name__}: {exc}. "
-                    "Trying whole-image fallback.",
+                    f"RECTANGLE OCR [{prayer}] VALIDATED TIME: "
+                    f"{rectangle_time.strftime('%H:%M')}",
                     flush=True,
                 )
 
-        if rectangle_time is not None:
-            prayer_times[prayer] = rectangle_time
+                continue
 
-            print(
-                f"RECTANGLE OCR [{prayer}] VALIDATED TIME: "
-                f"{rectangle_time.strftime('%H:%M')}",
-                flush=True,
-            )
-
-            continue
-
-        if second_whole_image_times is None:
-            try:
-                second_whole_image_times = (
-                    extract_second_whole_image_times(
-                        timetable_image
+            if second_whole_image_times is None:
+                try:
+                    second_whole_image_times = (
+                        extract_second_whole_image_times(
+                            timetable_image
+                        )
                     )
-                )
-            except pytesseract.TesseractError as exc:
-                print(
-                    f"SECOND WHOLE IMAGE OCR FAILED: {exc}",
-                    flush=True,
-                )
-                second_whole_image_times = {}
+                except pytesseract.TesseractError as exc:
+                    print(
+                        f"SECOND WHOLE IMAGE OCR FAILED: {exc}",
+                        flush=True,
+                    )
+                    second_whole_image_times = {}
 
-        fallback_time = select_whole_image_fallback(
-            prayer,
-            original_whole_image_times,
-            second_whole_image_times,
-        )
-
-        if fallback_time is None:
-            raise RuntimeError(
-                f"Could not safely determine the time for {prayer}: "
-                "rectangle OCR failed, and whole-image fallback "
-                "was missing or conflicting. "
-                "Stopping before calendar synchronization."
+            fallback_time = select_whole_image_fallback(
+                prayer,
+                original_whole_image_times,
+                second_whole_image_times,
             )
 
-        prayer_times[prayer] = fallback_time
+            if fallback_time is None:
+                raise RuntimeError(
+                    f"Could not safely determine the time for {prayer}: "
+                    "rectangle OCR failed, and whole-image fallback "
+                    "was missing or conflicting. "
+                    "Stopping before calendar synchronization."
+                )
 
-return config, timezone_obj, start_date, end_date, day_count, prayer_times
+            prayer_times[prayer] = fallback_time
 
-
-
+    return config, timezone_obj, start_date, end_date, day_count, prayer_times
 
 def choose_target_calendar(service):
     preferred_prefixes = [
