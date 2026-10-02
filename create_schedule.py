@@ -75,6 +75,247 @@ def stable_event_id(calendar_id: str, current_date: date, prayer: str) -> str:
     return hashlib.sha256(event_key.encode("utf-8")).hexdigest()
 
 
+PRAYER_OCR_ALIASES = {
+    "fajr": "Fajr",
+    "fair": "Fajr",
+    "zohar": "Zohar",
+    "zuhr": "Zohar",
+    "dhuhr": "Zohar",
+    "assr": "Assr",
+    "asr": "Assr",
+    "maghrib": "Maghrib",
+    "maghrib": "Maghrib",
+    "ishaa": "Ishaa",
+    "isha": "Ishaa",
+    "juma": "Juma",
+    "jumma": "Juma",
+    "jumuah": "Juma",
+}
+
+
+def normalize_prayer_label(text):
+    return re.sub(r"[^a-z]", "", text.lower())
+
+
+def parse_ocr_time(text):
+    compact = re.sub(r"\s+", "", text)
+
+    if not re.fullmatch(r"\d{1,2}:\d{2}", compact):
+        return None
+
+    try:
+        return datetime.strptime(compact, "%H:%M").time()
+    except ValueError:
+        return None
+
+
+def extract_original_whole_image_times(text):
+    candidates = {}
+
+    for line in text.splitlines():
+        # Only accept an explicit prayer/time pair on the same text line.
+        match = re.fullmatch(
+            r"\s*([A-Za-z'’.-]+)\s*[:|–-]?\s*"
+            r"(\d{1,2}\s*:\s*\d{2})\s*(?:Uhr)?\s*",
+            line,
+            flags=re.IGNORECASE,
+        )
+
+        if not match:
+            continue
+
+        prayer = PRAYER_OCR_ALIASES.get(
+            normalize_prayer_label(match.group(1))
+        )
+        prayer_time = parse_ocr_time(match.group(2))
+
+        if prayer and prayer_time is not None:
+            candidates.setdefault(prayer, set()).add(prayer_time)
+
+    return candidates
+
+
+def extract_second_whole_image_times(image):
+    # This timetable has dark text and a pale watermark.
+    # Thresholding aims to suppress the watermark before sparse-text OCR.
+    prepared = ImageOps.grayscale(image)
+
+    try:
+        resized = prepared.resize(
+            (prepared.width * 4, prepared.height * 4),
+            Image.Resampling.LANCZOS,
+        )
+    finally:
+        prepared.close()
+
+    try:
+        contrasted = ImageOps.autocontrast(resized)
+    finally:
+        resized.close()
+
+    try:
+        binary = contrasted.point(
+            lambda pixel: 0 if pixel < 145 else 255
+        )
+    finally:
+        contrasted.close()
+
+    try:
+        data = pytesseract.image_to_data(
+            binary,
+            lang="eng+deu",
+            config="--oem 3 --psm 11",
+            output_type=pytesseract.Output.DICT,
+        )
+    finally:
+        binary.close()
+
+    words = []
+
+    for index, raw_text in enumerate(data["text"]):
+        text = raw_text.strip()
+
+        if not text:
+            continue
+
+        left = int(data["left"][index])
+        top = int(data["top"][index])
+        width = int(data["width"][index])
+        height = int(data["height"][index])
+
+        words.append(
+            {
+                "text": text,
+                "left": left,
+                "right": left + width,
+                "top": top,
+                "height": height,
+                "center_y": top + height / 2,
+                "confidence": float(data["conf"][index]),
+            }
+        )
+
+    print(
+        "SECOND WHOLE IMAGE OCR TOKENS: "
+        f"{[word['text'] for word in words]!r}",
+        flush=True,
+    )
+
+
+
+    
+    candidates = {}
+
+    for label in words:
+        prayer = PRAYER_OCR_ALIASES.get(
+            normalize_prayer_label(label["text"])
+        )
+
+        if prayer is None:
+            continue
+
+        if label["confidence"] < 30:
+            print(
+                f"SECOND WHOLE IMAGE OCR [{prayer}]: "
+                "label confidence too low; ignoring.",
+                flush=True,
+            )
+            continue
+
+        right_hand_words = sorted(
+            (
+                word
+                for word in words
+                if word["left"] >= label["right"]
+                and abs(word["center_y"] - label["center_y"])
+                <= 0.45 * max(word["height"], label["height"])
+            ),
+            key=lambda word: word["left"],
+        )
+
+        row_times = set()
+
+        for start in range(len(right_hand_words)):
+            # Support "06:40", "06:" + "40", and "06" + ":" + "40".
+            for length in (1, 2, 3):
+                parts = right_hand_words[start:start + length]
+
+                if len(parts) != length:
+                    continue
+
+                if any(part["confidence"] < 30 for part in parts):
+                    continue
+
+                # Do not join widely separated pieces of text.
+                if any(
+                    second["left"] - first["right"]
+                    > 1.5 * max(
+                        first["height"],
+                        second["height"],
+                        label["height"],
+                    )
+                    for first, second in zip(parts, parts[1:])
+                ):
+                    continue
+
+                combined = "".join(part["text"] for part in parts)
+                prayer_time = parse_ocr_time(combined)
+
+                if prayer_time is not None:
+                    row_times.add(prayer_time)
+
+        if row_times:
+            candidates.setdefault(prayer, set()).update(row_times)
+
+        print(
+            f"SECOND WHOLE IMAGE OCR [{prayer}] "
+            f"RIGHT-HAND TEXT: "
+            f"{[word['text'] for word in right_hand_words]!r}; "
+            f"TIME CANDIDATES: "
+            f"{sorted(value.strftime('%H:%M') for value in row_times)!r}",
+            flush=True,
+        )
+
+    return candidates
+
+
+def select_whole_image_fallback(prayer, original, second):
+    original_times = original.get(prayer, set())
+    second_times = second.get(prayer, set())
+    combined = original_times | second_times
+
+    # Reject ambiguous results, including disagreements between scans.
+    if len(combined) > 1:
+        print(
+            f"WHOLE IMAGE FALLBACK [{prayer}] REJECTED: "
+            f"conflicting times "
+            f"{sorted(value.strftime('%H:%M') for value in combined)!r}",
+            flush=True,
+        )
+        return None
+
+    if not combined:
+        return None
+
+    prayer_time = next(iter(combined))
+    source = (
+        "original whole-image scan"
+        if prayer_time in original_times
+        else "second whole-image scan"
+    )
+
+    print(
+        f"WHOLE IMAGE FALLBACK [{prayer}] VALIDATED TIME: "
+        f"{prayer_time.strftime('%H:%M')} from {source}",
+        flush=True,
+    )
+
+    return prayer_time
+
+
+
+
+
 def build_prayer_times_and_dates():
     config = json.loads((BASE_DIR / "config.json").read_text(encoding="utf-8"))
     timezone_obj = ZoneInfo(config["timezone"])
@@ -112,6 +353,41 @@ def build_prayer_times_and_dates():
         date_image.close()
     
     print(f"WHOLE IMAGE OCR SCAN TEXT FOR WEEKSPAN: {date_text!r}", flush=True)
+
+    original_whole_image_times = extract_original_whole_image_times(
+        date_text
+    )
+
+    try:
+        second_whole_image_times = extract_second_whole_image_times(
+            timetable_image
+        )
+    except pytesseract.TesseractError as exc:
+        print(
+            f"SECOND WHOLE IMAGE OCR FAILED: {exc}",
+            flush=True,
+        )
+        second_whole_image_times = {}
+
+    months = {
+        "jan": 1,
+        "feb": 2,
+        "mär": 3,
+        "mar": 3,
+        "maerz": 3,
+        "apr": 4,
+        "mai": 5,
+        "may": 5,
+        "jun": 6,
+        "jul": 7,
+        "aug": 8,
+        "sep": 9,
+        "okt": 10,
+        "oct": 10,
+        "nov": 11,
+        "dez": 12,
+        "dec": 12,
+    }
     
     months = {
         "jan": 1,
