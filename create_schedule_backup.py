@@ -5,6 +5,7 @@ import re
 import time
 from google.auth.exceptions import RefreshError
 from datetime import date, datetime, timedelta, timezone
+from contextlib import ExitStack
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -75,6 +76,404 @@ def stable_event_id(calendar_id: str, current_date: date, prayer: str) -> str:
     return hashlib.sha256(event_key.encode("utf-8")).hexdigest()
 
 
+PRAYER_OCR_ALIASES = {
+    "fajr": "Fajr",
+    "fair": "Fajr",
+    "zohar": "Zohar",
+    "zuhr": "Zohar",
+    "dhuhr": "Zohar",
+    "assr": "Assr",
+    "asr": "Assr",
+    "maghrib": "Maghrib",
+    "ishaa": "Ishaa",
+    "isha": "Ishaa",
+    "juma": "Juma",
+    "jumma": "Juma",
+    "jumuah": "Juma",
+}
+
+
+def normalize_prayer_label(text):
+    return re.sub(r"[^a-z]", "", text.lower())
+
+
+def parse_ocr_time(text):
+    compact = re.sub(r"\s+", "", text)
+
+    if not re.fullmatch(r"\d{1,2}:\d{2}", compact):
+        return None
+
+    try:
+        return datetime.strptime(compact, "%H:%M").time()
+    except ValueError:
+        return None
+
+
+def extract_original_whole_image_times(text):
+    candidates = {}
+
+    for line in text.splitlines():
+        # Only accept an explicit prayer/time pair on the same text line.
+        match = re.fullmatch(
+            r"\s*([A-Za-z'’.-]+)\s*[:|–-]?\s*"
+            r"(\d{1,2}\s*:\s*\d{2})\s*(?:Uhr)?\s*",
+            line,
+            flags=re.IGNORECASE,
+        )
+
+        if not match:
+            continue
+
+        prayer = PRAYER_OCR_ALIASES.get(
+            normalize_prayer_label(match.group(1))
+        )
+        prayer_time = parse_ocr_time(match.group(2))
+
+        if prayer and prayer_time is not None:
+            candidates.setdefault(prayer, set()).add(prayer_time)
+
+    return candidates
+
+def extract_prayer_band_times(image, words):
+    # "words" contains coordinates from the 4x enhanced whole-image scan.
+    scale = 4
+
+    start_labels = {"fa", "fair", "fajr"}
+    end_labels = {"juma", "ju", "jum", "jumma", "jumuah"}
+
+    start_words = [
+        word
+        for word in words
+        if normalize_prayer_label(word["text"]) in start_labels
+        and word["confidence"] >= 30
+    ]
+
+    end_words = [
+        word
+        for word in words
+        if normalize_prayer_label(word["text"]) in end_labels
+        and word["confidence"] >= 30
+    ]
+
+    if not start_words or not end_words:
+        print(
+            "PRAYER BAND OCR SKIPPED: "
+            "could not locate both a Fajr/Fair/Fa start anchor "
+            "and a Juma/Ju/Jum end anchor.",
+            flush=True,
+        )
+        return {}
+
+    anchor_pairs = []
+
+    for start in start_words:
+        for end in end_words:
+            if end["center_y"] <= start["center_y"]:
+                continue
+
+            # Prayer labels should be in approximately the same column.
+            horizontal_tolerance = 3 * max(
+                start["height"],
+                end["height"],
+            )
+
+            if abs(start["left"] - end["left"]) > horizontal_tolerance:
+                continue
+
+            anchor_pairs.append((start, end))
+
+    if len(anchor_pairs) != 1:
+        print(
+            "PRAYER BAND OCR SKIPPED: "
+            f"expected one reliable anchor pair, found {len(anchor_pairs)}.",
+            flush=True,
+        )
+        return {}
+
+    (start, end), = anchor_pairs
+    
+    # Include padding so the first and last rows are not clipped.
+    padding = max(start["height"], end["height"])
+
+    top = max(
+        0,
+        int((start["top"] - padding) / scale),
+    )
+
+    bottom = min(
+        image.height,
+        int(
+            (end["top"] + end["height"] + padding) / scale
+        ) + 1,
+    )
+
+    if bottom <= top:
+        print(
+            "PRAYER BAND OCR SKIPPED: invalid crop boundaries.",
+            flush=True,
+        )
+        return {}
+
+    print(
+        "PRAYER BAND OCR: "
+        f"start={start['text']!r}, end={end['text']!r}, "
+        f"full-width crop={(0, top, image.width, bottom)!r}",
+        flush=True,
+    )
+
+    with image.crop((0, top, image.width, bottom)) as band:
+        return extract_second_whole_image_times(
+            band,
+            allow_band_retry=False,
+        )
+
+
+def extract_second_whole_image_times(image, *, allow_band_retry=True):
+    aliases = dict(PRAYER_OCR_ALIASES)
+
+    if not allow_band_retry:
+        aliases.update(
+            {
+                "fa": "Fajr",
+                "ju": "Juma",
+                "jum": "Juma",
+            }
+        )
+
+    # This timetable has dark text and a pale watermark.
+    # Thresholding aims to suppress the watermark before sparse-text OCR.
+    prepared = ImageOps.grayscale(image)
+
+    try:
+        resized = prepared.resize(
+            (prepared.width * 4, prepared.height * 4),
+            Image.Resampling.LANCZOS,
+        )
+    finally:
+        prepared.close()
+
+
+    try:
+        contrasted = ImageOps.autocontrast(resized)
+    finally:
+        resized.close()
+
+    try:
+        binary = contrasted.point(
+            lambda pixel: 0 if pixel < 145 else 255
+        )
+    finally:
+        contrasted.close()
+
+    try:
+        # Whole image: sparse text.
+        # Cropped prayer band: a single text block.
+        psm = 11 if allow_band_retry else 6
+
+        data = pytesseract.image_to_data(
+            binary,
+            lang="eng+deu",
+            config=f"--oem 3 --psm {psm}",
+            output_type=pytesseract.Output.DICT,
+        )
+        
+    finally:
+        binary.close()
+
+    words = []
+
+    for index, raw_text in enumerate(data["text"]):
+        text = raw_text.strip()
+
+        if not text:
+            continue
+
+        left = int(data["left"][index])
+        top = int(data["top"][index])
+        width = int(data["width"][index])
+        height = int(data["height"][index])
+
+        words.append(
+            {
+                "text": text,
+                "left": left,
+                "right": left + width,
+                "top": top,
+                "height": height,
+                "center_y": top + height / 2,
+                "confidence": float(data["conf"][index]),
+            }
+        )
+
+    print(
+        "SECOND WHOLE IMAGE OCR TOKENS: "
+        f"{[word['text'] for word in words]!r}",
+        flush=True,
+    )
+    
+    candidates = {}
+
+    for label in words:
+        prayer = aliases.get(
+            normalize_prayer_label(label["text"])
+        )
+
+
+        if prayer is None:
+            continue
+
+        if label["confidence"] < 30:
+            print(
+                f"SECOND WHOLE IMAGE OCR [{prayer}]: "
+                "label confidence too low; ignoring.",
+                flush=True,
+            )
+            continue
+
+        right_hand_words = sorted(
+            (
+                word
+                for word in words
+                if word["left"] >= label["right"]
+                and abs(word["center_y"] - label["center_y"])
+                <= 0.45 * max(word["height"], label["height"])
+            ),
+            key=lambda word: word["left"],
+        )
+
+        row_times = set()
+
+        for start in range(len(right_hand_words)):
+            # Support "06:40", "06:" + "40", and "06" + ":" + "40".
+            for length in (1, 2, 3):
+                parts = right_hand_words[start:start + length]
+
+                if len(parts) != length:
+                    continue
+
+                if any(part["confidence"] < 30 for part in parts):
+                    continue
+
+                # Do not join widely separated pieces of text.
+                if any(
+                    second["left"] - first["right"]
+                    > 1.5 * max(
+                        first["height"],
+                        second["height"],
+                        label["height"],
+                    )
+                    for first, second in zip(parts, parts[1:])
+                ):
+                    continue
+
+                combined = "".join(part["text"] for part in parts)
+                prayer_time = parse_ocr_time(combined)
+
+                if prayer_time is not None:
+                    row_times.add(prayer_time)
+
+        if row_times:
+            candidates.setdefault(prayer, set()).update(row_times)
+
+        print(
+            f"SECOND WHOLE IMAGE OCR [{prayer}] "
+            f"RIGHT-HAND TEXT: "
+            f"{[word['text'] for word in right_hand_words]!r}; "
+            f"TIME CANDIDATES: "
+            f"{sorted(value.strftime('%H:%M') for value in row_times)!r}",
+            flush=True,
+        )
+
+    if allow_band_retry:
+        expected_prayers = (
+            "Fajr",
+            "Zohar",
+            "Assr",
+            "Maghrib",
+            "Ishaa",
+            "Juma",
+        )
+
+        unresolved_prayers = [
+            prayer
+            for prayer in expected_prayers
+            if len(candidates.get(prayer, set())) != 1
+        ]
+
+        if unresolved_prayers:
+            print(
+                "SECOND WHOLE IMAGE OCR: "
+                "missing or ambiguous name/time pairs for "
+                + ", ".join(unresolved_prayers)
+                + "; attempting full-width prayer-band OCR.",
+                flush=True,
+            )
+
+            try:
+                band_candidates = extract_prayer_band_times(
+                    image,
+                    words,
+                )
+            except pytesseract.TesseractError as exc:
+                print(
+                    f"PRAYER BAND OCR FAILED: {exc}",
+                    flush=True,
+                )
+                band_candidates = {}
+
+            for prayer, times in band_candidates.items():
+                candidates.setdefault(prayer, set()).update(times)
+
+            formatted_candidates = {
+                prayer: sorted(
+                    value.strftime("%H:%M") for value in times
+                )
+                for prayer, times in candidates.items()
+            }
+
+            print(
+                "SECOND WHOLE IMAGE OCR WITH BAND RETRY: "
+                f"{formatted_candidates!r}",
+                flush=True,
+            )
+
+    return candidates
+
+
+def select_whole_image_fallback(prayer, original, second):
+    original_times = original.get(prayer, set())
+    second_times = second.get(prayer, set())
+    combined = original_times | second_times
+
+    # Reject ambiguous results, including disagreements between scans.
+    if len(combined) > 1:
+        print(
+            f"WHOLE IMAGE FALLBACK [{prayer}] REJECTED: "
+            f"conflicting times "
+            f"{sorted(value.strftime('%H:%M') for value in combined)!r}",
+            flush=True,
+        )
+        return None
+
+    if not combined:
+        return None
+
+    prayer_time = next(iter(combined))
+    source = (
+        "original whole-image scan"
+        if prayer_time in original_times
+        else "second whole-image scan"
+    )
+
+    print(
+        f"WHOLE IMAGE FALLBACK [{prayer}] VALIDATED TIME: "
+        f"{prayer_time.strftime('%H:%M')} from {source}",
+        flush=True,
+    )
+
+    return prayer_time
+
+
 def build_prayer_times_and_dates():
     config = json.loads((BASE_DIR / "config.json").read_text(encoding="utf-8"))
     timezone_obj = ZoneInfo(config["timezone"])
@@ -111,14 +510,21 @@ def build_prayer_times_and_dates():
     finally:
         date_image.close()
     
-    print(f"RAW DATE OCR TEXT: {date_text!r}", flush=True)
-    
+    print(f"WHOLE IMAGE OCR SCAN TEXT FOR WEEKSPAN: {date_text!r}", flush=True)
+
+    original_whole_image_times = extract_original_whole_image_times(
+        date_text
+    )
+
+
     months = {
         "jan": 1,
         "feb": 2,
         "mär": 3,
         "mar": 3,
+        "mae": 3,
         "maerz": 3,
+        "mrz": 3,
         "apr": 4,
         "mai": 5,
         "may": 5,
@@ -158,6 +564,7 @@ def build_prayer_times_and_dates():
         r"(?:dem\s+)?"
         r"(?P<day>\d{1,2})\s*[.,]?\s*"
         r"(?P<month>[A-Za-zÄÖÜäöüß]+)\b"
+        r"(?:\s*[.,]?\s*(?P<year>\d{4})\b)?"
     )
 
     matches = list(
@@ -175,9 +582,11 @@ def build_prayer_times_and_dates():
             "Cannot safely infer the timetable week."
         )
 
-    candidate_ranges = set()
+    date_records = []
     detected_roles = set()
+    explicit_years = set()
 
+    # Read date components before assigning any inferred year.
     for match in matches:
         marker = " ".join(
             (match.group("marker") or "").lower().split()
@@ -188,93 +597,32 @@ def build_prayer_times_and_dates():
             or match.group("weekday")
         )
 
+        weekday_name = (
+            weekday_text.lower() if weekday_text else None
+        )
+
+        expected_weekday = (
+            weekdays[weekday_name]
+            if weekday_name is not None
+            else None
+        )
+
         month_text = match.group("month")
         month_name = month_text.lower()
         month = months.get(month_name) or months.get(month_name[:3])
-
-        # If the existing mapping fails, normalize to English.
-        if month is None:
-            german_to_english = {
-                "jan": "January",
-                "feb": "February",
-                "mär": "March",
-                "mae": "March",
-                "mrz": "March",
-                "mar": "March",
-                "apr": "April",
-                "mai": "May",
-                "may": "May",
-                "jun": "June",
-                "jul": "July",
-                "aug": "August",
-                "sep": "September",
-                "okt": "October",
-                "oct": "October",
-                "nov": "November",
-                "dez": "December",
-                "dec": "December",
-            }
-
-            english_month_numbers = {
-                "January": 1,
-                "February": 2,
-                "March": 3,
-                "April": 4,
-                "May": 5,
-                "June": 6,
-                "July": 7,
-                "August": 8,
-                "September": 9,
-                "October": 10,
-                "November": 11,
-                "December": 12,
-            }
-
-            english_month = german_to_english.get(month_name[:3])
-            month = english_month_numbers.get(english_month)
-
-            if month is not None:
-                print(
-                    f"MONTH FALLBACK: {month_text!r} -> "
-                    f"{english_month} ({month})",
-                    flush=True,
-                )
-
 
         if month is None:
             raise RuntimeError(
                 f"Unrecognised month in date OCR: {month_text!r}"
             )
 
-        try:
-            parsed_date = date(
-                year,
-                month,
-                int(match.group("day")),
-            )
-        except ValueError as exc:
-            raise RuntimeError(
-                f"Invalid timetable date: {match.group(0)!r}"
-            ) from exc
-
-        # Validate a weekday whenever OCR captured one.
-        if weekday_text:
-            expected_weekday = weekdays[weekday_text.lower()]
-
-            if parsed_date.weekday() != expected_weekday:
-                raise RuntimeError(
-                    f"Weekday mismatch: {match.group(0)!r} "
-                    f"does not agree with {parsed_date}."
-                )
-
-        # Identify which endpoint this date represents.
         if marker == "ab":
             role = "start"
         elif marker in {"bis zum", "zum"}:
             role = "end"
-        elif weekday_text and weekday_text.lower() == "samstag":
+        elif weekday_name == "samstag":
             role = "start"
-        elif weekday_text and weekday_text.lower() == "freitag":
+        elif weekday_name == "freitag":
             role = "end"
         else:
             raise RuntimeError(
@@ -282,34 +630,125 @@ def build_prayer_times_and_dates():
                 f"{match.group(0)!r}"
             )
 
-        if role == "start":
-            if parsed_date.weekday() != 5:
+        required_weekday = 5 if role == "start" else 4
+
+        if (
+            expected_weekday is not None
+            and expected_weekday != required_weekday
+        ):
+            raise RuntimeError(
+                f"Timetable {role} has an incompatible weekday: "
+                f"{match.group(0)!r}. "
+                "Expected Saturday for the start or Friday for the end."
+            )
+
+        year_text = match.group("year")
+        explicit_year = int(year_text) if year_text else None
+
+        if explicit_year is not None:
+            if not 1 <= explicit_year <= 9999:
                 raise RuntimeError(
-                    f"Timetable start must be Saturday, "
-                    f"but detected {parsed_date}."
+                    f"Invalid timetable year: {year_text!r}"
                 )
 
-            candidate_start = parsed_date
-            candidate_end = parsed_date + timedelta(days=6)
+            explicit_years.add(explicit_year)
 
-        else:
-            if parsed_date.weekday() != 4:
-                raise RuntimeError(
-                    f"Timetable end must be Friday, "
-                    f"but detected {parsed_date}."
-                )
-
-            candidate_end = parsed_date
-            candidate_start = parsed_date - timedelta(days=6)
+        date_records.append(
+            {
+                "text": match.group(0),
+                "day": int(match.group("day")),
+                "month": month,
+                "year": explicit_year,
+                "role": role,
+                "required_weekday": required_weekday,
+            }
+        )
 
         detected_roles.add(role)
-        candidate_ranges.add((candidate_start, candidate_end))
 
-    # If multiple dates were read, they must identify the same week.
-    if len(candidate_ranges) != 1:
+    # Printed years take precedence over the current-year reference.
+    # Adjacent years allow the other endpoint to cross New Year.
+    reference_years = explicit_years or {year}
+
+    candidate_years = {
+        reference_year + offset
+        for reference_year in reference_years
+        for offset in (-1, 0, 1)
+        if 1 <= reference_year + offset <= 9999
+    }
+
+    print(
+        f"DATE YEAR RESOLUTION: "
+        f"explicit years={sorted(explicit_years)!r}; "
+        f"candidate years={sorted(candidate_years)!r}",
+        flush=True,
+    )
+
+    candidate_ranges = None
+
+    for record in date_records:
+        years_to_try = (
+            [record["year"]]
+            if record["year"] is not None
+            else sorted(candidate_years)
+        )
+
+        record_ranges = set()
+
+        for candidate_year in years_to_try:
+            try:
+                parsed_date = date(
+                    candidate_year,
+                    record["month"],
+                    record["day"],
+                )
+
+                if parsed_date.weekday() != record["required_weekday"]:
+                    continue
+
+                if record["role"] == "start":
+                    candidate_start = parsed_date
+                    candidate_end = parsed_date + timedelta(days=6)
+                else:
+                    candidate_end = parsed_date
+                    candidate_start = parsed_date - timedelta(days=6)
+
+            except (ValueError, OverflowError):
+                continue
+
+            record_ranges.add((candidate_start, candidate_end))
+
+        if not record_ranges:
+            raise RuntimeError(
+                f"Cannot resolve timetable date {record['text']!r} "
+                f"as a valid {record['role']} endpoint "
+                f"in years {list(years_to_try)!r}. "
+                "Check the OCR date, weekday, and printed year."
+            )
+
+        print(
+            f"DATE CANDIDATES [{record['text']!r}]: "
+            f"{sorted((start.isoformat(), end.isoformat()) for start, end in record_ranges)!r}",
+            flush=True,
+        )
+
+        if candidate_ranges is None:
+            candidate_ranges = record_ranges
+        else:
+            candidate_ranges.intersection_update(record_ranges)
+
+        if not candidate_ranges:
+            raise RuntimeError(
+                "Detected timetable dates identify different weeks "
+                "or have conflicting years. "
+                "Refusing to infer an inconsistent date range."
+            )
+
+    if candidate_ranges is None or len(candidate_ranges) != 1:
         raise RuntimeError(
-            "Detected timetable dates identify different weeks. "
-            "Refusing to infer an inconsistent date range."
+            "The timetable year/week is ambiguous. "
+            "Cannot safely select a unique Saturday–Friday range. "
+            "Check that the timetable includes a readable year."
         )
 
     start_date, end_date = next(iter(candidate_ranges))
@@ -343,7 +782,6 @@ def build_prayer_times_and_dates():
             flush=True,
         )
 
-
     rows = [
         ("Fajr", 0.175, 0.255),
         ("Zohar", 0.275, 0.355),
@@ -354,42 +792,116 @@ def build_prayer_times_and_dates():
     ]
 
     prayer_times = {}
+    second_whole_image_times = None
+
     with timetable_image as image:
         width, height = image.size
 
         for prayer, top, bottom in rows:
-            crop = image.crop(
-                (
-                    int(width * 0.36),
-                    int(height * top),
-                    int(width * 0.67),
-                    int(height * bottom),
+            rectangle_time = None
+
+            with ExitStack() as stack:
+                crop = stack.enter_context(
+                    image.crop(
+                        (
+                            int(width * 0.36),
+                            int(height * top),
+                            int(width * 0.67),
+                            int(height * bottom),
+                        )
+                    )
                 )
+
+                crop = stack.enter_context(
+                    ImageOps.grayscale(crop)
+                )
+                crop = stack.enter_context(
+                    crop.resize(
+                        (crop.width * 4, crop.height * 4),
+                        Image.Resampling.LANCZOS,
+                    )
+                )
+                crop = stack.enter_context(
+                    ImageOps.autocontrast(crop)
+                )
+                crop = stack.enter_context(
+                    ImageOps.expand(
+                        crop,
+                        border=20,
+                        fill="white",
+                    )
+                )
+
+                try:
+                    result = pytesseract.image_to_string(
+                        crop,
+                        lang="eng+deu",
+                        config=(
+                            "--psm 7 "
+                            "-c tessedit_char_whitelist=0123456789:"
+                        ),
+                    ).strip()
+
+                    if not re.fullmatch(r"\d\d:\d\d", result):
+                        raise ValueError(
+                            f"Invalid OCR time format: {result!r}"
+                        )
+
+                    rectangle_time = datetime.strptime(
+                        result,
+                        "%H:%M",
+                    ).time()
+
+                except (pytesseract.TesseractError, ValueError) as exc:
+                    print(
+                        f"RECTANGLE OCR [{prayer}] FAILED: "
+                        f"{type(exc).__name__}: {exc}. "
+                        "Trying whole-image fallback.",
+                        flush=True,
+                    )
+
+            if rectangle_time is not None:
+                prayer_times[prayer] = rectangle_time
+
+                print(
+                    f"RECTANGLE OCR [{prayer}] VALIDATED TIME: "
+                    f"{rectangle_time.strftime('%H:%M')}",
+                    flush=True,
+                )
+
+                continue
+
+            if second_whole_image_times is None:
+                try:
+                    second_whole_image_times = (
+                        extract_second_whole_image_times(
+                            timetable_image
+                        )
+                    )
+                except pytesseract.TesseractError as exc:
+                    print(
+                        f"SECOND WHOLE IMAGE OCR FAILED: {exc}",
+                        flush=True,
+                    )
+                    second_whole_image_times = {}
+
+            fallback_time = select_whole_image_fallback(
+                prayer,
+                original_whole_image_times,
+                second_whole_image_times,
             )
 
-            crop = ImageOps.grayscale(crop)
-            crop = crop.resize(
-                (crop.width * 4, crop.height * 4),
-                Image.Resampling.LANCZOS,
-            )
-            crop = ImageOps.autocontrast(crop)
-            crop = ImageOps.expand(crop, border=20, fill="white")
-
-            result = pytesseract.image_to_string(
-                crop,
-                lang="eng",
-                config="--psm 7 -c tessedit_char_whitelist=0123456789:",
-            ).strip()
-
-            if not re.fullmatch(r"\d\d:\d\d", result):
+            if fallback_time is None:
                 raise RuntimeError(
-                    f"Invalid OCR time for {prayer}: {result!r}"
+                    f"Could not safely determine the time for {prayer}: "
+                    "rectangle OCR failed, and whole-image fallback "
+                    "was missing or conflicting. "
+                    "Stopping before calendar synchronization."
                 )
 
-            prayer_times[prayer] = datetime.strptime(result, "%H:%M").time()
+            prayer_times[prayer] = fallback_time
 
     return config, timezone_obj, start_date, end_date, day_count, prayer_times
-
 
 def choose_target_calendar(service):
     preferred_prefixes = [
@@ -674,8 +1186,6 @@ def insert_event_handling_deleted(service, calendar_id, body):
     raise RuntimeError(
         "Reached the replacement-ID limit for a deleted event."
     )
-
-
 
 
 def resolve_member_calendar(service, member):
