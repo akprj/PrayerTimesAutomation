@@ -491,6 +491,31 @@ def mark_member_synced(member_id: str, calendar_id: str):
         }
     ).eq("id", member_id).execute()
 
+def fetch_connected_members():
+    members = []
+    page_size = 500
+    offset = 0
+
+    while True:
+        response = (
+            supabase.table("prayer_members")
+            .select("*")
+            .eq("connection_status", "connected")
+            .order("id")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+
+        batch = response.data or []
+        members.extend(batch)
+
+        if len(batch) < page_size:
+            break
+
+        offset += page_size
+
+    return members
+
 
 def mark_member_reconnect_required(member_id: str):
     supabase.table("prayer_members").update(
@@ -499,6 +524,56 @@ def mark_member_reconnect_required(member_id: str):
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
     ).eq("id", member_id).execute()
+
+def event_matches_desired(existing, desired):
+    for field in ("summary", "description"):
+        if existing.get(field, "") != desired.get(field, ""):
+            return False
+
+    for field in ("start", "end"):
+        existing_part = existing.get(field, {})
+        desired_part = desired[field]
+
+        existing_datetime = existing_part.get("dateTime")
+        desired_datetime = desired_part["dateTime"]
+
+        if not existing_datetime:
+            return False
+
+        try:
+            existing_value = datetime.fromisoformat(
+                existing_datetime.replace("Z", "+00:00")
+            )
+            desired_value = datetime.fromisoformat(
+                desired_datetime.replace("Z", "+00:00")
+            )
+        except (TypeError, ValueError):
+            return False
+
+        if existing_value != desired_value:
+            return False
+
+        if existing_part.get("timeZone") != desired_part.get("timeZone"):
+            return False
+
+    existing_reminders = existing.get("reminders", {})
+    desired_reminders = desired["reminders"]
+
+    if existing_reminders.get("useDefault", False) != (
+        desired_reminders.get("useDefault", False)
+    ):
+        return False
+
+    existing_overrides = sorted(
+        (item["method"], item["minutes"])
+        for item in existing_reminders.get("overrides", [])
+    )
+    desired_overrides = sorted(
+        (item["method"], item["minutes"])
+        for item in desired_reminders.get("overrides", [])
+    )
+
+    return existing_overrides == desired_overrides
 
 
 def insert_event_handling_deleted(service, calendar_id, body):
@@ -510,10 +585,12 @@ def insert_event_handling_deleted(service, calendar_id, body):
         candidate_body["id"] = candidate_id
 
         try:
-            return service.events().insert(
+            service.events().insert(
                 calendarId=calendar_id,
                 body=candidate_body,
             ).execute()
+
+            return "created"
 
         except HttpError as insert_error:
             insert_status = getattr(
@@ -523,8 +600,6 @@ def insert_event_handling_deleted(service, calendar_id, body):
             if insert_status != 409:
                 raise
 
-            # A conflict does not necessarily mean an active event.
-            # Inspect the record associated with this ID.
             try:
                 existing = service.events().get(
                     calendarId=calendar_id,
@@ -539,8 +614,7 @@ def insert_event_handling_deleted(service, calendar_id, body):
                 if lookup_status == 410:
                     existing = {"status": "cancelled"}
                 else:
-                    # Do not create a duplicate if the lookup
-                    # failed for an unknown reason.
+                    # An uncertain lookup must not create a duplicate.
                     raise
 
             event_status = existing.get("status", "unknown")
@@ -552,28 +626,57 @@ def insert_event_handling_deleted(service, calendar_id, body):
                 flush=True,
             )
 
-            if event_status != "cancelled":
-                # Let the existing outer handler skip this event.
-                raise insert_error
+            if event_status == "cancelled":
+                replacement_key = (
+                    f"{original_id}:replacement:{generation + 1}"
+                )
+                candidate_id = hashlib.sha256(
+                    replacement_key.encode("utf-8")
+                ).hexdigest()
 
-            # Deleted IDs may remain reserved by Google.
-            # Use a repeatable replacement ID instead.
-            replacement_key = (
-                f"{original_id}:replacement:{generation + 1}"
-            )
-            candidate_id = hashlib.sha256(
-                replacement_key.encode("utf-8")
-            ).hexdigest()
+                print(
+                    "Deleted event detected; trying replacement ID "
+                    f"number {generation + 1}.",
+                    flush=True,
+                )
 
-            print(
-                "Deleted event detected; trying replacement ID "
-                f"number {generation + 1}.",
-                flush=True,
-            )
+                continue
+
+            if event_status not in ("confirmed", "tentative"):
+                raise RuntimeError(
+                    f"Unexpected event status {event_status!r} "
+                    f"for event {candidate_id!r}."
+                )
+
+            if event_matches_desired(existing, candidate_body):
+                return "skipped"
+
+            # Patch only app-managed fields and preserve other fields.
+            patch_body = {
+                field: candidate_body[field]
+                for field in (
+                    "summary",
+                    "description",
+                    "start",
+                    "end",
+                    "reminders",
+                )
+            }
+
+            service.events().patch(
+                calendarId=calendar_id,
+                eventId=candidate_id,
+                body=patch_body,
+            ).execute()
+
+            return "updated"
 
     raise RuntimeError(
         "Reached the replacement-ID limit for a deleted event."
     )
+
+
+
 
 def resolve_member_calendar(service, member):
     saved_calendar_id = member.get("calendar_id")
@@ -610,14 +713,22 @@ def resolve_member_calendar(service, member):
     return calendar_id
 
 
-
-def sync_member(member, config, timezone_obj, start_date, day_count, prayer_times):
+def sync_member(
+    member,
+    config,
+    timezone_obj,
+    start_date,
+    day_count,
+    prayer_times,
+):
     email = member.get("email") or "(unknown)"
     member_id = member["id"]
 
-    print(f"\n--- Syncing member: {email} ---")
+    print(f"\n--- Syncing member: {email} ---", flush=True)
 
-    refresh_token = decrypt_refresh_token(member["refresh_token_encrypted"])
+    refresh_token = decrypt_refresh_token(
+        member["refresh_token_encrypted"]
+    )
     credentials = build_member_credentials(refresh_token)
 
     service = build(
@@ -629,23 +740,32 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
 
     calendar_id = resolve_member_calendar(service, member)
 
-    print(f"Using calendar_id: {calendar_id}")
-    print(f"Timezone: {timezone_obj.key}")
-    print(f"Date range: {start_date}")
+    print(f"Using calendar_id: {calendar_id}", flush=True)
+    print(f"Timezone: {timezone_obj.key}", flush=True)
+    print(f"Date range starts: {start_date}", flush=True)
 
     reminder_minutes = config["reminder_minutes"]
-    friday_replaces_zohar = config.get("friday_replaces_zohar", False)
+    friday_replaces_zohar = config.get(
+        "friday_replaces_zohar", False
+    )
     regular_prayers = ["Fajr", "Zohar", "Assr", "Maghrib", "Ishaa"]
     duration_minutes = 5
 
     total_attempted = 0
-    total_created = 0
-    total_skipped = 0
+    totals = {
+        "created": 0,
+        "updated": 0,
+        "skipped": 0,
+    }
+
+    if MAX_RETRIES < 1:
+        raise ValueError("MAX_RETRIES must be at least 1.")
 
     for offset in range(day_count):
         current_date = start_date + timedelta(days=offset)
 
         prayers = regular_prayers.copy()
+
         if current_date.weekday() == 4:
             if friday_replaces_zohar:
                 prayers[prayers.index("Zohar")] = "Juma"
@@ -658,16 +778,23 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
                 prayer_times[prayer],
                 tzinfo=timezone_obj,
             )
-            end_at = starts_at + timedelta(minutes=duration_minutes)
+            end_at = starts_at + timedelta(
+                minutes=duration_minutes
+            )
             minutes = reminder_minutes[prayer]
 
-            event_id = stable_event_id(calendar_id, current_date, prayer)
+            event_id = stable_event_id(
+                calendar_id,
+                current_date,
+                prayer,
+            )
 
             body = {
                 "id": event_id,
                 "summary": prayer,
                 "description": (
-                    f"Prayer Timings Automation: start time {starts_at:%H:%M} "
+                    f"Prayer Timings Automation: start time "
+                    f"{starts_at:%H:%M} "
                     f"on {current_date.isoformat()}."
                 ),
                 "start": {
@@ -681,79 +808,136 @@ def sync_member(member, config, timezone_obj, start_date, day_count, prayer_time
                 "reminders": {
                     "useDefault": False,
                     "overrides": [
-                        {"method": "popup", "minutes": minutes}
+                        {
+                            "method": "popup",
+                            "minutes": minutes,
+                        }
                     ],
                 },
             }
 
             total_attempted += 1
 
-            try:
-                last_err = None
-                for attempt in range(MAX_RETRIES):
-                    try:
-                        insert_event_handling_deleted(
-                            service,
-                            calendar_id,
-                            body,
+            for attempt in range(MAX_RETRIES):
+                try:
+                    action = insert_event_handling_deleted(
+                        service,
+                        calendar_id,
+                        body,
+                    )
+                    break
+
+                except HttpError as exc:
+                    status = getattr(exc.resp, "status", None)
+                    message = str(exc).lower()
+
+                    rate_limited = (
+                        status == 403
+                        and (
+                            "ratelimitexceeded" in message
+                            or "userratelimitexceeded" in message
                         )
+                    )
 
-                        total_created += 1
-                        print(
-                            f"CREATED: {current_date:%Y-%m-%d} "
-                            f"{prayer:<8} at {starts_at:%H:%M}"
-                        )
-                        last_err = None
-                        break
+                    retryable = rate_limited or status in (
+                        429,
+                        500,
+                        502,
+                        503,
+                        504,
+                    )
 
-                    except HttpError as exc:
-                        last_err = exc
-                        status = getattr(exc.resp, "status", None)
-                        message = str(exc)
-
-                        if status == 403 and "rateLimitExceeded" in message:
-                            sleep_seconds = BASE_SLEEP * (2 ** attempt)
-                            print(
-                                f"RATE LIMITED -> retrying in "
-                                f"{sleep_seconds:.1f}s "
-                                f"(attempt {attempt + 1}/{MAX_RETRIES})"
-                            )
-                            time.sleep(sleep_seconds)
-                            continue
-
+                    if not retryable or attempt == MAX_RETRIES - 1:
                         raise
 
-                if last_err is not None:
-                    raise last_err
+                    sleep_seconds = BASE_SLEEP * (2 ** attempt)
 
-            except HttpError as exc:
-                if getattr(exc.resp, "status", None) == 409:
-                    total_skipped += 1
                     print(
-                        f"SKIPPED (exists): {current_date:%Y-%m-%d} "
-                        f"{prayer:<8} at {starts_at:%H:%M}"
+                        f"RETRYABLE GOOGLE ERROR: status={status}; "
+                        f"retrying in {sleep_seconds:.1f}s "
+                        f"(attempt {attempt + 1}/{MAX_RETRIES})",
+                        flush=True,
                     )
-                else:
-                    raise
 
+                    time.sleep(sleep_seconds)
 
-    print("\nMember sync complete.")
-    print(f"Total attempted: {total_attempted}")
-    print(f"Created:         {total_created}")
-    print(f"Skipped:         {total_skipped}")
+            totals[action] += 1
+
+            label = (
+                "SKIPPED (unchanged)"
+                if action == "skipped"
+                else action.upper()
+            )
+
+            print(
+                f"{label}: {current_date:%Y-%m-%d} "
+                f"{prayer:<8} at {starts_at:%H:%M}",
+                flush=True,
+            )
+
+    print("\nMember sync complete.", flush=True)
+    print(f"Total attempted: {total_attempted}", flush=True)
+    print(f"Created:         {totals['created']}", flush=True)
+    print(f"Updated:         {totals['updated']}", flush=True)
+    print(f"Skipped:         {totals['skipped']}", flush=True)
 
     mark_member_synced(member_id, calendar_id)
 
 
-def main():
-    config, timezone_obj, start_date, end_date, day_count, prayer_times = (
-        build_prayer_times_and_dates()
+def main(all_members=False, member_id=None):
+    (
+        config,
+        timezone_obj,
+        start_date,
+        end_date,
+        day_count,
+        prayer_times,
+    ) = build_prayer_times_and_dates()
+
+    print(
+        f"Timetable covers: {start_date} through {end_date}",
+        flush=True,
     )
 
-    print(f"Timetable covers: {start_date} through {end_date}")
+    if all_members and member_id is not None:
+        raise ValueError(
+            "Use either all_members or member_id, not both."
+        )
 
-    members = fetch_pending_members()
-    print(f"Pending members found: {len(members)}")
+    if all_members:
+        members = fetch_connected_members()
+
+        print(
+            f"Weekly sync: connected members found: {len(members)}",
+            flush=True,
+        )
+
+    elif member_id is not None:
+        response = (
+            supabase.table("prayer_members")
+            .select("*")
+            .eq("id", member_id)
+            .eq("connection_status", "connected")
+            .execute()
+        )
+
+        members = response.data or []
+
+        print(
+            f"Single-member sync: member_id={member_id}, "
+            f"connected members found: {len(members)}",
+            flush=True,
+        )
+
+    else:
+        raise ValueError(
+            "Provide member_id for login sync, "
+            "or use --all-members for the weekly cron."
+        )
+
+
+    successful_members = 0
+    failed_members = 0
 
     for member in members:
         try:
@@ -766,7 +950,11 @@ def main():
                 prayer_times,
             )
 
+            successful_members += 1
+
         except RefreshError as exc:
+            failed_members += 1
+
             invalid_grant = any(
                 isinstance(arg, dict)
                 and arg.get("error") == "invalid_grant"
@@ -774,10 +962,19 @@ def main():
             )
 
             if invalid_grant:
-                mark_member_reconnect_required(member["id"])
+                try:
+                    mark_member_reconnect_required(member["id"])
+                except Exception as update_error:
+                    print(
+                        "Could not save reconnect-required status "
+                        f"for {member.get('email')}: "
+                        f"{type(update_error).__name__}: "
+                        f"{update_error}",
+                        flush=True,
+                    )
 
                 print(
-                    f"SYNC DISABLED: {member.get('email')} — "
+                    f"RECONNECT REQUIRED: {member.get('email')} — "
                     "Google refresh token is no longer valid. "
                     "Member must reconnect.",
                     flush=True,
@@ -791,6 +988,7 @@ def main():
                 )
 
         except HttpError as exc:
+            failed_members += 1
             status = getattr(exc.resp, "status", None)
 
             print(
@@ -800,12 +998,43 @@ def main():
             )
 
         except Exception as exc:
+            failed_members += 1
+
             print(
                 f"Sync failed for {member.get('email')}: "
                 f"{type(exc).__name__}: {exc}",
                 flush=True,
             )
 
+    print(
+        "\nRun complete: "
+        f"selected={len(members)}, "
+        f"successful={successful_members}, "
+        f"failed={failed_members}",
+        flush=True,
+    )
+
+    if failed_members:
+        raise RuntimeError(
+            f"Synchronization failed for {failed_members} member(s). "
+            "See the member-level errors above."
+        )
+
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Synchronize prayer timetable calendar events."
+    )
+    parser.add_argument(
+        "--all-members",
+        action="store_true",
+        help=(
+            "Synchronize all connected members, "
+            "including those already initially synced."
+        ),
+    )
+    args = parser.parse_args()
+
+    main(all_members=args.all_members)
