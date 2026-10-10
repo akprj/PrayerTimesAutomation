@@ -394,6 +394,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   </style>
 </head>
 
+
+
+
 <body>
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NX9959X5"
@@ -416,7 +419,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </header>
 
-  <main id="main-content">
+
+
+
+<main id="main-content">
 
     <!-- APP TITLE AND GOOGLE CONNECTION -->
     <section class="hero" aria-labelledby="app-title">
@@ -424,14 +430,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <h1 id="app-title">Prayer Times Reminder Automation</h1>
 
         <p class="hero-description">
-          Assisting  members automate creation and updating of their local prayer
+          Assisting members automate creation and updating of their local prayer
           times reminder in Google Calendar.
         </p>
 
- <a href="https://prayertimingsautomation.onrender.com/connect_google"       
- class="connect-btn">
-          Connect Your Google Calendar<br>
-          for Prayer Times Reminder
+        <!-- QR Code / NFC Tag & Direct Add Button -->
+        <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 12px; margin: 20px auto; max-width: 420px;">
+          <p style="color: #e2f3ec; font-size: 0.95rem; margin-bottom: 12px; font-weight: bold;">
+            Scan QR Code or Tap NFC Tag <br>to Add Events Instantly:
+          </p>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://calendar.google.com/calendar/render?cid=65f778738493e607fa239b0dfa04feec949967a498235db007174fc672e0ffae@group.calendar.google.com" 
+               alt="Direct Calendar Subscription QR Code" 
+               style="border: 3px solid white; border-radius: 8px; padding: 4px; background: white; display: inline-block; margin-bottom: 10px;">
+          <div style="margin-top: 10px;">
+            <a href="https://calendar.google.com/calendar/render?cid=65f778738493e607fa239b0dfa04feec949967a498235db007174fc672e0ffae@group.calendar.google.com" 
+               target="_blank" 
+               rel="noopener" 
+               class="connect-btn" 
+               style="background: var(--green); display: inline-block; width: 100%; box-sizing: border-box; text-decoration: none;">
+              Add to Calendar Directly
+            </a>
+          </div>
+        </div>
+
+<h2 style="color: #e2f3ec; font-size: 1.25rem; margin-top: 20px; margin-bottom: 10px;"> OR </h2>
+        <!-- Google Account Login Connection Button -->
+        <a href="https://prayertimingsautomation.onrender.com/connect_google" 
+           class="connect-btn">
+          Connect Google Calendar via Login
         </a>
 
         <p class="connection-note">
@@ -445,19 +471,45 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- APPLICATION DETAILS -->
     <div class="content">
 
+      <!-- MASTER CALENDAR DIRECT QR CODE & NFC TAG EXPLANATION -->
+      <section class="info-card" aria-labelledby="nfc-qr-title">
+        <h2 id="nfc-qr-title">Direct Master Calendar QR Code & NFC Tag</h2>
+
+        <p>
+          Your physical QR code and NFC tag are programmed to add all prayer times and reminder events straight to your smartphone calendar instantly—bypassing any manual setup.
+        </p>
+
+        <p>
+          <strong>How the direct process works:</strong>
+        </p>
+        <ol>
+          <li>
+            <strong>Direct URL/iCal Protocol Encoding:</strong> The physical NFC tag and printed QR code are encoded with a direct public calendar feed URI scheme (using Webcal / iCal subscription links for iOS and direct Google Calendar rendering prompts for Android).
+          </li>
+          <li>
+            <strong>Instant Public Calendar Subscription:</strong> Scanning or tapping instantly prompts your native calendar app to subscribe to a read-only public master feed. All schedule updates published to the master feed reflect automatically in your personal calendar.
+          </li>
+        </ol>
+      </section>
+
       <section class="info-card" aria-labelledby="about-title">
         <h2 id="about-title">About the app</h2>
 
         <p>
-          Prayer Times Automation reads prayer timetable images from
-          a designated Google Drive folder and uses the extracted
-          dates and times to create or update prayer events in your
-          selected Google Calendar, with your permission.
+          Prayer Times Automation supports two distinct mechanisms for adding prayer schedules to your calendar:
         </p>
 
+        <ul>
+          <li>
+            <strong>Direct Add Method (QR Code / NFC Tag):</strong> Utilizes read-only public iCal/Webcal calendar feed links. Scanning or tapping directly imports and synchronizes pre-generated prayer events into your mobile calendar application without requiring account authentication or stored access tokens.
+          </li>
+          <li>
+            <strong>Google Account Integration Method:</strong> Uses secure OAuth 2.0 authentication to request permission to manage events in your primary Google Calendar. The background service reads local prayer timetable images from a managed Drive directory, uses OCR/computer vision processing to extract dates and times, and directly constructs or updates dedicated prayer event entries in your authenticated personal Google Calendar.
+          </li>
+        </ul>
+
         <p>
-          It is intended to reduce manual entry and help members keep
-          track of their local prayer schedule.
+          Both methods are designed to reduce manual data entry and ensure Jamaat members keep track of their local prayer timetable accurately.
         </p>
       </section>
 
@@ -466,27 +518,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <ol>
           <li>
-            <strong>Connect your Google Calendar.</strong>
-            Use the button above to start Google's sign-in and
-            consent process and review the requested permissions.
+            <strong>Connect Calendar via Google Account Login.</strong>
+            Use the button above to authorize OAuth 2.0 access, allowing the app to safely manage your designated prayer calendar entries.
           </li>
 
           <li>
             <strong>Read the prayer timetable.</strong>
-            The application reads the designated timetable image
-            and identifies its dates and prayer times.
+            The background system parses the designated published timetable image and extracts prayer dates and timings using automated image processing.
           </li>
 
           <li>
             <strong>Create or update prayer events.</strong>
-            The extracted schedule is used to add or update events
-            in your selected Google Calendar.
+            Extracted schedules are synchronized directly to your personal Google Calendar or broadcasted through the public master feed.
           </li>
 
           <li>
             <strong>Keep your schedule up to date.</strong>
-            Stored authorization allows configured scheduled updates
-            without asking you to sign in each time.
+            Automated background routines run periodically to update upcoming prayer events without requiring repeated sign-ins.
           </li>
         </ol>
 
@@ -501,23 +549,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <h2 id="access-title">Google Calendar access</h2>
 
         <p>
-          The app requests Calendar permissions to find the
-          destination calendar, check existing prayer events, and
-          create or update prayer events.
+          When using the Google Account login method, the app requests Calendar permissions solely to identify destination calendars, check existing entries, and create or update prayer schedule reminders.
         </p>
 
         <p>
-          Your Google password is not provided to the app.
-          Authorization is handled through Google's sign-in and
-          consent process.
+          Your Google account password is never collected or stored.
+          Authorization is securely handled through Google's official OAuth 2.0 consent interface.
         </p>
 
         <p>
-          You can revoke access through
+          You can revoke access anytime through
           <a href="https://myaccount.google.com/connections">
             your Google Account connections
           </a>.
-          Read our
         </p>
       </section>
 
@@ -525,18 +569,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <h2 id="check-title">Please check your local timetable</h2>
 
         <p>
-          Image recognition and automated updates can produce errors
-          or be delayed. Please compare calendar events with your
-          Jamaat's published timetable.
+          Automated image recognition and updates can occasionally experience delays or discrepancies. Please verify your calendar reminders against your local Jamaat's official published timetable.
         </p>
 
         <p class="notice">
           <strong>
-            The published timetable should be your reference if
-            there is a discrepancy.
+            The official published timetable remains your primary reference if any discrepancy occurs.
           </strong>
-          Calendar reminders also depend on your Google Calendar
-          notification settings and device permissions.
+          Calendar notifications also depend on your smartphone's notification and power management settings.
         </p>
       </section>
 
@@ -564,6 +604,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     </div>
   </main>
+  
+
+
+
+
+
+
+
+
+
+
+
 
   <!-- COMBINED FOOTER -->
   <footer class="site-footer">
