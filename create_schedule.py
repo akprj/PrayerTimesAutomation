@@ -474,6 +474,127 @@ def select_whole_image_fallback(prayer, original, second):
     return prayer_time
 
 
+def extract_flexible_prayer_row_time(image, prayer, top, bottom):
+    height = image.height
+    padding = max(1, int(height * 0.01))
+    row_top = max(0, int(height * top) - padding)
+    row_bottom = min(height, int(height * bottom) + padding)
+
+    print(
+        f"FLEXIBLE ROW OCR [{prayer}]: scanning full-width row "
+        f"{(0, row_top, image.width, row_bottom)!r}.",
+        flush=True,
+    )
+
+    with image.crop((0, row_top, image.width, row_bottom)) as row:
+        grayscale = ImageOps.grayscale(row)
+
+        try:
+            enlarged = grayscale.resize(
+                (grayscale.width * 5, grayscale.height * 5),
+                Image.Resampling.LANCZOS,
+            )
+        finally:
+            grayscale.close()
+
+    try:
+        contrasted = ImageOps.autocontrast(enlarged)
+    finally:
+        enlarged.close()
+
+    variants = [("contrast", contrasted)]
+    variants.extend(
+        (
+            f"threshold-{threshold}",
+            contrasted.point(
+                lambda pixel: 0 if pixel < threshold else 255
+            ),
+        )
+        for threshold in (145, 180, 210)
+    )
+    votes = {}
+
+    try:
+        for variant_name, variant in variants:
+            try:
+                text = pytesseract.image_to_string(
+                    variant,
+                    lang="eng+deu",
+                    config=(
+                        "--oem 3 --psm 7 "
+                        "-c tessedit_char_whitelist=0123456789:.,"
+                    ),
+                )
+            except pytesseract.TesseractError as exc:
+                print(
+                    f"FLEXIBLE ROW OCR [{prayer}] "
+                    f"{variant_name} FAILED: {exc}",
+                    flush=True,
+                )
+                continue
+
+            candidates = set()
+
+            for match in re.finditer(
+                r"(?<!\d)(\d{1,2})\s*[:.,]\s*(\d{2})(?!\d)",
+                text,
+            ):
+                normalized = (
+                    f"{match.group(1)}:{match.group(2)}"
+                )
+                prayer_time = parse_ocr_time(normalized)
+
+                if prayer_time is not None:
+                    candidates.add(prayer_time)
+
+            print(
+                f"FLEXIBLE ROW OCR [{prayer}] {variant_name}: "
+                f"{sorted(value.strftime('%H:%M') for value in candidates)!r}",
+                flush=True,
+            )
+
+            for candidate in candidates:
+                votes[candidate] = votes.get(candidate, 0) + 1
+    finally:
+        for _, variant in variants:
+            variant.close()
+
+    if not votes:
+        print(
+            f"FLEXIBLE ROW OCR [{prayer}] found no valid time.",
+            flush=True,
+        )
+        return None
+
+    highest_vote_count = max(votes.values())
+    winners = [
+        candidate
+        for candidate, count in votes.items()
+        if count == highest_vote_count
+    ]
+
+    if highest_vote_count < 2 or len(winners) != 1:
+        formatted_votes = {
+            value.strftime("%H:%M"): count
+            for value, count in votes.items()
+        }
+        print(
+            f"FLEXIBLE ROW OCR [{prayer}] inconclusive: "
+            f"{formatted_votes!r}",
+            flush=True,
+        )
+        return None
+
+    prayer_time = winners[0]
+    print(
+        f"FLEXIBLE ROW OCR [{prayer}] CONSENSUS TIME: "
+        f"{prayer_time.strftime('%H:%M')} "
+        f"({highest_vote_count}/{len(variants)} scans).",
+        flush=True,
+    )
+    return prayer_time
+
+
 def build_prayer_times_and_dates():
     config = json.loads((BASE_DIR / "config.json").read_text(encoding="utf-8"))
     timezone_obj = ZoneInfo(config["timezone"])
@@ -892,10 +1013,38 @@ def build_prayer_times_and_dates():
             )
 
             if fallback_time is None:
+                row_time = extract_flexible_prayer_row_time(
+                    timetable_image,
+                    prayer,
+                    top,
+                    bottom,
+                )
+                whole_image_times = (
+                    original_whole_image_times.get(prayer, set())
+                    | second_whole_image_times.get(prayer, set())
+                )
+
+                if row_time is not None and whole_image_times:
+                    if whole_image_times != {row_time}:
+                        formatted_times = sorted(
+                            value.strftime("%H:%M")
+                            for value in whole_image_times
+                        )
+                        print(
+                            f"FLEXIBLE ROW OCR [{prayer}] REJECTED: "
+                            "disagrees with whole-image candidates "
+                            f"{formatted_times!r}.",
+                            flush=True,
+                        )
+                        row_time = None
+
+                fallback_time = row_time
+
+            if fallback_time is None:
                 raise RuntimeError(
                     f"Could not safely determine the time for {prayer}: "
-                    "rectangle OCR failed, and whole-image fallback "
-                    "was missing or conflicting. "
+                    "rectangle OCR and whole-image/flexible-row "
+                    "fallbacks were missing, conflicting, or inconclusive. "
                     "Stopping before calendar synchronization."
                 )
 
