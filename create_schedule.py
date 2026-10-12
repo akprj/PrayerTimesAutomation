@@ -1470,10 +1470,12 @@ def sync_member(
                 prayer,
             )
 
+
             body = {
                 "id": event_id,
                 "summary": prayer,
                 "description": (
+                    f"Dear member, Assalam-u-Alaikum, it's time to Prepare for {prayer} Prayer.\n\n"
                     f"Prayer Timings Automation: start time "
                     f"{starts_at:%H:%M} "
                     f"on {current_date.isoformat()}."
@@ -1497,6 +1499,7 @@ def sync_member(
                 },
             }
 
+            
             total_attempted += 1
 
             for attempt in range(MAX_RETRIES):
