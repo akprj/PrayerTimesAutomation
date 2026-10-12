@@ -435,6 +435,59 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     }
 
 
+
+/* Mobile Responsive CSS Rules Context Embedded Directly */
+
+ .responsive-table th, 
+          .responsive-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+          }
+          
+          /* Target smaller mobile screens dynamically */
+          @media (max-width: 600px) {
+            .responsive-table thead {
+              display: none; /* Hide wide header block rows on phones */
+            }
+            .responsive-table, 
+            .responsive-table tbody, 
+            .responsive-table tr, 
+            .responsive-table td {
+              display: block; /* Force elements to stack vertically */
+              width: 100%;
+            }
+            .responsive-table tr {
+              margin-bottom: 15px;
+              border: 1px solid var(--border);
+              border-radius: 8px;
+              background-color: #fafbfc;
+              padding: 8px 0;
+            }
+            .responsive-table tr:last-child {
+              margin-bottom: 0;
+            }
+            .responsive-table td {
+              text-align: left;
+              border-bottom: 1px solid #eef2f6;
+              padding: 8px 16px;
+            }
+            .responsive-table td:last-child {
+              border-bottom: none;
+            }
+            /* Insert custom labeling before cell items using pseudo data contexts */
+            .responsive-table td::before {
+              content: attr(data-label);
+              display: block;
+              font-weight: bold;
+              font-size: 0.85rem;
+              color: var(--muted);
+              text-transform: uppercase;
+              margin-bottom: 4px;
+            }
+          }
+
+
+
   </style>
 </head>
 
@@ -521,34 +574,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </p>
         
         <div class="table-container" style="width: 100%; overflow-x: auto; margin: 20px 0; border-radius: 8px; border: 1px solid var(--border);">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+          <table class="responsive-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
             <thead>
               <tr style="background-color: var(--green); color: white;">
-                <th style="padding: 12px 16px; font-weight: 600;">Feature / Characteristic</th>
-                <th style="padding: 12px 16px; font-weight: 600;">Method 1: QR Code / NFC Tag Scan</th>
-                <th style="padding: 12px 16px; font-weight: 600;">Method 2: Web Login Button (OAuth)</th>
+                <th style="font-weight: 600;">Feature / Characteristic</th>
+                <th style="font-weight: 600;">Method 1: QR Code / NFC Tag Scan</th>
+                <th style="font-weight: 600;">Method 2: Web Login Button (OAuth)</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>Login Required?</strong></td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">❌ No. Anonymous subscription feed.</td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">📅 Yes. Must select a Google account.</td>
+                <td data-label="Feature"><strong>Login Required?</strong></td>
+                <td data-label="Method 1 (QR/NFC)">❌ No. Anonymous subscription feed.</td>
+                <td data-label="Method 2 (OAuth)">📅 Yes. Must select a Google account.</td>
               </tr>
               <tr>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>Permissions Screen?</strong></td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🛡️ No. Zero permissions/access request.</td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🔑 Yes. Requires granting account permissions.</td>
+                <td data-label="Feature"><strong>Permissions Screen?</strong></td>
+                <td data-label="Method 1 (QR/NFC)">🛡️ No. Zero permissions/access request.</td>
+                <td data-label="Method 2 (OAuth)">🔑 Yes. Requires granting account permissions.</td>
               </tr>
               <tr>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>Alert Delivery Mechanism</strong></td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">📝 Visual text notifications within description fields.</td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🔊 Automated native system audio and popup alarms.</td>
+                <td data-label="Feature"><strong>Alert Delivery</strong></td>
+                <td data-label="Method 1 (QR/NFC)">📝 Visual text notifications within description fields.</td>
+                <td data-label="Method 2 (OAuth)">🔊 Automated native system audio and popup alarms.</td>
               </tr>
               <tr>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>How Alarms Are Managed</strong></td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">⚙️ Configured manually one-time by the member.</td>
-                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🤖 Injected automatically by the background engine.</td>
+                <td data-label="Feature"><strong>Alarms Management</strong></td>
+                <td data-label="Method 1 (QR/NFC)">⚙️ Configured manually one-time by the user.</td>
+                <td data-label="Method 2 (OAuth)">🤖 Injected automatically by the background engine.</td>
               </tr>
             </tbody>
           </table>
@@ -583,9 +636,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </ol>
       </section>
 
+
+            <!-- ABOUT THE APP SECTION -->
+      <section class="info-card" aria-labelledby="about-title">
+        <h2 id="about-title">About the app</h2>
+        <p>
+          Prayer Times Automation supports two distinct mechanisms for adding prayer schedules to your calendar:
+        </p>
+        <ul>
+          <li>
+            <strong>Direct Add Method (QR Code / NFC Tag):</strong> Utilizes read-only public iCal/Webcal calendar feed links. Scanning or tapping directly imports and synchronizes pre-generated prayer events into your mobile calendar application without requiring account authentication or stored access tokens.
+          </li>
+          <li>
+            <strong>Google Account Integration Method:</strong> Uses secure OAuth 2.0 authentication to request permission to manage events in your primary Google Calendar. The background service reads local prayer timetable images from a managed Drive directory, uses OCR/computer vision processing to extract dates and times, and directly constructs or updates dedicated prayer event entries in your authenticated personal Google Calendar.
+          </li>
+        </ul>
+        <p>
+          Both methods are designed to reduce manual data entry and ensure members keep track of their local prayer timetable accurately.
+        </p>
+      </section>
+
+
       <!-- MASTER CALENDAR DIRECT QR CODE & NFC TAG EXPLANATION -->
       <section class="info-card" aria-labelledby="nfc-qr-title">
-        <h2 id="nfc-qr-title">Direct Master Calendar QR Code & NFC Tag (Method 1)</h2>
+        <h2 id="nfc-qr-title">Method 1: Direct Add (QR Code/NFC Tag)</h2>
         <p>
           Your physical QR code and NFC tag are programmed to add all prayer times and reminder events straight to your smartphone calendar instantly—bypassing any manual setup.
         </p>
@@ -605,7 +679,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <!-- HOW IT WORKS SECTION (METHOD 2) -->
       <section class="info-card" aria-labelledby="how-title">
-        <h2 id="how-title">How the Google Account Integration Works (Method 2)</h2>
+        <h2 id="how-title">Method 2: Google Account Integration</h2>
         <ol>
           <li>
             <strong>Connect Calendar via Google Account Login.</strong>
@@ -615,24 +689,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </section>
 
 
-      <!-- ABOUT THE APP SECTION -->
-      <section class="info-card" aria-labelledby="about-title">
-        <h2 id="about-title">About the app</h2>
-        <p>
-          Prayer Times Automation supports two distinct mechanisms for adding prayer schedules to your calendar:
-        </p>
-        <ul>
-          <li>
-            <strong>Direct Add Method (QR Code / NFC Tag):</strong> Utilizes read-only public iCal/Webcal calendar feed links. Scanning or tapping directly imports and synchronizes pre-generated prayer events into your mobile calendar application without requiring account authentication or stored access tokens.
-          </li>
-          <li>
-            <strong>Google Account Integration Method:</strong> Uses secure OAuth 2.0 authentication to request permission to manage events in your primary Google Calendar. The background service reads local prayer timetable images from a managed Drive directory, uses OCR/computer vision processing to extract dates and times, and directly constructs or updates dedicated prayer event entries in your authenticated personal Google Calendar.
-          </li>
-        </ul>
-        <p>
-          Both methods are designed to reduce manual data entry and ensure members keep track of their local prayer timetable accurately.
-        </p>
-      </section>
+
 
       
     </div>
