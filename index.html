@@ -391,9 +391,52 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         transform: none;
       }
     }
+
+
+    /* Comparison Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin: 30px 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    th, td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: #174e40;
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      background: #e0e7ef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+
   </style>
 </head>
-
 
 
 
@@ -420,8 +463,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </header>
 
 
-
-
 <main id="main-content">
 
     <!-- APP TITLE AND GOOGLE CONNECTION -->
@@ -437,18 +478,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- QR Code / NFC Tag & Direct Add Button -->
         <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 12px; margin: 20px auto; max-width: 420px;">
           <p style="color: #e2f3ec; font-size: 0.95rem; margin-bottom: 12px; font-weight: bold;">
-            Scan QR Code or Tap NFC Tag to Add<br> Prayers Times Reminder Instantly:
+            Scan QR Code/Tap NFC Tag to Add<br> Prayers Times Instantly:
           </p>
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://calendar.google.com/calendar/render?cid=65f778738493e607fa239b0dfa04feec949967a498235db007174fc672e0ffae@group.calendar.google.com" 
                alt="Direct Calendar Subscription QR Code" 
                style="border: 3px solid white; border-radius: 8px; padding: 4px; background: white; display: inline-block; margin-bottom: 10px;">
           <div style="margin-top: 10px;">
             <a href="https://calendar.google.com/calendar/render?cid=65f778738493e607fa239b0dfa04feec949967a498235db007174fc672e0ffae@group.calendar.google.com" 
-               target="_blank" 
+               target="_blank"
                rel="noopener" 
                class="connect-btn" 
                style="background: var(--green); display: inline-block; width: 100%; box-sizing: border-box; text-decoration: none;">
-              Add to Calendar Directly
+              Click to Add without SCAN directly
             </a>
           </div>
         </div>
@@ -457,7 +498,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- Google Account Login Connection Button -->
         <a href="https://prayertimingsautomation.onrender.com/connect_google" 
            class="connect-btn">
-          Connect Google Calendar via Login
+          Add Prayer Times via Google Login (oAuth)
         </a>
 
         <p class="connection-note">
@@ -468,17 +509,86 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </section>
 
-    <!-- APPLICATION DETAILS -->
+
+     <!-- APPLICATION DETAILS -->
     <div class="content">
+
+      <!-- NEW SECTION: SETUP METHOD COMPARISON TABLE -->
+      <section class="info-card" aria-labelledby="comparison-title">
+        <h2 id="comparison-title">Comparison of Setup Methods</h2>
+        <p>
+          Review the comparison below to understand how prayer events are integrated into your smartphone calendar depending on the chosen method:
+        </p>
+        
+        <div class="table-container" style="width: 100%; overflow-x: auto; margin: 20px 0; border-radius: 8px; border: 1px solid var(--border);">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+            <thead>
+              <tr style="background-color: var(--green); color: white;">
+                <th style="padding: 12px 16px; font-weight: 600;">Feature / Characteristic</th>
+                <th style="padding: 12px 16px; font-weight: 600;">Method 1: QR Code / NFC Tag Scan</th>
+                <th style="padding: 12px 16px; font-weight: 600;">Method 2: Web Login Button (OAuth)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>Login Required?</strong></td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">❌ No. Anonymous subscription feed.</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">📅 Yes. Must select a Google account.</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>Permissions Screen?</strong></td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🛡️ No. Zero permissions/access request.</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🔑 Yes. Requires granting account permissions.</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>Alert Delivery Mechanism</strong></td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">📝 Visual text notifications within description fields.</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🔊 Automated native system audio and popup alarms.</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);"><strong>How Alarms Are Managed</strong></td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">⚙️ Configured manually one-time by the member.</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border);">🤖 Injected automatically by the background engine.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- NEW SECTION: STEP-BY-STEP MANUAL ALARM PROCEDURE FOR METHOD 1 -->
+      <section class="info-card notice" style="background: #fff8e8; border-left: 4px solid #bd8200; padding: 24px; border-radius: 8px;" aria-labelledby="manual-reminder-title">
+        <h2 id="manual-reminder-title" style="color: #bd8200; margin-top: 0;">🔔 How to Add Prayer Notifications Manually <small><code style="font-family: monospace; font-size: 0.85em; background-color: rgba(0,0,0,0.05); padding: 3px 6px; border-radius: 4px; color: #7f5f00;"><br>** Only Applicable to QR/NFC Scan & Add directly Method **</code></small></h2>
+        <p>
+          Because modern smartphone privacy rules prevent shared public subscription feeds from creating loud alarm sounds automatically, <strong>Method 1 users must perform this quick one-time setup</strong> to enable sound reminders before prayer times:
+        </p>
+        <ol style="margin-bottom: 0; padding-left: 20px;">
+          <li style="margin-bottom: 10px;">
+            Open your phone's <strong>Google Calendar app</strong> (or go to calendar.google.com in a web browser).
+          </li>
+          <li style="margin-bottom: 10px;">
+            Tap the <strong>Menu icon</strong> (three horizontal lines <span style="font-size: 1.1em;">☰</span>) in the top-left corner.
+          </li>
+          <li style="margin-bottom: 10px;">
+            Scroll down to the bottom of the menu and choose <strong>Settings</strong> (<span style="font-size: 1.1em;">⚙️</span>).
+          </li>
+          <li style="margin-bottom: 10px;">
+            Under the settings list, select <strong>Bait-us-Subuh Timings</strong>.
+          </li>
+          <li style="margin-bottom: 10px;">
+            Tap on <strong>Add a notification</strong> under the default notifications section.
+          </li>
+          <li style="margin-bottom: 0;">
+            Select your preferred reminder time (e.g., <strong>15 minutes before</strong>, or <strong>30 minutes before</strong>) to ensure your device plays an audio alert for upcoming prayers.
+          </li>
+        </ol>
+      </section>
 
       <!-- MASTER CALENDAR DIRECT QR CODE & NFC TAG EXPLANATION -->
       <section class="info-card" aria-labelledby="nfc-qr-title">
-        <h2 id="nfc-qr-title">Direct Master Calendar QR Code & NFC Tag</h2>
-
+        <h2 id="nfc-qr-title">Direct Master Calendar QR Code & NFC Tag (Method 1)</h2>
         <p>
           Your physical QR code and NFC tag are programmed to add all prayer times and reminder events straight to your smartphone calendar instantly—bypassing any manual setup.
         </p>
-
         <p>
           <strong>How the direct process works:</strong>
         </p>
@@ -487,18 +597,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <strong>Direct URL/iCal Protocol Encoding:</strong> The physical NFC tag and printed QR code are encoded with a direct public calendar feed URI scheme (using Webcal / iCal subscription links for iOS and direct Google Calendar rendering prompts for Android).
           </li>
           <li>
-            <strong>Instant Public Calendar Subscription:</strong> Scanning or tapping instantly prompts your native calendar app to subscribe to a read-only public master feed. All schedule updates published to the master feed reflect automatically in your personal calendar.
+            <strong>Instant Public Calendar Subscription:</strong> Scanning or tapping instantly prompts your native calendar app to subscribe to a read-only public master feed. All schedule updates published to the master feed reflect automatically in your personal calendar without needing manual adjustments.
           </li>
         </ol>
       </section>
 
+
+      <!-- HOW IT WORKS SECTION (METHOD 2) -->
+      <section class="info-card" aria-labelledby="how-title">
+        <h2 id="how-title">How the Google Account Integration Works (Method 2)</h2>
+        <ol>
+          <li>
+            <strong>Connect Calendar via Google Account Login.</strong>
+            Use the button above to authorize OAuth 2.0 access, allowing the app to safely manage your designated prayer calendar entries.
+          </li>
+        </ol>
+      </section>
+
+
+      <!-- ABOUT THE APP SECTION -->
       <section class="info-card" aria-labelledby="about-title">
         <h2 id="about-title">About the app</h2>
-
         <p>
           Prayer Times Automation supports two distinct mechanisms for adding prayer schedules to your calendar:
         </p>
-
         <ul>
           <li>
             <strong>Direct Add Method (QR Code / NFC Tag):</strong> Utilizes read-only public iCal/Webcal calendar feed links. Scanning or tapping directly imports and synchronizes pre-generated prayer events into your mobile calendar application without requiring account authentication or stored access tokens.
@@ -507,108 +629,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <strong>Google Account Integration Method:</strong> Uses secure OAuth 2.0 authentication to request permission to manage events in your primary Google Calendar. The background service reads local prayer timetable images from a managed Drive directory, uses OCR/computer vision processing to extract dates and times, and directly constructs or updates dedicated prayer event entries in your authenticated personal Google Calendar.
           </li>
         </ul>
-
         <p>
           Both methods are designed to reduce manual data entry and ensure members keep track of their local prayer timetable accurately.
         </p>
       </section>
 
-      <section class="info-card" aria-labelledby="how-title">
-        <h2 id="how-title">How it works</h2>
-
-        <ol>
-          <li>
-            <strong>Connect Calendar via Google Account Login.</strong>
-            Use the button above to authorize OAuth 2.0 access, allowing the app to safely manage your designated prayer calendar entries.
-          </li>
-
-          <li>
-            <strong>Read the prayer timetable.</strong>
-            The background system parses the designated published timetable image and extracts prayer dates and timings using automated image processing.
-          </li>
-
-          <li>
-            <strong>Create or update prayer events.</strong>
-            Extracted schedules are synchronized directly to your personal Google Calendar or broadcasted through the public master feed.
-          </li>
-
-          <li>
-            <strong>Keep your schedule up to date.</strong>
-            Automated background routines run periodically to update upcoming prayer events without requiring repeated sign-ins.
-          </li>
-        </ol>
-
-        <p class="notice">
-          Please review the permissions shown by Google before
-          granting access. You can revoke the application's access
-          at any time through your Google Account settings.
-        </p>
-      </section>
-
-      <section class="info-card" aria-labelledby="access-title">
-        <h2 id="access-title">Google Calendar access</h2>
-
-        <p>
-          When using the Google Account login method, the app requests Calendar permissions solely to identify destination calendars, check existing entries, and create or update prayer schedule reminders.
-        </p>
-
-        <p>
-          Your Google account password is never collected or stored.
-          Authorization is securely handled through Google's official OAuth 2.0 consent interface.
-        </p>
-
-        <p>
-          You can revoke access anytime through
-          <a href="https://myaccount.google.com/connections">
-            your Google Account connections
-          </a>.
-        </p>
-      </section>
-
-      <section class="info-card" aria-labelledby="check-title">
-        <h2 id="check-title">Please check your local timetable</h2>
-
-        <p>
-          Automated image recognition and updates can occasionally experience delays or discrepancies. Please verify your calendar reminders against your local Jamaat's official published timetable.
-        </p>
-
-        <p class="notice">
-          <strong>
-            The official published timetable remains your primary reference if any discrepancy occurs.
-          </strong>
-          Calendar notifications also depend on your smartphone's notification and power management settings.
-        </p>
-      </section>
-
-      <section class="info-card" aria-labelledby="support-title">
-        <h2 id="support-title">Developer and support</h2>
-
-        <p>
-          Developed and Operated by UniMavDevs, Frankfurt, Germany. For access, support, privacy
-          questions, or data deletion requests, contact:
-        </p>
-
-        <a
-          class="support-btn"
-          href="mailto:"
-        >
-          Contact the developer
-        </a>
-
-        <p>
-          <a href="mailto:">
-            Email contact: 
-          </a>
-        </p>
-      </section>
-
+      
     </div>
-  </main>
-  
-
-
-
-
+</main>
 
 
 
