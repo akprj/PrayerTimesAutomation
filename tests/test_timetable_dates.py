@@ -23,6 +23,13 @@ class ResolveTimetableDatesTests(unittest.TestCase):
             (date(2026, 10, 17), date(2026, 10, 24), 8),
         )
 
+    def test_rejects_explicit_ranges_longer_than_eight_days(self):
+        with self.assertRaisesRegex(RuntimeError, "valid range"):
+            self.resolve(
+                "ab Samstag, dem 17. Okt "
+                "bis zum Sonntag, dem 25. Okt 2026"
+            )
+
     def test_keeps_ocr_weekdays_ahead_of_summer_defaults(self):
         result = self.resolve(
             "ab Sonntag, dem 1. Nov bis zum Freitag, dem 6. Nov"
@@ -56,29 +63,83 @@ class ResolveTimetableDatesTests(unittest.TestCase):
 
     def test_infers_missing_end_date_from_end_weekday(self):
         result = self.resolve(
-            "ab Samstag, dem 17. Okt bis zum Freitag, dem"
+            "ab Samstag, dem 31. Okt bis zum Freitag, dem"
         )
 
         self.assertEqual(
             result,
-            (date(2026, 10, 17), date(2026, 10, 23), 7),
+            (date(2026, 10, 31), date(2026, 11, 6), 7),
         )
 
-    def test_uses_winter_sunday_start_when_weekday_is_missing(self):
-        result = self.resolve("bis zum 7. Nov")
+    def test_uses_saturday_start_after_fall_transition_week(self):
+        result = self.resolve("bis zum Freitag, dem 6. Nov")
 
         self.assertEqual(
             result,
-            (date(2026, 11, 1), date(2026, 11, 7), 7),
+            (date(2026, 10, 31), date(2026, 11, 6), 7),
         )
 
-    def test_uses_summer_saturday_start_when_weekday_is_missing(self):
+    def test_infers_eight_day_fall_week_from_end_date(self):
         result = self.resolve("bis zum 24. Okt")
 
         self.assertEqual(
             result,
             (date(2026, 10, 17), date(2026, 10, 24), 8),
         )
+
+    def test_infers_six_day_week_after_fall_transition(self):
+        result = self.resolve("bis zum Freitag, dem 30. Okt")
+
+        self.assertEqual(
+            result,
+            (date(2026, 10, 25), date(2026, 10, 30), 6),
+        )
+
+    def test_infers_eight_and_six_day_weeks_after_spring_transition(self):
+        long_week = self.resolve("bis zum Samstag, dem 28. Mär")
+        short_week = self.resolve("bis zum Freitag, dem 3. Apr")
+        regular_week = self.resolve("bis zum Freitag, dem 10. Apr")
+
+        self.assertEqual(
+            long_week,
+            (date(2026, 3, 21), date(2026, 3, 28), 8),
+        )
+        self.assertEqual(
+            short_week,
+            (date(2026, 3, 29), date(2026, 4, 3), 6),
+        )
+        self.assertEqual(
+            regular_week,
+            (date(2026, 4, 4), date(2026, 4, 10), 7),
+        )
+
+    def test_infers_dst_adjusted_end_dates_from_start_date(self):
+        long_week = self.resolve(
+            "ab Samstag, dem 21. Mär bis zum Samstag, dem"
+        )
+        short_week = self.resolve(
+            "ab Sonntag, dem 29. Mär bis zum Freitag, dem"
+        )
+        fall_short_week = self.resolve(
+            "ab Sonntag, dem 25. Okt bis zum Freitag, dem"
+        )
+
+        self.assertEqual(
+            long_week,
+            (date(2026, 3, 21), date(2026, 3, 28), 8),
+        )
+        self.assertEqual(
+            short_week,
+            (date(2026, 3, 29), date(2026, 4, 3), 6),
+        )
+        self.assertEqual(
+            fall_short_week,
+            (date(2026, 10, 25), date(2026, 10, 30), 6),
+        )
+
+    def test_rejects_end_date_outside_a_valid_inferred_week(self):
+        with self.assertRaisesRegex(RuntimeError, "do not identify"):
+            self.resolve("bis zum 7. Nov 2026")
 
     def test_uses_next_day_after_last_cron_event_for_missing_start(self):
         result = self.resolve(
@@ -88,7 +149,34 @@ class ResolveTimetableDatesTests(unittest.TestCase):
 
         self.assertEqual(
             result,
-            (date(2026, 10, 24), date(2026, 10, 30), 7),
+            (date(2026, 10, 25), date(2026, 10, 30), 6),
+        )
+
+    def test_history_only_fallback_uses_next_day_and_week_pattern(self):
+        regular_week = self.resolve(
+            "",
+            last_event_date=date(2026, 10, 9),
+        )
+        eight_day_week = self.resolve(
+            "",
+            last_event_date=date(2026, 10, 16),
+        )
+        six_day_week = self.resolve(
+            "",
+            last_event_date=date(2026, 10, 24),
+        )
+
+        self.assertEqual(
+            regular_week,
+            (date(2026, 10, 10), date(2026, 10, 16), 7),
+        )
+        self.assertEqual(
+            eight_day_week,
+            (date(2026, 10, 17), date(2026, 10, 24), 8),
+        )
+        self.assertEqual(
+            six_day_week,
+            (date(2026, 10, 25), date(2026, 10, 30), 6),
         )
 
     def test_uses_season_default_when_history_is_outside_the_range(self):

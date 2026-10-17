@@ -148,14 +148,47 @@ def parse_timetable_endpoints(text: str) -> list[TimetableEndpoint]:
     return endpoints
 
 
-def _summer_start_weekday(reference: date) -> int:
-    march_last_day = calendar.monthrange(reference.year, 3)[1]
-    october_last_day = calendar.monthrange(reference.year, 10)[1]
-    summer_starts = date(reference.year, 3, march_last_day)
-    summer_starts -= timedelta(days=(summer_starts.weekday() - 6) % 7)
-    summer_ends = date(reference.year, 10, october_last_day)
-    summer_ends -= timedelta(days=(summer_ends.weekday() - 6) % 7)
-    return 5 if summer_starts <= reference < summer_ends else 6
+def _last_sunday(year: int, month: int) -> date:
+    last_day = calendar.monthrange(year, month)[1]
+    sunday = date(year, month, last_day)
+    return sunday - timedelta(days=(sunday.weekday() - 6) % 7)
+
+
+def _dst_sundays(year: int) -> tuple[date, date]:
+    return _last_sunday(year, 3), _last_sunday(year, 10)
+
+
+def _inferred_range_ending_on(end: date) -> tuple[date, date] | None:
+    for transition_sunday in _dst_sundays(end.year):
+        if end == transition_sunday - timedelta(days=1):
+            return end - timedelta(days=7), end
+        if end == transition_sunday + timedelta(days=5):
+            return transition_sunday, end
+        if (
+            transition_sunday - timedelta(days=8)
+            <= end
+            <= transition_sunday - timedelta(days=2)
+        ):
+            return None
+
+    if end.weekday() == 4:
+        return end - timedelta(days=6), end
+    return None
+
+
+def _inferred_range_starting_on(start: date) -> tuple[date, date] | None:
+    for transition_sunday in _dst_sundays(start.year):
+        if start == transition_sunday - timedelta(days=8):
+            return start, transition_sunday - timedelta(days=1)
+        if start == transition_sunday:
+            return start, start + timedelta(days=5)
+
+    if start.weekday() == 5 and all(
+        start != transition_sunday - timedelta(days=1)
+        for transition_sunday in _dst_sundays(start.year)
+    ):
+        return start, start + timedelta(days=6)
+    return None
 
 
 def _weekday_only(
@@ -270,32 +303,28 @@ def resolve_timetable_dates(
                     possible_ranges.add((start, end))
     elif ends:
         for end in ends:
-            if start_weekday is not None:
-                inferred_start = end - timedelta(
-                    days=(end.weekday() - start_weekday) % 7 or 7
-                )
-            elif last_event_date is not None:
+            inferred_range = None
+            if last_event_date is not None:
                 inferred_start = last_event_date + timedelta(days=1)
                 if not 0 <= (end - inferred_start).days <= 7:
-                    inferred_weekday = _summer_start_weekday(end)
-                    inferred_start = end - timedelta(
-                        days=(end.weekday() - inferred_weekday) % 7 or 7
-                    )
-            else:
-                inferred_weekday = _summer_start_weekday(end)
-                inferred_start = end - timedelta(
-                    days=(end.weekday() - inferred_weekday) % 7 or 7
-                )
-            possible_ranges.add((inferred_start, end))
+                    inferred_start = None
+                else:
+                    inferred_range = (inferred_start, end)
+
+            if inferred_range is not None and (
+                _inferred_range_starting_on(inferred_range[0])
+                != inferred_range
+            ):
+                inferred_range = None
+            if inferred_range is None:
+                inferred_range = _inferred_range_ending_on(end)
+            if inferred_range is not None:
+                possible_ranges.add(inferred_range)
     else:
         for start in starts or {last_event_date + timedelta(days=1)}:
-            inferred_weekday = (
-                end_weekday if end_weekday is not None else 4
-            )
-            inferred_end = start + timedelta(
-                days=(inferred_weekday - start.weekday()) % 7 or 7
-            )
-            possible_ranges.add((start, inferred_end))
+            inferred_range = _inferred_range_starting_on(start)
+            if inferred_range is not None:
+                possible_ranges.add(inferred_range)
 
     valid_ranges = set()
     for start, end in possible_ranges:
