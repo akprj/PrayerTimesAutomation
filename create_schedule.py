@@ -3,13 +3,13 @@ import json
 import os
 import re
 import time
-from google.auth.exceptions import RefreshError
+from google.auth.exceptions import GoogleAuthError, RefreshError
 from datetime import date, datetime, timedelta, timezone
 from contextlib import ExitStack
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -19,6 +19,10 @@ import pytesseract
 from supabase import create_client
 
 from drive_timetable import fetch_latest_timetable
+from timetable_dates import (
+    parse_timetable_endpoints,
+    resolve_timetable_dates,
+)
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -107,6 +111,117 @@ def parse_ocr_time(text):
         return datetime.strptime(compact, "%H:%M").time()
     except ValueError:
         return None
+
+
+def fetch_latest_prayer_event_date(config):
+    calendar_id = config.get("public_calendar_id")
+    encrypted_refresh_token = os.environ.get(
+        "ADMIN_MANAGEMENT_REFRESH_TOKEN"
+    )
+
+    if not calendar_id or not encrypted_refresh_token:
+        print(
+            "DATE HISTORY UNAVAILABLE: public calendar ID or admin "
+            "refresh token is missing; using weekday/season defaults.",
+            flush=True,
+        )
+        return None
+
+    try:
+        refresh_token = decrypt_refresh_token(encrypted_refresh_token)
+        credentials = build_member_credentials(refresh_token)
+        service = build(
+            "calendar",
+            "v3",
+            credentials=credentials,
+            cache_discovery=False,
+        )
+        updated_min = (
+            datetime.now(timezone.utc) - timedelta(days=30)
+        ).isoformat().replace("+00:00", "Z")
+        page_token = None
+        latest_event_date = None
+        prayer_names = {
+            "Fajr",
+            "Zohar",
+            "Assr",
+            "Maghrib",
+            "Ishaa",
+            "Juma",
+        }
+
+        while True:
+            response = service.events().list(
+                calendarId=calendar_id,
+                updatedMin=updated_min,
+                maxResults=2500,
+                pageToken=page_token,
+                singleEvents=True,
+                fields=(
+                    "items(summary,description,start),nextPageToken"
+                ),
+            ).execute()
+
+            for event in response.get("items", []):
+                if (
+                    event.get("summary") not in prayer_names
+                    or "Prayer Timings Automation:"
+                    not in event.get("description", "")
+                ):
+                    continue
+
+                event_start = event.get("start", {})
+                if event_start.get("date"):
+                    event_date = date.fromisoformat(
+                        event_start["date"]
+                    )
+                elif event_start.get("dateTime"):
+                    event_date = datetime.fromisoformat(
+                        event_start["dateTime"].replace(
+                            "Z", "+00:00"
+                        )
+                    ).date()
+                else:
+                    continue
+
+                if (
+                    latest_event_date is None
+                    or event_date > latest_event_date
+                ):
+                    latest_event_date = event_date
+
+            page_token = response.get("nextPageToken")
+            if not page_token:
+                break
+
+    except (
+        GoogleAuthError,
+        HttpError,
+        InvalidToken,
+        OSError,
+        ValueError,
+    ) as exc:
+        print(
+            "DATE HISTORY LOOKUP FAILED: "
+            f"{type(exc).__name__}: {exc}; using weekday/season defaults.",
+            flush=True,
+        )
+        return None
+
+    if latest_event_date is None:
+        print(
+            "DATE HISTORY LOOKUP: no recent prayer events found; "
+            "using weekday/season defaults.",
+            flush=True,
+        )
+    else:
+        print(
+            "DATE HISTORY LOOKUP: latest recently updated prayer "
+            f"event is on {latest_event_date}.",
+            flush=True,
+        )
+
+    return latest_event_date
 
 
 def extract_original_whole_image_times(text):
@@ -638,268 +753,59 @@ def build_prayer_times_and_dates():
     )
 
 
-    months = {
-        "jan": 1,
-        "feb": 2,
-        "mär": 3,
-        "mar": 3,
-        "mae": 3,
-        "maerz": 3,
-        "mrz": 3,
-        "apr": 4,
-        "mai": 5,
-        "may": 5,
-        "jun": 6,
-        "jul": 7,
-        "aug": 8,
-        "sep": 9,
-        "okt": 10,
-        "oct": 10,
-        "nov": 11,
-        "dez": 12,
-        "dec": 12,
-    }
-
-    weekdays = {
-        "montag": 0,
-        "dienstag": 1,
-        "mittwoch": 2,
-        "donnerstag": 3,
-        "freitag": 4,
-        "samstag": 5,
-        "sonntag": 6,
-    }
-
-    weekday_pattern = (
-        r"Montag|Dienstag|Mittwoch|Donnerstag|"
-        r"Freitag|Samstag|Sonntag"
-    )
-
-    pattern = (
-        r"\b(?:"
-        r"(?P<marker>ab|bis\s+zum|zum)\s+"
-        rf"(?:(?P<marked_weekday>{weekday_pattern})\s*,?\s*)?"
-        r"|"
-        rf"(?P<weekday>{weekday_pattern})\s*,?\s*"
-        r")"
-        r"(?:dem\s+)?"
-        r"(?P<day>\d{1,2})\s*[.,]?\s*"
-        r"(?P<month>[A-Za-zÄÖÜäöüß]+)\b"
-        r"(?:\s*[.,]?\s*(?P<year>\d{4})\b)?"
-    )
-
-    matches = list(
-        re.finditer(pattern, date_text, flags=re.IGNORECASE)
-    )
-
+    date_endpoints = parse_timetable_endpoints(date_text)
     print(
-        f"DATE MATCHES: {[match.group(0) for match in matches]!r}",
+        f"DATE MATCHES: {[endpoint.text for endpoint in date_endpoints]!r}",
         flush=True,
     )
 
-    if not matches:
-        raise RuntimeError(
-            "Could not identify any timetable date. "
-            "Cannot safely infer the timetable week."
+    last_event_date = None
+    has_start_evidence = any(
+        endpoint.role == "start"
+        and (
+            endpoint.day is not None
+            or endpoint.weekday is not None
         )
+        for endpoint in date_endpoints
+    )
+    if not has_start_evidence:
+        last_event_date = fetch_latest_prayer_event_date(config)
 
-    date_records = []
-    detected_roles = set()
-    explicit_years = set()
-
-    # Read date components before assigning any inferred year.
-    for match in matches:
-        marker = " ".join(
-            (match.group("marker") or "").lower().split()
-        )
-
-        weekday_text = (
-            match.group("marked_weekday")
-            or match.group("weekday")
-        )
-
-        weekday_name = (
-            weekday_text.lower() if weekday_text else None
-        )
-
-        expected_weekday = (
-            weekdays[weekday_name]
-            if weekday_name is not None
-            else None
-        )
-
-        month_text = match.group("month")
-        month_name = month_text.lower()
-        month = months.get(month_name) or months.get(month_name[:3])
-
-        if month is None:
-            raise RuntimeError(
-                f"Unrecognised month in date OCR: {month_text!r}"
-            )
-
-        if marker == "ab":
-            role = "start"
-        elif marker in {"bis zum", "zum"}:
-            role = "end"
-        elif weekday_name == "samstag":
-            role = "start"
-        elif weekday_name == "freitag":
-            role = "end"
-        else:
-            raise RuntimeError(
-                f"Cannot identify a Saturday/Friday endpoint: "
-                f"{match.group(0)!r}"
-            )
-
-        required_weekday = 5 if role == "start" else 4
-
-        if (
-            expected_weekday is not None
-            and expected_weekday != required_weekday
-        ):
-            raise RuntimeError(
-                f"Timetable {role} has an incompatible weekday: "
-                f"{match.group(0)!r}. "
-                "Expected Saturday for the start or Friday for the end."
-            )
-
-        year_text = match.group("year")
-        explicit_year = int(year_text) if year_text else None
-
-        if explicit_year is not None:
-            if not 1 <= explicit_year <= 9999:
-                raise RuntimeError(
-                    f"Invalid timetable year: {year_text!r}"
-                )
-
-            explicit_years.add(explicit_year)
-
-        date_records.append(
-            {
-                "text": match.group(0),
-                "day": int(match.group("day")),
-                "month": month,
-                "year": explicit_year,
-                "role": role,
-                "required_weekday": required_weekday,
-            }
-        )
-
-        detected_roles.add(role)
-
-    # Printed years take precedence over the current-year reference.
-    # Adjacent years allow the other endpoint to cross New Year.
-    reference_years = explicit_years or {year}
-
-    candidate_years = {
-        reference_year + offset
-        for reference_year in reference_years
-        for offset in (-1, 0, 1)
-        if 1 <= reference_year + offset <= 9999
-    }
-
-    print(
-        f"DATE YEAR RESOLUTION: "
-        f"explicit years={sorted(explicit_years)!r}; "
-        f"candidate years={sorted(candidate_years)!r}",
-        flush=True,
+    start_date, end_date, day_count = resolve_timetable_dates(
+        date_text,
+        year,
+        last_event_date=last_event_date,
+        reference_date=datetime.now(timezone_obj).date(),
     )
 
-    candidate_ranges = None
+    has_start_date = any(
+        endpoint.role == "start" and endpoint.day is not None
+        for endpoint in date_endpoints
+    )
+    has_end_date = any(
+        endpoint.role == "end" and endpoint.day is not None
+        for endpoint in date_endpoints
+    )
 
-    for record in date_records:
-        years_to_try = (
-            [record["year"]]
-            if record["year"] is not None
-            else sorted(candidate_years)
-        )
-
-        record_ranges = set()
-
-        for candidate_year in years_to_try:
-            try:
-                parsed_date = date(
-                    candidate_year,
-                    record["month"],
-                    record["day"],
-                )
-
-                if parsed_date.weekday() != record["required_weekday"]:
-                    continue
-
-                if record["role"] == "start":
-                    candidate_start = parsed_date
-                    candidate_end = parsed_date + timedelta(days=6)
-                else:
-                    candidate_end = parsed_date
-                    candidate_start = parsed_date - timedelta(days=6)
-
-            except (ValueError, OverflowError):
-                continue
-
-            record_ranges.add((candidate_start, candidate_end))
-
-        if not record_ranges:
-            raise RuntimeError(
-                f"Cannot resolve timetable date {record['text']!r} "
-                f"as a valid {record['role']} endpoint "
-                f"in years {list(years_to_try)!r}. "
-                "Check the OCR date, weekday, and printed year."
-            )
-
+    if has_start_date and has_end_date:
         print(
-            f"DATE CANDIDATES [{record['text']!r}]: "
-            f"{sorted((start.isoformat(), end.isoformat()) for start, end in record_ranges)!r}",
+            f"DATE RANGE VERIFIED: {start_date} to {end_date} "
+            f"({day_count} days).",
             flush=True,
         )
-
-        if candidate_ranges is None:
-            candidate_ranges = record_ranges
-        else:
-            candidate_ranges.intersection_update(record_ranges)
-
-        if not candidate_ranges:
-            raise RuntimeError(
-                "Detected timetable dates identify different weeks "
-                "or have conflicting years. "
-                "Refusing to infer an inconsistent date range."
-            )
-
-    if candidate_ranges is None or len(candidate_ranges) != 1:
-        raise RuntimeError(
-            "The timetable year/week is ambiguous. "
-            "Cannot safely select a unique Saturday–Friday range. "
-            "Check that the timetable includes a readable year."
-        )
-
-    start_date, end_date = next(iter(candidate_ranges))
-    day_count = (end_date - start_date).days + 1
-
-    if (
-        day_count != 7
-        or start_date.weekday() != 5
-        or end_date.weekday() != 4
+    elif last_event_date and start_date == (
+        last_event_date + timedelta(days=1)
     ):
-        raise RuntimeError(
-            f"Invalid Saturday–Friday timetable range: "
-            f"{start_date} to {end_date}."
-        )
-
-    if detected_roles == {"start"}:
         print(
-            f"DATE FALLBACK: Read Saturday {start_date}; "
-            f"inferred Friday {end_date}.",
-            flush=True,
-        )
-    elif detected_roles == {"end"}:
-        print(
-            f"DATE FALLBACK: Read Friday {end_date}; "
-            f"inferred Saturday {start_date}.",
+            f"DATE FALLBACK: Read prior prayer event on "
+            f"{last_event_date}; inferred start {start_date} and "
+            f"end {end_date} ({day_count} days).",
             flush=True,
         )
     else:
         print(
-            f"DATE RANGE VERIFIED: {start_date} to {end_date}.",
+            f"DATE RANGE INFERRED: {start_date} to {end_date} "
+            f"({day_count} days).",
             flush=True,
         )
 

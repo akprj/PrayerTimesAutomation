@@ -1383,22 +1383,43 @@ def sync_member(
     email = member.get("email") or "(unknown)"
     member_id = member["id"]
 
-    print(f"\n--- Syncing member: {email} ---", flush=True)
+    print(f"\n--- Syncing target: {email} ---", flush=True)
 
-    refresh_token = decrypt_refresh_token(
-        member["refresh_token_encrypted"]
-    )
-    credentials = build_member_credentials(refresh_token)
+    # 1. NEW INTERCEPT: Check if we are running the central Master Calendar
+    if member.get("is_master_calendar"):
+        # We reuse your main admin credentials securely saved in Render's environment
+        admin_refresh_token = decrypt_refresh_token(
+            os.environ["ADMIN_MANAGEMENT_REFRESH_TOKEN"]
+        )
+        credentials = build_member_credentials(admin_refresh_token)
 
-    service = build(
-        "calendar",
-        "v3",
-        credentials=credentials,
-        cache_discovery=False,
-    )
+        service = build(
+            "calendar",
+            "v3",
+            credentials=credentials,
+            cache_discovery=False,
+        )
+        # Directly target the public calendar string without running search matches
+        calendar_id = member["calendar_id"]
+    else:
+        # 2. STANDARD LOGIC: Keep your existing code for individual OAuth users completely untouched
+        refresh_token = decrypt_refresh_token(
+            member["refresh_token_encrypted"]
+        )
+        credentials = build_member_credentials(refresh_token)
 
-    calendar_id = resolve_member_calendar(service, member)
+        service = build(
+            "calendar",
+            "v3",
+            credentials=credentials,
+            cache_discovery=False,
+        )
 
+        calendar_id = resolve_member_calendar(service, member)
+
+    # =========================================================================
+    # THE REST OF YOUR CORE CODE LOGIC REMAINS COMPLETELY UNTOUCHED BELOW HERE
+    # =========================================================================
     print(f"Using calendar_id: {calendar_id}", flush=True)
     print(f"Timezone: {timezone_obj.key}", flush=True)
     print(f"Date range starts: {start_date}", flush=True)
@@ -1419,6 +1440,7 @@ def sync_member(
 
     if MAX_RETRIES < 1:
         raise ValueError("MAX_RETRIES must be at least 1.")
+
 
     for offset in range(day_count):
         current_date = start_date + timedelta(days=offset)
@@ -1448,10 +1470,12 @@ def sync_member(
                 prayer,
             )
 
+
             body = {
                 "id": event_id,
                 "summary": prayer,
                 "description": (
+                    f"Dear member, Assalam-u-Alaikum, it's time to Prepare for {prayer} Prayer.\n\n"
                     f"Prayer Timings Automation: start time "
                     f"{starts_at:%H:%M} "
                     f"on {current_date.isoformat()}."
@@ -1475,6 +1499,7 @@ def sync_member(
                 },
             }
 
+            
             total_attempted += 1
 
             for attempt in range(MAX_RETRIES):
@@ -1540,7 +1565,9 @@ def sync_member(
     print(f"Updated:         {totals['updated']}", flush=True)
     print(f"Skipped:         {totals['skipped']}", flush=True)
 
-    mark_member_synced(member_id, calendar_id)
+    # ONLY update Supabase if it's a real individual user, not our Master profile
+    if not member.get("is_master_calendar"):
+        mark_member_synced(member_id, calendar_id)
 
 
 def main(all_members=False, member_id=None):
@@ -1563,11 +1590,15 @@ def main(all_members=False, member_id=None):
             "Use either all_members or member_id, not both."
         )
 
+    members = []
+    include_master_calendar = False
+
     if all_members:
         members = fetch_connected_members()
-
+        # Enable public master calendar sync during the weekly run
+        include_master_calendar = True
         print(
-            f"Weekly sync: connected members found: {len(members)}",
+            f"Weekly sync: connected members found: {len(members)}. Master Calendar sync enabled.",
             flush=True,
         )
 
@@ -1579,7 +1610,6 @@ def main(all_members=False, member_id=None):
             .eq("connection_status", "connected")
             .execute()
         )
-
         members = response.data or []
 
         print(
@@ -1587,17 +1617,47 @@ def main(all_members=False, member_id=None):
             f"connected members found: {len(members)}",
             flush=True,
         )
-
     else:
         raise ValueError(
             "Provide member_id for login sync, "
             "or use --all-members for the weekly cron."
         )
 
-
     successful_members = 0
     failed_members = 0
 
+    # =========================================================================
+    # NEW STEP: SYNC THE CENTRAL MASTER CALENDAR FIRST
+    # =========================================================================
+    if include_master_calendar and config.get("public_calendar_id"):
+        print("\n==============================================", flush=True)
+        print("STARTING CENTRAL MASTER CALENDAR SYNCHRONIZATION", flush=True)
+        print("==============================================", flush=True)
+        
+        master_member_mock = {
+            "id": "MASTER_CALENDAR_SYSTEM_VIRTUAL_ID",
+            "email": "Central Master Feed",
+            "calendar_id": config["public_calendar_id"],
+            "is_master_calendar": True
+        }
+        
+        try:
+            sync_member(
+                master_member_mock,
+                config,
+                timezone_obj,
+                start_date,
+                day_count,
+                prayer_times,
+            )
+            print("Central Master Calendar sync completed successfully.\n", flush=True)
+        except Exception as exc:
+            print(f"CRITICAL WARNING: Central Master Calendar sync failed: {exc}", flush=True)
+            failed_members += 1
+
+    # =========================================================================
+    # EXISTING CODE: LOOP THROUGH INDIVIDUAL MEMBERS (UNTOUCHED LOGIC)
+    # =========================================================================
     for member in members:
         try:
             sync_member(
@@ -1608,48 +1668,38 @@ def main(all_members=False, member_id=None):
                 day_count,
                 prayer_times,
             )
-
             successful_members += 1
 
         except RefreshError as exc:
             failed_members += 1
-
             invalid_grant = any(
-                isinstance(arg, dict)
-                and arg.get("error") == "invalid_grant"
+                isinstance(arg, dict) and arg.get("error") == "invalid_grant"
                 for arg in exc.args
             )
-
             if invalid_grant:
                 try:
                     mark_member_reconnect_required(member["id"])
                 except Exception as update_error:
                     print(
                         "Could not save reconnect-required status "
-                        f"for {member.get('email')}: "
-                        f"{type(update_error).__name__}: "
-                        f"{update_error}",
+                        f"for {member.get('email')}: {update_error}",
                         flush=True,
                     )
-
                 print(
                     f"RECONNECT REQUIRED: {member.get('email')} — "
-                    "Google refresh token is no longer valid. "
-                    "Member must reconnect.",
+                    "Google refresh token is no longer valid.",
                     flush=True,
                 )
             else:
                 print(
                     f"Token refresh failed for {member.get('email')}: "
-                    "not a confirmed invalid_grant; "
-                    "connection status unchanged.",
+                    "not a confirmed invalid_grant context.",
                     flush=True,
                 )
 
         except HttpError as exc:
             failed_members += 1
             status = getattr(exc.resp, "status", None)
-
             print(
                 f"Google API error for {member.get('email')}: "
                 f"status={status}, message={exc}",
@@ -1658,7 +1708,6 @@ def main(all_members=False, member_id=None):
 
         except Exception as exc:
             failed_members += 1
-
             print(
                 f"Sync failed for {member.get('email')}: "
                 f"{type(exc).__name__}: {exc}",
@@ -1675,9 +1724,10 @@ def main(all_members=False, member_id=None):
 
     if failed_members:
         raise RuntimeError(
-            f"Synchronization failed for {failed_members} member(s). "
-            "See the member-level errors above."
+            f"Synchronization failed for {failed_members} execution target(s)."
         )
+
+
 
 
 if __name__ == "__main__":
