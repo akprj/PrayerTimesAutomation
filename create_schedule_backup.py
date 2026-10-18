@@ -9,7 +9,7 @@ from contextlib import ExitStack
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -113,47 +113,26 @@ def parse_ocr_time(text):
         return None
 
 
-def fetch_latest_prayer_event_date(config):
-    calendar_id = config.get("public_calendar_id")
-    encrypted_refresh_token = os.environ.get(
-        "ADMIN_MANAGEMENT_REFRESH_TOKEN"
-    )
-
-    if not calendar_id or not encrypted_refresh_token:
-        print(
-            "DATE HISTORY UNAVAILABLE: public calendar ID or admin "
-            "refresh token is missing; using weekday/season defaults.",
-            flush=True,
-        )
-        return None
+def fetch_latest_prayer_event_date(service, calendar_id, timezone_obj):
+    time_min = (
+        datetime.now(timezone.utc) - timedelta(days=3650)
+    ).isoformat().replace("+00:00", "Z")
+    page_token = None
+    latest_event_date = None
+    prayer_names = {
+        "Fajr",
+        "Zohar",
+        "Assr",
+        "Maghrib",
+        "Ishaa",
+        "Juma",
+    }
 
     try:
-        refresh_token = decrypt_refresh_token(encrypted_refresh_token)
-        credentials = build_member_credentials(refresh_token)
-        service = build(
-            "calendar",
-            "v3",
-            credentials=credentials,
-            cache_discovery=False,
-        )
-        updated_min = (
-            datetime.now(timezone.utc) - timedelta(days=30)
-        ).isoformat().replace("+00:00", "Z")
-        page_token = None
-        latest_event_date = None
-        prayer_names = {
-            "Fajr",
-            "Zohar",
-            "Assr",
-            "Maghrib",
-            "Ishaa",
-            "Juma",
-        }
-
         while True:
             response = service.events().list(
                 calendarId=calendar_id,
-                updatedMin=updated_min,
+                timeMin=time_min,
                 maxResults=2500,
                 pageToken=page_token,
                 singleEvents=True,
@@ -180,7 +159,7 @@ def fetch_latest_prayer_event_date(config):
                         event_start["dateTime"].replace(
                             "Z", "+00:00"
                         )
-                    ).date()
+                    ).astimezone(timezone_obj).date()
                 else:
                     continue
 
@@ -194,30 +173,26 @@ def fetch_latest_prayer_event_date(config):
             if not page_token:
                 break
 
-    except (
-        GoogleAuthError,
-        HttpError,
-        InvalidToken,
-        OSError,
-        ValueError,
-    ) as exc:
+    except (GoogleAuthError, HttpError, OSError, ValueError) as exc:
         print(
-            "DATE HISTORY LOOKUP FAILED: "
-            f"{type(exc).__name__}: {exc}; using weekday/season defaults.",
+            f"DATE HISTORY LOOKUP FAILED for {calendar_id!r}: "
+            f"{type(exc).__name__}: {exc}",
             flush=True,
         )
-        return None
+        raise RuntimeError(
+            "Could not read prior prayer events for the OCR date fallback."
+        ) from exc
 
     if latest_event_date is None:
         print(
-            "DATE HISTORY LOOKUP: no recent prayer events found; "
-            "using weekday/season defaults.",
+            f"DATE HISTORY LOOKUP: no prior prayer events found in "
+            f"{calendar_id!r}.",
             flush=True,
         )
     else:
         print(
-            "DATE HISTORY LOOKUP: latest recently updated prayer "
-            f"event is on {latest_event_date}.",
+            f"DATE HISTORY LOOKUP: latest prayer event in "
+            f"{calendar_id!r} is on {latest_event_date}.",
             flush=True,
         )
 
@@ -753,29 +728,37 @@ def build_prayer_times_and_dates():
     )
 
 
-    date_endpoints = parse_timetable_endpoints(date_text)
+    date_endpoints = []
+    start_date = end_date = day_count = None
+    try:
+        date_endpoints = parse_timetable_endpoints(date_text)
+        start_date, end_date, day_count = resolve_timetable_dates(
+            date_text,
+            year,
+            reference_date=datetime.now(timezone_obj).date(),
+        )
+    except RuntimeError as exc:
+        if (
+            any(
+                endpoint.role == "start" and endpoint.day is not None
+                for endpoint in date_endpoints
+            )
+            and any(
+                endpoint.role == "end" and endpoint.day is not None
+                for endpoint in date_endpoints
+            )
+        ):
+            raise
+
+        print(
+            "DATE OCR COULD NOT RESOLVE A RANGE; will use the target "
+            f"calendar's latest prayer event as a last resort: {exc}",
+            flush=True,
+        )
+
     print(
         f"DATE MATCHES: {[endpoint.text for endpoint in date_endpoints]!r}",
         flush=True,
-    )
-
-    last_event_date = None
-    has_start_evidence = any(
-        endpoint.role == "start"
-        and (
-            endpoint.day is not None
-            or endpoint.weekday is not None
-        )
-        for endpoint in date_endpoints
-    )
-    if not has_start_evidence:
-        last_event_date = fetch_latest_prayer_event_date(config)
-
-    start_date, end_date, day_count = resolve_timetable_dates(
-        date_text,
-        year,
-        last_event_date=last_event_date,
-        reference_date=datetime.now(timezone_obj).date(),
     )
 
     has_start_date = any(
@@ -787,19 +770,16 @@ def build_prayer_times_and_dates():
         for endpoint in date_endpoints
     )
 
-    if has_start_date and has_end_date:
+    if start_date is None:
+        print(
+            "DATE FALLBACK DEFERRED: each target calendar will be "
+            "checked during synchronization.",
+            flush=True,
+        )
+    elif has_start_date and has_end_date:
         print(
             f"DATE RANGE VERIFIED: {start_date} to {end_date} "
             f"({day_count} days).",
-            flush=True,
-        )
-    elif last_event_date and start_date == (
-        last_event_date + timedelta(days=1)
-    ):
-        print(
-            f"DATE FALLBACK: Read prior prayer event on "
-            f"{last_event_date}; inferred start {start_date} and "
-            f"end {end_date} ({day_count} days).",
             flush=True,
         )
     else:
@@ -1323,6 +1303,32 @@ def sync_member(
 
         calendar_id = resolve_member_calendar(service, member)
 
+    if start_date is None or day_count is None:
+        last_event_date = fetch_latest_prayer_event_date(
+            service,
+            calendar_id,
+            timezone_obj,
+        )
+        if last_event_date is None:
+            raise RuntimeError(
+                "OCR could not resolve the timetable dates, and this "
+                "calendar has no prior prayer event to anchor the "
+                "date fallback."
+            )
+
+        start_date, end_date, day_count = resolve_timetable_dates(
+            "",
+            datetime.now(timezone_obj).year,
+            last_event_date=last_event_date,
+            reference_date=datetime.now(timezone_obj).date(),
+        )
+        print(
+            f"DATE HISTORY FALLBACK: starting the next inferred "
+            f"schedule block after {last_event_date}: "
+            f"{start_date} to {end_date} ({day_count} days).",
+            flush=True,
+        )
+
     # =========================================================================
     # THE REST OF YOUR CORE CODE LOGIC REMAINS COMPLETELY UNTOUCHED BELOW HERE
     # =========================================================================
@@ -1476,6 +1482,10 @@ def sync_member(
         mark_member_synced(member_id, calendar_id)
 
 
+
+
+
+
 def main(all_members=False, member_id=None):
     (
         config,
@@ -1486,10 +1496,17 @@ def main(all_members=False, member_id=None):
         prayer_times,
     ) = build_prayer_times_and_dates()
 
-    print(
-        f"Timetable covers: {start_date} through {end_date}",
-        flush=True,
-    )
+    if start_date is None or end_date is None:
+        print(
+            "Timetable dates will be inferred separately from each "
+            "target calendar's prayer-event history.",
+            flush=True,
+        )
+    else:
+        print(
+            f"Timetable covers: {start_date} through {end_date}",
+            flush=True,
+        )
 
     if all_members and member_id is not None:
         raise ValueError(
@@ -1498,9 +1515,21 @@ def main(all_members=False, member_id=None):
 
     members = []
     include_master_calendar = False
+    member_fetch_failed = False
 
     if all_members:
-        members = fetch_connected_members()
+        try:
+            members = fetch_connected_members()
+        except Exception as exc:
+            member_fetch_failed = True
+            print(
+                "SUPABASE MEMBER FETCH FAILED: "
+                f"{type(exc).__name__}: {exc}. "
+                "Continuing with the Master Calendar sync; "
+                "individual member sync is unavailable for this run.",
+                flush=True,
+            )
+
         # Enable public master calendar sync during the weekly run
         include_master_calendar = True
         print(
@@ -1530,7 +1559,7 @@ def main(all_members=False, member_id=None):
         )
 
     successful_members = 0
-    failed_members = 0
+    failed_members = int(member_fetch_failed)
 
     # =========================================================================
     # NEW STEP: SYNC THE CENTRAL MASTER CALENDAR FIRST
@@ -1630,7 +1659,7 @@ def main(all_members=False, member_id=None):
 
     if failed_members:
         raise RuntimeError(
-            f"Synchronization failed for {failed_members} execution target(s)."
+            f"Synchronization run completed with {failed_members} failure(s)."
         )
 
 

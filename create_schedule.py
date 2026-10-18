@@ -1271,14 +1271,20 @@ def sync_member(
 
     print(f"\n--- Syncing target: {email} ---", flush=True)
 
-    # 1. NEW INTERCEPT: Check if we are running the central Master Calendar
+        # 1. NEW INTERCEPT: Check if we are running the central Master Calendar
     if member.get("is_master_calendar"):
-        # We reuse your main admin credentials securely saved in Render's environment
-        admin_refresh_token = decrypt_refresh_token(
-            os.environ["ADMIN_MANAGEMENT_REFRESH_TOKEN"]
+        # FIXED: Use the local service_account.json file instead of an environment refresh token!
+        if not os.path.exists("service_account.json"):
+            raise FileNotFoundError(
+                "CRITICAL: service_account.json is missing from your project folder! "
+                "Cannot sync the Central Master Calendar."
+            )
+            
+        from google.oauth2 import service_account
+        credentials = service_account.Credentials.from_service_account_file(
+            "service_account.json",
+            scopes=["https://googleapis.com"]
         )
-        credentials = build_member_credentials(admin_refresh_token)
-
         service = build(
             "calendar",
             "v3",
@@ -1302,6 +1308,9 @@ def sync_member(
         )
 
         calendar_id = resolve_member_calendar(service, member)
+
+
+
 
     if start_date is None or day_count is None:
         last_event_date = fetch_latest_prayer_event_date(
@@ -1480,6 +1489,9 @@ def sync_member(
     # ONLY update Supabase if it's a real individual user, not our Master profile
     if not member.get("is_master_calendar"):
         mark_member_synced(member_id, calendar_id)
+
+
+
 
 
 def main(all_members=False, member_id=None):

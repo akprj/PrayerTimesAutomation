@@ -1,6 +1,7 @@
 # Google credentials and member tokens
 credentials_web.json
 drive-reader.json
+service_account.json
 tokens/
 
 # Local environment settings
