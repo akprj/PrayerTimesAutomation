@@ -15,21 +15,23 @@ jobs:
           SUPABASE_URL: ${{ secrets.GH_SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.GH_SUPABASE_KEY }}
         run: |
-          echo "Sending Keep-Alive ping to Supabase..."
+          echo "Sending true Database Keep-Alive ping to Supabase..."
           
           # Clean up any accidental leading/trailing spaces from secrets
           URL=$(echo "$SUPABASE_URL" | xargs)
           KEY=$(echo "$SUPABASE_ANON_KEY" | xargs)
           
-          # Querying the auth config health check which accepts public keys natively
+          # Query the root PostgREST database endpoint instead of the Auth module.
+          # This forces a live connection check directly against the PostgreSQL instance.
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X GET "$URL/auth/v1/settings" \
+            -X GET "$URL/rest/v1/" \
             -H "apikey: $KEY" \
             -H "Authorization: Bearer $KEY")
 
+          # A successful response from the database gateway returns HTTP 200
           if [ "$RESPONSE" -eq 200 ]; then
-            echo "Success! Database wrapper is awake. HTTP Status: $RESPONSE"
+            echo "Success! The actual database engine processed the request. HTTP Status: $RESPONSE"
           else
-            echo "Error: Ping failed with HTTP Status: $RESPONSE"
+            echo "Error: Database ping failed with HTTP Status: $RESPONSE"
             exit 1
           fi
