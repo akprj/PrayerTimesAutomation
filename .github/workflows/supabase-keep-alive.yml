@@ -8,7 +8,7 @@ on:
 
 jobs:
   ping-db:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Pinning to Ubuntu 24.04 avoids the environment migration warnings
     steps:
       - name: Ping Supabase Database
         env:
@@ -18,20 +18,24 @@ jobs:
           echo "Sending true Database Keep-Alive ping to Supabase..."
           
           # Clean up any accidental leading/trailing spaces from secrets
-          URL=$(echo "$SUPABASE_URL" | xargs)
+          URL=$(echo "$SUPABASE_URL" | xargs | sed 's/\/$//') # Strips any trailing slashes from the base URL
           KEY=$(echo "$SUPABASE_ANON_KEY" | xargs)
           
-          # Query the root PostgREST database endpoint instead of the Auth module.
-          # This forces a live connection check directly against the PostgreSQL instance.
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X GET "$URL/rest/v1/" \
+          # Request the API schema root directly. PostgREST must query the DB to build this layout.
+          RESPONSE_BODY=$(curl -s -X GET "$URL/rest/v1" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY")
+          
+          # Capture just the HTTP status code
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "$URL/rest/v1" \
             -H "apikey: $KEY" \
             -H "Authorization: Bearer $KEY")
 
-          # A successful response from the database gateway returns HTTP 200
-          if [ "$RESPONSE" -eq 200 ]; then
-            echo "Success! The actual database engine processed the request. HTTP Status: $RESPONSE"
+          if [ "$STATUS_CODE" -eq 200 ]; then
+            echo "Success! The actual database engine processed the request. HTTP Status: $STATUS_CODE"
           else
-            echo "Error: Database ping failed with HTTP Status: $RESPONSE"
+            echo "Error: Database ping failed with HTTP Status: $STATUS_CODE"
+            echo "Server Response payload: $RESPONSE_BODY"
             exit 1
           fi
