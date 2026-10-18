@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A step-by-step technical presentation of the Prayer Times Automation backend.">
+  <title>Prayer Times Automation — Backend Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #09111f;
+      --panel: #111d30;
+      --panel-2: #17263d;
+      --text: #edf4ff;
+      --muted: #a8bad2;
+      --accent: #69e0c0;
+      --accent-2: #8fb5ff;
+      --warn: #ffd37b;
+      --line: #2a3d59;
+      --danger: #ff9c9c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+    body {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      line-height: 1.48;
+      overflow: hidden;
+    }
+    button { font: inherit; }
+    .deck { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; }
+    .slides { min-height: 0; position: relative; }
+    .slide {
+      display: none;
+      width: min(1440px, 100%);
+      height: 100%;
+      min-height: 0;
+      margin: 0 auto;
+      padding: clamp(26px, 5vw, 76px) clamp(24px, 7vw, 104px) 38px;
+      overflow: auto;
+    }
+    .slide.active { display: block; animation: appear .22s ease-out; }
+    @keyframes appear { from { opacity: .25; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    .eyebrow {
+      color: var(--accent);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin: 0 0 14px;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 900px; font-size: clamp(2.6rem, 7vw, 5.7rem); line-height: 1.01; letter-spacing: -.045em; margin-bottom: 24px; }
+    h2 { font-size: clamp(1.8rem, 4.2vw, 3.35rem); line-height: 1.1; letter-spacing: -.03em; margin-bottom: 18px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; color: var(--accent-2); }
+    p, li { color: var(--muted); font-size: clamp(.94rem, 1.3vw, 1.13rem); }
+    strong { color: var(--text); }
+    .lead { font-size: clamp(1.12rem, 2vw, 1.48rem); max-width: 930px; }
+    .small { font-size: .86rem; }
+    .tiny { font-size: .75rem; }
+    .accent { color: var(--accent); }
+    .warning { color: var(--warn); }
+    .danger { color: var(--danger); }
+    .grid { display: grid; gap: 14px; margin: 20px 0; }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card, .callout, .step {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 17px 19px;
+    }
+    .card p:last-child, .callout p:last-child { margin-bottom: 0; }
+    .callout { border-left: 4px solid var(--accent); background: #102638; }
+    .callout.warn { border-left-color: var(--warn); background: #2a251a; }
+    .step { position: relative; padding-top: 48px; }
+    .step .num {
+      position: absolute; left: 17px; top: 13px;
+      display: grid; place-items: center;
+      width: 25px; height: 25px; border-radius: 50%;
+      color: var(--bg); background: var(--accent); font-weight: 900; font-size: .85rem;
+    }
+    ul, ol { margin: 9px 0 0; padding-left: 1.2rem; }
+    li { margin: 5px 0; }
+    .flow {
+      display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; margin: 22px 0;
+    }
+    .flow > div {
+      flex: 1 1 130px; min-width: 115px;
+      padding: 14px; border-radius: 12px; text-align: center;
+      background: var(--panel-2); border: 1px solid var(--line);
+      color: var(--text); font-weight: 700;
+    }
+    .flow .arrow { flex: 0 0 auto; min-width: 16px; padding: 13px 0; color: var(--accent); background: none; border: 0; }
+    code, .code {
+      font-family: Consolas, "SFMono-Regular", monospace;
+      color: #c2d8ff;
+      background: #0a1525;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1px 5px;
+      overflow-wrap: anywhere;
+    }
+    pre {
+      overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+      background: #07101d; border: 1px solid var(--line);
+      border-radius: 12px; padding: 16px; color: #c2d8ff;
+      font: .85rem/1.5 Consolas, "SFMono-Regular", monospace;
+    }
+    .tag {
+      display: inline-block; padding: 4px 9px; border-radius: 99px;
+      border: 1px solid var(--line); color: var(--accent); font-size: .78rem;
+      margin: 2px 4px 2px 0;
+    }
+    .source { color: #8da7c9; font-size: .78rem; margin-top: 14px; }
+    .cover-mark {
+      width: 72px; height: 5px; background: var(--accent);
+      border-radius: 9px; margin: 30px 0;
+    }
+    .big-number { color: var(--accent); font-size: 2.3rem; font-weight: 900; line-height: 1; }
+    .footer {
+      min-height: 58px; display: flex; align-items: center; gap: 16px;
+      padding: 8px clamp(16px, 4vw, 56px);
+      border-top: 1px solid var(--line); background: #0a1422;
+    }
+    .progress-track { height: 4px; flex: 1; background: #20314a; border-radius: 5px; overflow: hidden; }
+    .progress { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+    .counter { min-width: 76px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; font-size: .9rem; }
+    .controls { display: flex; gap: 8px; }
+    .controls button {
+      padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--text); cursor: pointer;
+    }
+    .controls button:hover { border-color: var(--accent); }
+    .controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    @media (max-width: 800px) {
+      body { overflow: auto; }
+      .deck { min-height: 100vh; }
+      .slides { min-height: calc(100vh - 58px); }
+      .slide { min-height: calc(100vh - 58px); height: auto; padding: 32px 20px; }
+      .two, .three, .four { grid-template-columns: 1fr; }
+      .flow { gap: 6px; }
+      .flow > div { flex-basis: 39%; }
+      .flow .arrow { flex-basis: auto; }
+    }
+    @media print {
+      @page { size: 13.333in 7.5in; margin: 0; }
+      html, body { background: #09111f !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      body { overflow: visible; }
+      .deck { display: block; }
+      .slides { display: block; }
+      .slide, .slide.active {
+        display: block !important; width: 13.333in; height: 7.5in; min-height: 7.5in;
+        overflow: hidden; page-break-after: always; padding: .55in .8in .4in;
+        animation: none;
+      }
+      .footer { display: none; }
+      h2 { font-size: 27pt; }
+      p, li { font-size: 12pt; }
+      .card, .callout, .step { padding: 12px 14px; }
+      .grid { gap: 9px; margin: 12px 0; }
+    }
+  </style>
+</head>
+<body>
+<main class="deck" aria-label="Backend logic presentation">
+  <div class="slides" id="slides">
+    <section class="slide active">
+      <p class="eyebrow">System walkthrough · from browser request to calendar event</p>
+      <h1>Prayer Times<br><span class="accent">Automation</span></h1>
+      <div class="cover-mark"></div>
+      <p class="lead">A detailed, step-by-step tour of the backend: OAuth onboarding, timetable retrieval, OCR decisions, date inference, Google authorization, event reconciliation, cron behavior, and failure handling.</p>
+      <p class="source">Based on the current workspace code: <code>app.py</code>, <code>create_schedule.py</code>, <code>drive_timetable.py</code>, <code>timetable_dates.py</code>, and <code>config.json</code>.</p>
+      <div class="callout"><p><strong>Two separate Google Calendar write paths:</strong> a member's OAuth identity writes to that member's chosen calendar; a service account writes to the central Master Calendar during the all-members cron run.</p></div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">01 · Orientation</p>
+      <h2>What the backend does</h2>
+      <p class="lead">It turns the latest timetable image into a validated set of prayer times and dates, then reconciles generated events into one or more Google calendars.</p>
+      <div class="grid three">
+        <article class="card"><h3>Web / onboarding</h3><p>Flask presents OAuth endpoints. A member grants calendar access; the app stores an encrypted refresh token and starts an initial sync.</p></article>
+        <article class="card"><h3>Schedule engine</h3><p>Drive fetches the newest timetable image. OCR and date logic produce validated values. The scheduler creates, updates, or skips events.</p></article>
+        <article class="card"><h3>Persistence / operations</h3><p>Supabase stores member linkage and sync state. Render hosts the app and scheduled job; runtime secrets supply credentials.</p></article>
+      </div>
+      <div class="callout warn"><p><strong>Important scope boundary:</strong> the code shown implements a Flask web app and a command-line scheduler. The actual cron schedule/command is configured in the hosting platform, not in these Python files.</p></div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">02 · Components</p>
+      <h2>Who talks to whom?</h2>
+      <div class="flow">
+        <div>Member browser</div><div class="arrow">→</div><div>Flask / Render</div><div class="arrow">→</div><div>Google OAuth</div>
+        <div class="arrow">→</div><div>Supabase member record</div>
+      </div>
+      <div class="flow">
+        <div>Render cron</div><div class="arrow">→</div><div>Drive service account</div><div class="arrow">→</div><div>Timetable image</div>
+        <div class="arrow">→</div><div>OCR + date logic</div><div class="arrow">→</div><div>Calendar API</div>
+      </div>
+      <div class="grid two">
+        <article class="card"><h3>Google Drive identity</h3><p><code>drive_timetable.py</code> reads <code>GOOGLE_APPLICATION_CREDENTIALS</code> and needs Viewer access to the timetable folder.</p></article>
+        <article class="card"><h3>Master Calendar identity</h3><p><code>create_schedule.py</code> loads the Render secret <code>/etc/secrets/service_account.json</code> (or local fallback) and needs event-write access to the public calendar.</p></article>
+      </div>
+      <p class="source">A single service account can be granted both permissions, but these are separate credential-loading branches and permission checks.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">03 · Process map</p>
+      <h2>Two entry points, one schedule engine</h2>
+      <div class="grid two">
+        <article class="card">
+          <h3>Member's first connection</h3>
+          <ol>
+            <li>Browser opens <code>/connect_google</code>.</li>
+            <li>Member grants OAuth consent.</li>
+            <li>Callback validates the response and saves the encrypted token.</li>
+            <li>Scheduler runs for that member ID.</li>
+            <li>Calendar events are reconciled in that member's calendar.</li>
+          </ol>
+        </article>
+        <article class="card">
+          <h3>Scheduled weekly run</h3>
+          <ol>
+            <li>Host launches <code>create_schedule.py --all-members</code>.</li>
+            <li>Scheduler downloads and processes the latest timetable.</li>
+            <li>Master Calendar is synced first.</li>
+            <li>Connected Supabase members are synced one by one.</li>
+            <li>Any counted failure makes the run exit with an error.</li>
+          </ol>
+        </article>
+      </div>
+      <div class="callout"><p>Both routes call the same date/OCR builder and <code>sync_member</code> routine, but choose credentials and calendar destinations differently.</p></div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">04 · Startup and configuration</p>
+      <h2>What must exist before the work starts?</h2>
+      <div class="grid two">
+        <article class="card"><h3>Application setup</h3>
+          <ul>
+            <li>Flask uses <code>FLASK_SECRET_KEY</code> for signed sessions.</li>
+            <li>Fernet requires <code>TOKEN_ENCRYPTION_KEY</code>.</li>
+            <li>Supabase client requires URL and service-role key.</li>
+            <li>Google OAuth client config comes from a Render secret file or JSON environment variable.</li>
+            <li>Hosted <code>REDIRECT_URI</code> must start with HTTPS.</li>
+          </ul>
+        </article>
+        <article class="card"><h3>Schedule settings</h3>
+          <ul>
+            <li><code>timezone</code>: local event timezone (<code>Europe/Berlin</code>).</li>
+            <li><code>public_calendar_id</code>: Master Calendar destination.</li>
+            <li><code>friday_replaces_zohar</code>: Juma policy.</li>
+            <li><code>reminder_minutes</code>: per-prayer popup offsets.</li>
+            <li>OCR runtime: Tesseract plus English/German language data.</li>
+          </ul>
+        </article>
+      </div>
+      <p class="source">The Dockerfile installs Python dependencies and the Tesseract executable/languages. Render injects runtime secrets and invokes Gunicorn or the separate cron command.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">05 · OAuth begin</p>
+      <h2>Member presses “connect Google”</h2>
+      <div class="grid two">
+        <article class="step"><span class="num">1</span><h3>Clear prior flow state</h3><p><code>session.clear()</code> removes stale OAuth session material, then the session is marked permanent with a 15-minute lifetime.</p></article>
+        <article class="step"><span class="num">2</span><h3>Load OAuth client</h3><p>Use <code>GOOGLE_OAUTH_CLIENT_JSON</code> if present; otherwise load the client-secrets file. The secrets must describe a web client.</p></article>
+        <article class="step"><span class="num">3</span><h3>Request permissions</h3><p>Ask for Calendar, Calendar events, verified email identity, and OpenID. Request offline access so later scheduled jobs can refresh credentials.</p></article>
+        <article class="step"><span class="num">4</span><h3>Protect the round trip</h3><p>Generate OAuth <code>state</code> and a PKCE code verifier. Keep both in the secure session; redirect the browser to Google.</p></article>
+      </div>
+      <div class="callout"><p>Cookie protections include Secure, HttpOnly, and SameSite=Lax. Responses also set no-store and no-referrer headers.</p></div>
+      <p class="source">Code: <code>app.py</code>, <code>/connect_google</code>; OAuth scope constants and application settings.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">06 · OAuth callback</p>
+      <h2>Google returns to <code>/oauth_callback</code></h2>
+      <ol>
+        <li>Read expected session state, returned query-string state, and PKCE verifier.</li>
+        <li>Reject missing state/verifier or a non-matching state (constant-time compare).</li>
+        <li>Consume state/verifier before continuing, so the callback cannot reuse them.</li>
+        <li>Handle cancellation, missing authorization code, and token-exchange errors.</li>
+        <li>Exchange the code with the same OAuth client and PKCE verifier.</li>
+        <li>Require Calendar scope and a refresh token for future background updates.</li>
+        <li>Call Google userinfo; require stable account ID, email, and verified email.</li>
+      </ol>
+      <div class="callout warn"><p>If Google does not return offline access / a refresh token, the app rejects the connection because a scheduled job cannot rely on the member being present to sign in again.</p></div>
+      <p class="source">Code: <code>app.py</code>, <code>/oauth_callback</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">07 · Member persistence</p>
+      <h2>Store enough to reconnect—without storing a plain token</h2>
+      <div class="flow">
+        <div>Google refresh token</div><div class="arrow">→</div><div>Fernet encrypt</div><div class="arrow">→</div><div>Supabase upsert</div>
+      </div>
+      <div class="grid two">
+        <article class="card"><h3>Saved / updated fields</h3><p>Stable Google subject ID, verified email, encrypted refresh token, <code>connection_status="connected"</code>, <code>initial_sync_pending=true</code>, and update timestamp.</p></article>
+        <article class="card"><h3>Reconnect behavior</h3><p>Upsert is keyed by stable Google subject. On an existing record, the code intentionally leaves the selected <code>calendar_id</code>, creation timestamp, and last-sync timestamp alone.</p></article>
+      </div>
+      <p>The app queries Supabase for the saved member row's internal ID. It then invokes <code>main(member_id=...)</code> for the immediate initial sync.</p>
+      <div class="callout warn"><p>The success page is rendered even if that inner initial-sync call raises: the callback logs the exception and continues. Therefore, verify the logs/calendar, not only the page, when confirming first-time event creation.</p></div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">08 · Scheduler begins</p>
+      <h2>Every sync first constructs the timetable</h2>
+      <p>Whether called after login or by cron, <code>main()</code> begins by calling <code>build_prayer_times_and_dates()</code> before it selects destinations.</p>
+      <div class="grid three">
+        <article class="card"><div class="big-number">A</div><h3>Load config</h3><p>Read JSON relative to the source directory; construct the configured timezone; get current local year/date.</p></article>
+        <article class="card"><div class="big-number">B</div><h3>Fetch image</h3><p>Drive service account lists the newest image directly inside the configured folder; retrieve file bytes in memory.</p></article>
+        <article class="card"><div class="big-number">C</div><h3>Prepare OCR</h3><p>Apply image orientation, convert to RGB, then create a grayscale, 3× enlarged, contrast-adjusted copy to read date text.</p></article>
+      </div>
+      <p>On Windows the code points Tesseract at its standard install path; on the Linux container it invokes <code>tesseract</code> from PATH.</p>
+      <p class="source">Code: <code>create_schedule.py</code>, <code>build_prayer_times_and_dates()</code>; <code>drive_timetable.py</code>, <code>fetch_latest_timetable()</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">09 · Drive lookup</p>
+      <h2>How “latest timetable” is selected</h2>
+      <ol>
+        <li>Require <code>GOOGLE_APPLICATION_CREDENTIALS</code>; load the service-account JSON at that path.</li>
+        <li>Request the read-only Drive scope.</li>
+        <li>Query the configured folder for non-trashed image MIME types.</li>
+        <li>Order by <code>createdTime desc</code>, request one file, including shared-drive support.</li>
+        <li>If no image exists, raise an explicit error mentioning folder/access checks.</li>
+        <li>Download chunks into <code>BytesIO</code>; rewind and return the stream plus file metadata.</li>
+        <li>Close the Drive service in a <code>finally</code> block; close the stream if download fails.</li>
+      </ol>
+      <div class="callout"><p>This selects the newest created image directly inside the folder, not necessarily a recursively nested file and not a file chosen by filename.</p></div>
+      <p class="source">Code: <code>drive_timetable.py</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">10 · OCR strategy</p>
+      <h2>Read prayer times with layered safeguards</h2>
+      <div class="grid three">
+        <article class="card"><h3>Tier 1 · fixed prayer bands</h3><p>Crop six proportional vertical bands from the original image. Use the central horizontal region, grayscale, 4× scale, autocontrast, white border, and Tesseract single-line mode. Whitelist digits and colon. Accept only a strict valid <code>HH:MM</code>.</p></article>
+        <article class="card"><h3>Tier 2 · whole-image scan</h3><p>Parse explicit prayer/time pairs on the same OCR line. A second scan uses 4× resize, thresholding to reduce a pale watermark, token coordinates, and confidence scores.</p></article>
+        <article class="card"><h3>Tier 3 · targeted fallback</h3><p>If a prayer is still unresolved, crop its full-width row with padding, scan several image-threshold variants, and require a clear repeated vote.</p></article>
+      </div>
+      <div class="callout warn"><p>If a prayer still has no safe, unambiguous time, raise an error and stop before writing any calendar events. Do not silently invent or accept a dubious time.</p></div>
+      <p class="source">Code: <code>extract_original_whole_image_times()</code>, <code>extract_second_whole_image_times()</code>, <code>select_whole_image_fallback()</code>, and <code>extract_flexible_prayer_row_time()</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">11 · OCR details</p>
+      <h2>How the fallback scans decide what counts</h2>
+      <ul>
+        <li><strong>Label normalization:</strong> remove non-letters and lowercase; map variants such as <code>Fair</code>/<code>Fair</code>-like Fajr, Zuhr/Dhuhr, Asr, Isha, Jumma/Jumuah to canonical names.</li>
+        <li><strong>Second scan geometry:</strong> retain nonempty OCR tokens, their bounding boxes, and confidence; labels under confidence 30 are ignored.</li>
+        <li><strong>Same-row association:</strong> only inspect tokens to the right of a label whose vertical centers are close.</li>
+        <li><strong>Split-time assembly:</strong> try one, two, or three neighboring tokens to support <code>06:40</code>, <code>06:</code> + <code>40</code>, or <code>06</code> + <code>:</code> + <code>40</code>; reject low-confidence or widely spaced pieces.</li>
+        <li><strong>Band retry:</strong> if any of six expected prayers has zero or multiple candidate times, locate reliable Fajr and Juma anchors in the same column, crop the intervening full-width band, and scan it as a text block.</li>
+        <li><strong>Consensus selection:</strong> union original/second whole-image candidates. More than one distinct time means disagreement and rejection; exactly one is accepted.</li>
+        <li><strong>Flexible row vote:</strong> scan the row in contrast plus thresholds 145, 180, 210. A valid time must win uniquely with at least two votes. If it disagrees with any whole-image candidate, reject it.</li>
+      </ul>
+      <p class="source">The rectangle scan is preferred; fallback logic is only used when its strict parse or time validation fails.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">12 · Date text parsing</p>
+      <h2>OCR date → typed endpoint candidates</h2>
+      <div class="grid two">
+        <article class="card"><h3>Recognized vocabulary</h3><p>German weekdays and month names, plus abbreviations/variants: e.g. <code>Mär</code>/<code>Mar</code>/<code>Maerz</code>, <code>Okt</code>/<code>Oct</code>, <code>Dez</code>/<code>Dec</code>. Date patterns allow optional punctuation and optional four-digit year.</p></article>
+        <article class="card"><h3>Endpoint role</h3><p>Explicit <code>ab</code> marks start; <code>bis zum</code> or <code>zum</code> marks end. Without a marker, Saturday/Sunday is treated as start and Friday as end. Other unmarked weekdays are not guessed.</p></article>
+      </div>
+      <ol>
+        <li>Find dates with optional marker and weekday; ignore unrelated unmarked dates.</li>
+        <li>Record role, weekday, day/month/year, and matched text.</li>
+        <li>Also detect marker + weekday without a numeric date (weekday-only endpoint).</li>
+        <li>Reject conflicting weekdays for the same role.</li>
+        <li>Convert month text; reject unknown months.</li>
+      </ol>
+      <p class="source">Code: <code>parse_timetable_endpoints()</code>, <code>_role_for()</code>, <code>_weekday_only()</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">13 · Year inference</p>
+      <h2>Resolve missing years without guessing blindly</h2>
+      <ol>
+        <li>If OCR supplies any explicit year, use those as reference years; otherwise use the configured timezone's current year.</li>
+        <li>For each reference year, consider the previous, same, and next year (within valid calendar-year limits).</li>
+        <li>For every date endpoint without an explicit year, construct actual calendar dates in those candidate years.</li>
+        <li>Discard impossible calendar dates (such as an invalid month/day) and dates whose weekday disagrees with OCR.</li>
+        <li>For multiple endpoints with the same role, intersect candidate sets: every start clue must agree on the same start; every end clue must agree on the same end.</li>
+        <li>If candidates become empty, reject the OCR as contradictory rather than choosing the nearest-looking date.</li>
+      </ol>
+      <div class="callout"><p>Example: “Saturday, 17 Oct” with no year is tested against adjacent candidate years; only years where that date really is Saturday survive.</p></div>
+      <p class="source">Code: <code>_endpoint_date_candidates()</code>. Date candidate creation is separate from range construction.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">14 · Range construction</p>
+      <h2>How partial or complete ranges are assembled</h2>
+      <div class="grid three">
+        <article class="card"><h3>Start + end found</h3><p>Pair candidate start/end dates where end is on or after start and no more than seven days later—so the inclusive range is at most eight days.</p></article>
+        <article class="card"><h3>Only end found</h3><p>First try day after last event as the start if the span is 0–7 days and matches a valid expected start pattern. Otherwise infer a standard or DST-transition range backward from the end.</p></article>
+        <article class="card"><h3>Only start found</h3><p>Infer forward from the start using the regular or DST-transition pattern. If no explicit start exists, a history date can supply “last event + 1 day.”</p></article>
+      </div>
+      <p>Every possible range is then filtered: 1–8 inclusive days, start weekday match if known, end weekday match if known. If several remain, keep those closest to the reference date (zero distance when it lies within a range).</p>
+      <div class="callout warn"><p>Zero valid ranges means inconsistent OCR/history; multiple equally-near ranges mean ambiguity. Both raise an error instead of selecting a week arbitrarily.</p></div>
+      <p class="source">Code: <code>resolve_timetable_dates()</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">15 · Week-length inference</p>
+      <h2>Regular weeks and daylight-saving transition weeks</h2>
+      <div class="grid two">
+        <article class="card"><h3>Regular timetable</h3>
+          <ul>
+            <li>A Friday end normally means start six days earlier: Saturday–Friday, 7 inclusive days.</li>
+            <li>A Saturday start normally means end six days later: Saturday–Friday.</li>
+          </ul>
+        </article>
+        <article class="card"><h3>Transition-week exceptions</h3>
+          <ul>
+            <li>Spring Sunday is the last Sunday in March; autumn Sunday is the last Sunday in October.</li>
+            <li>Saturday before transition Sunday can be the end of an 8-day period starting the prior Saturday.</li>
+            <li>Transition Sunday can start a 6-day period ending Friday.</li>
+            <li>A Saturday immediately before transition Sunday is deliberately not treated as an ordinary Saturday start.</li>
+          </ul>
+        </article>
+      </div>
+      <pre>End = Saturday before DST Sunday  → start = end − 7 days (8 inclusive)
+End = Friday after DST Sunday     → start = DST Sunday (6 inclusive)
+Start = Saturday 8 days before    → end = day before DST Sunday
+Start = DST Sunday                → end = following Friday</pre>
+      <p class="source">For dates near transition Sundays, the backward end-inference helper refuses ambiguous in-between days rather than falling through to a normal Friday rule.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">16 · Date-history fallback</p>
+      <h2>OCR cannot resolve dates? Consult that calendar's own history</h2>
+      <ol>
+        <li>Query events up to ten years back, paging through results.</li>
+        <li>Keep only known prayer summaries and descriptions containing the app marker <code>Prayer Timings Automation:</code>.</li>
+        <li>Read the event's all-day date or convert its date-time into the configured local timezone.</li>
+        <li>Take the latest matching prayer-event date.</li>
+        <li>Use that date as history to infer the next timetable block.</li>
+      </ol>
+      <div class="grid two">
+        <article class="card"><h3>With readable history</h3><p>Try “last event date + 1” as the next start; validate against the OCR end/weekday and known week patterns.</p></article>
+        <article class="card"><h3>Without readable history</h3><p>If OCR also has no usable date, stop. Do not make up a start date. Google/auth/API errors during history lookup are converted to an explicit fallback failure.</p></article>
+      </div>
+      <p class="source">This check happens per target calendar, because member and Master Calendar event histories can differ.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">17 · Destination selection</p>
+      <h2>Same sync function, separate identities</h2>
+      <div class="grid two">
+        <article class="card">
+          <h3>Member record (OAuth)</h3>
+          <ol>
+            <li>Decrypt that row's refresh token.</li>
+            <li>Build OAuth credentials with client ID/secret, token endpoint, and requested scopes.</li>
+            <li>Refresh the access token.</li>
+            <li>Check saved calendar ID; if missing/invalid, list calendars where role is owner/writer.</li>
+            <li>Prefer prayer-related names (prefix match first, then contained prayer/salah/namaz/salat); else use primary.</li>
+          </ol>
+        </article>
+        <article class="card">
+          <h3>Master mock record (service account)</h3>
+          <ol>
+            <li>Use Render secret path first; local JSON fallback second.</li>
+            <li>Load service-account credentials with Calendar scope.</li>
+            <li>Build Calendar API client.</li>
+            <li>Use configured public calendar ID directly—no calendar search.</li>
+            <li>Do not write a fake Master member into Supabase.</li>
+          </ol>
+        </article>
+      </div>
+      <div class="callout"><p>The member's token cannot write on behalf of the Master service account, and the Master service account does not impersonate the individual member.</p></div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">18 · Cron member selection</p>
+      <h2>Which targets does each invocation process?</h2>
+      <div class="grid three">
+        <article class="card"><h3>Weekly: <code>--all-members</code></h3><p>Fetch all rows with <code>connection_status="connected"</code>, sorted by ID and paged 500 at a time. Enable Master Calendar sync regardless of whether the member list is empty.</p></article>
+        <article class="card"><h3>OAuth callback</h3><p>Fetch one row matching internal member ID and connected status. No Master Calendar target is added to this path.</p></article>
+        <article class="card"><h3>Invalid invocation</h3><p>Passing both modes is rejected; passing neither all-members nor a member ID is rejected.</p></article>
+      </div>
+      <p>If Supabase member lookup fails during weekly cron, the code records a failure but still attempts the Master Calendar sync. Individual member sync is unavailable for that run.</p>
+      <p class="source">A pending-members query/helper exists, but the weekly all-members selection shown here uses all connected rows; it does not limit the weekly run to only pending users.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">19 · Schedule generation</p>
+      <h2>Turn one timetable block into event payloads</h2>
+      <ol>
+        <li>Iterate each inclusive calendar date from start through the resolved day count.</li>
+        <li>Start with Fajr, Zohar, Assr, Maghrib, Ishaa.</li>
+        <li>On Friday (weekday 4), either replace Zohar with Juma or append Juma, based on config.</li>
+        <li>Combine each date and OCR time in the configured timezone.</li>
+        <li>Set end time five minutes after start.</li>
+        <li>Build the summary, explanatory description, timezone-aware start/end, and a popup reminder using that prayer's configured offset.</li>
+        <li>Hash calendar ID + ISO date + canonical prayer name for a stable event ID.</li>
+      </ol>
+      <pre>event key = "prayer-timings|calendar_id|YYYY-MM-DD|Prayer"
+event ID  = SHA-256(event key)</pre>
+      <p class="source">A distinct ID per calendar prevents the Master Feed's event identity from colliding with an individual calendar's identity.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">20 · Reconciliation</p>
+      <h2>Create, skip, update—or replace a deleted event</h2>
+      <div class="grid four">
+        <article class="card"><h3>Insert</h3><p>No ID conflict: create event using deterministic ID.</p></article>
+        <article class="card"><h3>Skip</h3><p>Existing confirmed/tentative event matches managed fields exactly.</p></article>
+        <article class="card"><h3>Patch</h3><p>Existing live event differs: patch summary, description, start, end, reminders only.</p></article>
+        <article class="card"><h3>Replace ID</h3><p>Existing ID is cancelled/deleted (including lookup 410): derive another hashed ID and retry, up to 50 generations.</p></article>
+      </div>
+      <p>Matching checks summary and description; parses and compares start/end instants and timezone; compares default-reminder mode and sorted reminder overrides.</p>
+      <div class="callout warn"><p>If lookup after an ID conflict is uncertain for a reason other than deleted/410, re-raise. The code intentionally avoids making a possible duplicate based on an uncertain read.</p></div>
+      <p class="source">Only app-managed fields are patched so unrelated event fields are preserved.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">21 · Retries and persistent state</p>
+      <h2>Transient trouble versus account repair</h2>
+      <div class="grid two">
+        <article class="card"><h3>Retryable Calendar API errors</h3><p>Retry HTTP 429, 500, 502, 503, 504, plus HTTP 403 only when the error identifies a rate-limit condition. Up to 8 tries; exponential delay starts at 1 second and doubles per retry.</p></article>
+        <article class="card"><h3>Invalid member refresh token</h3><p>For a confirmed <code>invalid_grant</code>, mark that member <code>reconnect_required</code>. The user needs to reconnect Google; transient errors are not automatically mislabeled as revoked consent.</p></article>
+      </div>
+      <p>On a successful member sync, save the resolved calendar ID, clear initial-sync-pending, set last-synced time, and leave connection status connected. Master sync skips this database update because it has no real member row.</p>
+      <p>Track outcomes as created, updated, skipped. A member's thrown exception increments failure count, is logged, and processing proceeds to later selected members.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">22 · Completion and failure</p>
+      <h2>How the cron decides whether it succeeded</h2>
+      <div class="flow">
+        <div>Build timetable</div><div class="arrow">→</div><div>Master sync (weekly)</div><div class="arrow">→</div><div>Member syncs</div>
+        <div class="arrow">→</div><div>Aggregate counts</div><div class="arrow">→</div><div>Exit 0 or raise</div>
+      </div>
+      <ul>
+        <li>OCR/date/image-building errors happen before destination syncing and abort the run.</li>
+        <li>Master exception increments failure count, is logged with token-like values redacted, then member loop still proceeds.</li>
+        <li>Individual member failures are counted; reconnect-required state is updated only for confirmed invalid grants.</li>
+        <li>Summary prints selected/successful/failed; any nonzero failures cause <code>RuntimeError</code> and a nonzero process exit.</li>
+        <li>Zero connected members is not itself an error: a weekly run still tries the Master Calendar.</li>
+      </ul>
+      <p class="source">Success output and Render job status are separate from the member browser's OAuth success page.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">23 · Safety model</p>
+      <h2>Where the guardrails are—and are not</h2>
+      <div class="grid two">
+        <article class="card"><h3>Present in code</h3>
+          <ul>
+            <li>HTTPS required for hosted OAuth redirect.</li>
+            <li>OAuth state + PKCE verifier checked before token exchange.</li>
+            <li>Secure session cookie flags and sensitive response cache/referrer headers.</li>
+            <li>Refresh token encrypted before Supabase storage.</li>
+            <li>OCR/date ambiguity fails closed; uncertain event lookup avoids duplicates.</li>
+            <li>Central Master error logs redact token-like values.</li>
+          </ul>
+        </article>
+        <article class="card"><h3>External setup still required</h3>
+          <ul>
+            <li>Keep Render credentials/secrets private and rotate exposed keys/tokens.</li>
+            <li>Grant Drive folder Viewer access to the Drive service account.</li>
+            <li>Grant the Master Calendar edit access to its service-account email.</li>
+            <li>Keep the Fernet key stable; changing it makes stored member tokens undecryptable.</li>
+            <li>Configure cron schedule and command correctly in the host.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout warn"><p>The local workspace includes a service-account filename. Never copy secret JSON contents into a slide, commit, issue, or public log; the presentation deliberately contains no credential values.</p></div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">24 · Example run, translated</p>
+      <h2>What the cron lines mean</h2>
+      <pre>RECTANGLE OCR [Zohar] VALIDATED TIME: 14:00
+Timetable covers: 2026-09-26 through 2026-10-02
+Weekly sync: connected members found: 0. Master Calendar sync enabled.
+STARTING CENTRAL MASTER CALENDAR SYNCHRONIZATION
+Using calendar_id: …@group.calendar.google.com
+Timezone: Europe/Berlin</pre>
+      <ul>
+        <li>OCR accepted the prayer time from its primary crop; date parser resolved the inclusive seven-day range.</li>
+        <li>Supabase returned no connected individual member records.</li>
+        <li>Because this is all-members mode, the code still constructed the Master virtual target and attempted direct service-account access.</li>
+        <li>A token error at this point is in service-account authentication, before event reconciliation; a Calendar permission error would occur later at API access.</li>
+      </ul>
+      <p>This traces the earlier failure: wrong OAuth scope caused token exchange to return no usable access token. The scope was corrected to the Calendar API scope; the updated code also redacts token strings from central-sync failure logging.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">25 · Full sequence</p>
+      <h2>From first request to last event</h2>
+      <ol>
+        <li>Website redirects the member to the Flask OAuth endpoint.</li>
+        <li>Google consent returns a code; callback verifies session state and PKCE.</li>
+        <li>App validates Google identity and permissions; encrypts refresh token; upserts Supabase.</li>
+        <li>Initial sync—or later weekly cron—loads config and fetches newest timetable image from Drive.</li>
+        <li>OCR extracts candidate week and six prayer times using primary scans and controlled fallbacks.</li>
+        <li>Date resolver validates year, weekdays, range length, transition patterns, and/or per-calendar history.</li>
+        <li>Choose member OAuth destination or Master service-account destination.</li>
+        <li>Generate deterministic event IDs and timezone-aware payloads; reconcile existing Google events.</li>
+        <li>Persist successful member sync state; summarize outcomes; exit successfully only if no failures were counted.</li>
+      </ol>
+      <div class="callout"><p><strong>Core reliability principle:</strong> uncertain inputs (OCR, dates, authorization, deleted-event lookup) should stop or surface an error rather than silently creating a plausible but incorrect schedule.</p></div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">26 · Source guide</p>
+      <h2>Where each part lives</h2>
+      <div class="grid two">
+        <article class="card"><h3>Web and member lifecycle</h3><p><code>app.py</code><br>Flask setup, OAuth scopes, session protections, connect route, callback, token encryption, Supabase upsert, initial-sync trigger.</p></article>
+        <article class="card"><h3>Schedule and calendar events</h3><p><code>create_schedule.py</code><br>OCR pipeline, time validation, credential branches, calendar discovery, member selection, event IDs, retries, update/skip/delete handling, cron aggregation.</p></article>
+        <article class="card"><h3>Drive input</h3><p><code>drive_timetable.py</code><br>Service-account authentication, latest-image query, download lifecycle.</p></article>
+        <article class="card"><h3>Date intelligence</h3><p><code>timetable_dates.py</code><br>German date vocabulary, endpoint roles, candidate years, weekday consistency, valid ranges, DST week rules, date inference.</p></article>
+      </div>
+      <p class="source">Settings: <code>config.json</code>. Runtime/container setup: <code>Dockerfile</code>, <code>requirements.txt</code>, Render secrets and Render cron configuration.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">End · Takeaways</p>
+      <h2>Three ideas to remember</h2>
+      <div class="grid three">
+        <article class="card"><div class="big-number">1</div><h3>Credentials are intentionally split</h3><p>Member OAuth writes to personal calendars; service-account identity writes to the central feed; Drive access is its own service-account operation.</p></article>
+        <article class="card"><div class="big-number">2</div><h3>Inputs are validated before writes</h3><p>OCR uses layered corroboration; dates must resolve unambiguously; calendar history is the fallback, not a license to guess.</p></article>
+        <article class="card"><div class="big-number">3</div><h3>Sync is designed to be repeatable</h3><p>Deterministic event IDs and managed-field comparisons make reruns create, update, or skip; failures are counted and surfaced to cron.</p></article>
+      </div>
+      <p class="lead">Use the controls below or ← / → keys to move through the presentation. Use browser Print to save or print the slide deck.</p>
+    </section>
+  </div>
+  <nav class="footer" aria-label="Presentation controls">
+    <div class="controls">
+      <button id="prev" type="button" aria-label="Previous slide">← Back</button>
+      <button id="next" type="button" aria-label="Next slide">Next →</button>
+    </div>
+    <div class="progress-track" aria-hidden="true"><div class="progress" id="progress"></div></div>
+    <div class="counter" id="counter" aria-live="polite"></div>
+    <div class="controls"><button id="print" type="button">Print / PDF</button></div>
+  </nav>
+</main>
+<script>
+  (() => {
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const counter = document.getElementById("counter");
+    const progress = document.getElementById("progress");
+    let current = 0;
+    function show(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === current);
+        slide.setAttribute("aria-hidden", i === current ? "false" : "true");
+      });
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+      slides[current].scrollTop = 0;
+      history.replaceState(null, "", `#slide-${current + 1}`);
+    }
+    document.getElementById("prev").addEventListener("click", () => show(current - 1));
+    document.getElementById("next").addEventListener("click", () => show(current + 1));
+    document.getElementById("print").addEventListener("click", () => window.print());
+    document.addEventListener("keydown", event => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+        event.preventDefault(); show(current + 1);
+      } else if (["ArrowLeft", "PageUp"].includes(event.key)) {
+        event.preventDefault(); show(current - 1);
+      } else if (event.key === "Home") {
+        show(0);
+      } else if (event.key === "End") {
+        show(slides.length - 1);
+      }
+    });
+    const match = location.hash.match(/^#slide-(\d+)$/);
+    show(match ? Number(match[1]) - 1 : 0);
+  })();
+</script>
+</body>
+</html>
