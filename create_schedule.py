@@ -1511,9 +1511,21 @@ def main(all_members=False, member_id=None):
 
     members = []
     include_master_calendar = False
+    member_fetch_failed = False
 
     if all_members:
-        members = fetch_connected_members()
+        try:
+            members = fetch_connected_members()
+        except Exception as exc:
+            member_fetch_failed = True
+            print(
+                "SUPABASE MEMBER FETCH FAILED: "
+                f"{type(exc).__name__}: {exc}. "
+                "Continuing with the Master Calendar sync; "
+                "individual member sync is unavailable for this run.",
+                flush=True,
+            )
+
         # Enable public master calendar sync during the weekly run
         include_master_calendar = True
         print(
@@ -1543,7 +1555,7 @@ def main(all_members=False, member_id=None):
         )
 
     successful_members = 0
-    failed_members = 0
+    failed_members = int(member_fetch_failed)
 
     # =========================================================================
     # NEW STEP: SYNC THE CENTRAL MASTER CALENDAR FIRST
@@ -1643,7 +1655,7 @@ def main(all_members=False, member_id=None):
 
     if failed_members:
         raise RuntimeError(
-            f"Synchronization failed for {failed_members} execution target(s)."
+            f"Synchronization run completed with {failed_members} failure(s)."
         )
 
 
