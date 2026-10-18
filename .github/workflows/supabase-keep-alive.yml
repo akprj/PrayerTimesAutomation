@@ -8,28 +8,31 @@ on:
 
 jobs:
   ping-db:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Pinning to Ubuntu 24.04 avoids the environment migration warnings
     steps:
       - name: Ping Supabase Database
         env:
           SUPABASE_URL: ${{ secrets.GH_SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.GH_SUPABASE_KEY }}
         run: |
-          echo "Sending Keep-Alive ping to Supabase..."
+          echo "Sending true Database Keep-Alive ping to Supabase..."
           
           # Clean up any accidental leading/trailing spaces from secrets
-          URL=$(echo "$SUPABASE_URL" | xargs)
+          URL=$(echo "$SUPABASE_URL" | xargs | sed 's/\/$//')
           KEY=$(echo "$SUPABASE_ANON_KEY" | xargs)
           
-          # Querying the auth config health check which accepts public keys natively
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X GET "$URL/auth/v1/settings" \
+          # Appending an empty rpc target list forces PostgREST to establish
+          # an authenticated handshake directly with the Postgres connection pool.
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "$URL/rest/v1/?select=*" \
             -H "apikey: $KEY" \
             -H "Authorization: Bearer $KEY")
 
-          if [ "$RESPONSE" -eq 200 ]; then
-            echo "Success! Database wrapper is awake. HTTP Status: $RESPONSE"
+          # An authenticated check returns HTTP 200 (Success)
+          if [ "$STATUS_CODE" -eq 200 ]; then
+            echo "Success! The actual database engine processed the request. HTTP Status: $STATUS_CODE"
           else
-            echo "Error: Ping failed with HTTP Status: $RESPONSE"
+            echo "Error: Database ping failed with HTTP Status: $STATUS_CODE"
             exit 1
           fi
+
