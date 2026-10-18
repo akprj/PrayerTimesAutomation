@@ -1271,19 +1271,24 @@ def sync_member(
 
     print(f"\n--- Syncing target: {email} ---", flush=True)
 
-        # 1. NEW INTERCEPT: Check if we are running the central Master Calendar
+            # 1. NEW INTERCEPT: Check if we are running the central Master Calendar
     if member.get("is_master_calendar"):
-        # FIXED: Use the local service_account.json file instead of an environment refresh token!
-        if not os.path.exists("service_account.json"):
+        # Look for the file in Render's secure secret path first
+        secret_path = "/etc/secrets/service_account.json"
+        
+        # Fallback to local execution directory if running locally on your computer
+        if not os.path.exists(secret_path):
+            secret_path = "service_account.json"
+            
+        if not os.path.exists(secret_path):
             raise FileNotFoundError(
-                "CRITICAL: service_account.json is missing from your project folder! "
-                "Cannot sync the Central Master Calendar."
+                f"CRITICAL: service_account.json is missing! Checked: {secret_path}"
             )
             
         from google.oauth2 import service_account
         credentials = service_account.Credentials.from_service_account_file(
-            "service_account.json",
-            scopes=["https://googleapis.com"]
+            secret_path,
+            scopes=["https://googleapis.com"] # Matches your existing working scope
         )
         service = build(
             "calendar",
@@ -1293,6 +1298,7 @@ def sync_member(
         )
         # Directly target the public calendar string without running search matches
         calendar_id = member["calendar_id"]
+        
     else:
         # 2. STANDARD LOGIC: Keep your existing code for individual OAuth users completely untouched
         refresh_token = decrypt_refresh_token(
