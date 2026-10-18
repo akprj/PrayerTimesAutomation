@@ -33,6 +33,9 @@ SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
     "openid",
 ]
+MASTER_CALENDAR_SCOPES = [
+    "https://www.googleapis.com/auth/calendar",
+]
 
 cipher = Fernet(
     os.environ["TOKEN_ENCRYPTION_KEY"].encode("utf-8")
@@ -1288,7 +1291,7 @@ def sync_member(
         from google.oauth2 import service_account
         credentials = service_account.Credentials.from_service_account_file(
             secret_path,
-            scopes=["https://googleapis.com"] # Matches your existing working scope
+            scopes=MASTER_CALENDAR_SCOPES,
         )
         service = build(
             "calendar",
@@ -1601,7 +1604,21 @@ def main(all_members=False, member_id=None):
             )
             print("Central Master Calendar sync completed successfully.\n", flush=True)
         except Exception as exc:
-            print(f"CRITICAL WARNING: Central Master Calendar sync failed: {exc}", flush=True)
+            error_summary = re.sub(
+                r"(?i)(['\"]?(?:access_token|id_token|refresh_token|private_key)['\"]?\s*:\s*['\"])[^'\"]+(['\"])",
+                r"\1[REDACTED]\2",
+                str(exc),
+            )
+            error_summary = re.sub(
+                r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b",
+                "[REDACTED TOKEN]",
+                error_summary,
+            )
+            print(
+                "CRITICAL WARNING: Central Master Calendar sync failed: "
+                f"{error_summary}",
+                flush=True,
+            )
             failed_members += 1
 
     # =========================================================================
