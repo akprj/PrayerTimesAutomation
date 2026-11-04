@@ -1,0 +1,67 @@
+name: PrayerTimesScheduleRun (Friday Cron)
+
+on:
+  schedule:
+    # 09:59 PM UTC on Fridays (Matches your first Render schedule)
+    - cron: '59 21 * * 5'
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions dashboard
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Recreate the exact secure directory your Python script reads
+    - name: Recreate Secret Files from GitHub Secrets
+      run: |
+        sudo mkdir -p /etc/secrets
+        echo '${{ secrets.CREDENTIALS_WEB_JSON }}' | sudo tee /etc/secrets/credentials_web.json > /dev/null
+        echo '${{ secrets.GOOGLE_CREDENTIALS_JSON }}' | sudo tee /etc/secrets/google-credentials.json > /dev/null
+        echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' | sudo tee /etc/secrets/service_account.json > /dev/null
+        sudo chmod 644 /etc/secrets/*
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Local Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        tags: prayer-times-cron:latest
+        outputs: type=docker,dest=/tmp/image.tar
+
+    - name: Load Docker Image
+      run: docker load -i /tmp/image.tar
+
+    - name: Run Docker Container with Environment Mappings
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+        GOOGLE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_OAUTH_CLIENT_JSON }}
+        GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+        REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
+        ADMIN_MANAGEMENT_REFRESH_TOKEN: ${{ secrets.ADMIN_MANAGEMENT_REFRESH_TOKEN }}
+        CLIENT_SECRETS_FILE: ${{ secrets.CLIENT_SECRETS_FILE }}
+        FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+        PYTHONUNBUFFERED: ${{ secrets.PYTHONUNBUFFERED }}
+      run: |
+        docker run --rm \
+          -v /etc/secrets:/etc/secrets \
+          -e SUPABASE_URL="$SUPABASE_URL" \
+          -e SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+          -e TOKEN_ENCRYPTION_KEY="$TOKEN_ENCRYPTION_KEY" \
+          -e GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" \
+          -e GOOGLE_OAUTH_CLIENT_JSON="$GOOGLE_OAUTH_CLIENT_JSON" \
+          -e GOOGLE_OAUTH_CLIENT_SECRET="$GOOGLE_OAUTH_CLIENT_SECRET" \
+          -e REDIRECT_URI="$REDIRECT_URI" \
+          -e ADMIN_MANAGEMENT_REFRESH_TOKEN="$ADMIN_MANAGEMENT_REFRESH_TOKEN" \
+          -e CLIENT_SECRETS_FILE="$CLIENT_SECRETS_FILE" \
+          -e FLASK_SECRET_KEY="$FLASK_SECRET_KEY" \
+          -e PYTHONUNBUFFERED="$PYTHONUNBUFFERED" \
+          prayer-times-cron:latest python create_schedule.py --all-members
