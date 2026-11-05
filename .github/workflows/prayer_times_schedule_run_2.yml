@@ -4,7 +4,7 @@ on:
   schedule:
     # 09:59 PM UTC on Saturdays (Matches your second Render schedule)
     #- cron: '59 21 * * 6'
-     - cron: '7 1 * * *'
+    - cron: '23 1 * * *'
   workflow_dispatch: # Allows manual trigger from the GitHub Actions dashboard
 
 jobs:
