@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 1350" width="100%" height="100%">
+  <defs>
+    <filter id="p3Shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="p3HeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f2923"/>
+      <stop offset="100%" stop-color="#1a4d42"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="950" height="1350" fill="#f8fafc"/>
+
+  <!-- ================= HEADER SECTION ================= -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="950" height="140" fill="url(#p3HeaderGrad)"/>
+    
+    <text x="40" y="46" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" letter-spacing="-0.5">Method 2: Google Account Login (OAuth)</text>
+    <text x="40" y="74" fill="#a7f3d0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">AUTOMATIC TIMETABLE SYNC &amp; AUTOMATIC ALARMS INJECTION</text>
+    <text x="40" y="100" fill="#d1fae5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="600">PAGE 3: 15 MIN BEFORE FOR DAILY PRAYERS · 90 MIN BEFORE FOR JUMMAH</text>
+
+    <!-- Top Google 'G' Icon -->
+    <g transform="translate(800, 24)">
+      <circle cx="36" cy="46" r="30" fill="#143e35" stroke="#34d399" stroke-width="2"/>
+      <circle cx="36" cy="46" r="18" fill="#4285f4"/>
+      <text x="36" y="53" fill="#ffffff" font-family="sans-serif" font-size="18" font-weight="900" text-anchor="middle">G</text>
+    </g>
+  </g>
+
+  <!-- ================= METHOD 2 OVERVIEW CARD ================= -->
+  <g transform="translate(30, 160)">
+    <rect x="0" y="0" width="890" height="110" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#p3Shadow)"/>
+    
+    <g transform="translate(24, 20)">
+      <rect x="0" y="0" width="130" height="28" rx="6" fill="#2563eb"/>
+      <text x="65" y="19" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800" text-anchor="middle">METHOD 2</text>
+      <text x="145" y="21" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800">
+        Google Account Integration (OAuth 2.0)
+      </text>
+
+      <text x="0" y="54" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5">
+        Unlike Method 1 where you subscribe anonymously, Method 2 authorizes the app to manage prayer events directly in your personal Google Calendar.
+      </text>
+
+      <text x="0" y="76" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">
+        ⭐ The Big Advantage: Reminders &amp; notification alarms are created AUTOMATICALLY with each event!
+      </text>
+    </g>
+  </g>
+
+  <!-- ================= HOW TO CONNECT & HOW SYNC WORKS ================= -->
+  <g transform="translate(30, 290)">
+    <rect x="0" y="0" width="890" height="520" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#p3Shadow)"/>
+
+    <!-- Left Box: Connection Button & Pointing Hand -->
+    <g transform="translate(24, 24)">
+      <rect x="0" y="0" width="405" height="470" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      
+      <text x="20" y="30" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="800">
+        HOW TO CONNECT (METHOD 2):
+      </text>
+      <text x="20" y="52" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5">
+        Click the blue Google button on the application homepage:
+      </text>
+
+      <!-- Google Button Mockup -->
+      <g transform="translate(20, 68)">
+        <rect x="0" y="0" width="365" height="56" rx="10" fill="#4285f4"/>
+        <circle cx="28" cy="28" r="15" fill="#ffffff"/>
+        <text x="28" y="34" fill="#4285f4" font-family="sans-serif" font-size="16" font-weight="900" text-anchor="middle">G</text>
+        <text x="54" y="27" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="800">Add via Google Login (OAuth)</text>
+        <text x="54" y="43" fill="#dbeafe" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">Sign in with your Google Account</text>
+      </g>
+
+      <!-- Pointing Hand pointing at Google button -->
+      <g transform="translate(300, 78)">
+        <circle cx="12" cy="18" r="10" fill="none" stroke="#4285f4" stroke-width="2.5" opacity="0.8"/>
+        <path d="M 12,18 C 12,6 15,-6 18,-18 C 19,-22 24,-22 25,-18 C 26,-11 25,12 25,18 C 28,14 33,12 37,14 C 40,15 41,19 39,23 C 43,20 48,19 51,22 C 54,25 53,30 50,33 C 53,32 58,33 59,38 C 60,45 53,53 47,60 C 38,68 28,72 17,70 C 8,68 0,60 2,48 C 3,40 9,33 12,18 Z" 
+              fill="#fed7aa" stroke="#7c2d12" stroke-width="2" stroke-linejoin="round"/>
+        <ellipse cx="21" cy="-14" rx="2.5" ry="3.5" fill="#ffffff" opacity="0.6"/>
+      </g>
+
+      <!-- Steps List -->
+      <g transform="translate(20, 150)">
+        <text x="0" y="16" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800">1. Click the Google button on the website</text>
+        <text x="0" y="38" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">2. Google's secure login screen appears</text>
+        <text x="0" y="60" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">3. Select your desired Google account</text>
+        <text x="0" y="82" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">4. Review permissions &amp; tap <strong>"Allow"</strong></text>
+        <text x="0" y="104" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800">5. Done! Events sync straight to your calendar ✓</text>
+
+        <!-- Security box -->
+        <rect x="0" y="125" width="365" height="52" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+        <text x="12" y="146" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800">🔒 Google Security Protection:</text>
+        <text x="12" y="164" fill="#1e3a8a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Your password is never entered or stored on this server.</text>
+      </g>
+    </g>
+
+    <!-- Right Box: Background Timetable OCR & Drive Engine -->
+    <g transform="translate(455, 24)">
+      <rect x="0" y="0" width="410" height="470" rx="14" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+
+      <text x="20" y="30" fill="#14532d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="800">
+        HOW THE BACKEND ENGINE WORKS:
+      </text>
+      <text x="20" y="52" fill="#166534" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5">
+        From official Drive image to your smartphone calendar:
+      </text>
+
+      <!-- Flow Diagram Graphic -->
+      <g transform="translate(20, 70)">
+        <!-- Step 1: Drive Image -->
+        <rect x="0" y="0" width="370" height="60" rx="8" fill="#ffffff" stroke="#bbf7d0"/>
+        <circle cx="28" cy="30" r="16" fill="#10b981"/>
+        <text x="28" y="36" fill="#ffffff" font-size="16" text-anchor="middle">📁</text>
+        <text x="54" y="24" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">1. Timetable Image Uploaded to Google Drive</text>
+        <text x="54" y="42" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">Official Bait-us-Subuh weekly schedule image</text>
+
+        <!-- Down Arrow -->
+        <text x="185" y="85" fill="#10b981" font-size="20" font-weight="900" text-anchor="middle">↓</text>
+
+        <!-- Step 2: OCR Extraction -->
+        <rect x="0" y="98" width="370" height="60" rx="8" fill="#ffffff" stroke="#bbf7d0"/>
+        <circle cx="28" cy="128" r="16" fill="#10b981"/>
+        <text x="28" y="134" fill="#ffffff" font-size="16" text-anchor="middle">🔍</text>
+        <text x="54" y="122" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">2. Automated Image OCR Scanning</text>
+        <text x="54" y="140" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">High-precision OCR reads dates &amp; prayer timings</text>
+
+        <!-- Down Arrow -->
+        <text x="185" y="183" fill="#10b981" font-size="20" font-weight="900" text-anchor="middle">↓</text>
+
+        <!-- Step 3: Calendar Ingestion -->
+        <rect x="0" y="196" width="370" height="60" rx="8" fill="#ffffff" stroke="#bbf7d0"/>
+        <circle cx="28" cy="226" r="16" fill="#3b82f6"/>
+        <text x="28" y="232" fill="#ffffff" font-size="16" text-anchor="middle">📅</text>
+        <text x="54" y="220" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">3. Direct Event &amp; Alarm Injection</text>
+        <text x="54" y="238" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">Created inside your connected Google Calendar</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= AUTOMATIC DEFAULT REMINDERS (15 MIN DAILY / 90 MIN JUMMAH) ================= -->
+  <g transform="translate(30, 830)">
+    <rect x="0" y="0" width="890" height="470" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#p3Shadow)"/>
+
+    <g transform="translate(24, 24)">
+      <circle cx="16" cy="16" r="14" fill="#3b82f6"/>
+      <text x="16" y="22" fill="#ffffff" font-family="sans-serif" font-size="14" font-weight="900" text-anchor="middle">🤖</text>
+      
+      <text x="40" y="20" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800">
+        AUTOMATED ALARMS IN METHOD 2 (BUILT-IN DEFAULTS)
+      </text>
+      <text x="0" y="52" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13">
+        In Method 2, you do <strong>NOT</strong> have to manually set any notifications in calendar settings! The background sync engine automatically creates notification reminders directly inside each prayer event payload:
+      </text>
+    </g>
+
+    <!-- Two Reminder Cards: Daily vs Jummah -->
+    <g transform="translate(24, 90)">
+      <!-- Daily Prayers: 15 min -->
+      <rect x="0" y="0" width="405" height="200" rx="12" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.5"/>
+      <circle cx="36" cy="36" r="18" fill="#10b981"/>
+      <text x="36" y="43" fill="#ffffff" font-size="17" text-anchor="middle">🔔</text>
+      <text x="66" y="32" fill="#065f46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="800">Daily Prayers (5 Times Daily)</text>
+      <text x="66" y="50" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600">Fajr · Zuhr · Asr · Maghrib · Isha</text>
+
+      <g transform="translate(20, 72)">
+        <rect x="0" y="0" width="365" height="52" rx="8" fill="#ffffff" stroke="#a7f3d0"/>
+        <text x="16" y="24" fill="#065f46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800">Default Alarm: 15 Minutes Before</text>
+        <text x="16" y="42" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">Gives you ample time to prepare for Wudhu &amp; Jama'at.</text>
+      </g>
+
+      <text x="20" y="155" fill="#14532d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">
+        ✓ Injected automatically into every single daily prayer event!
+      </text>
+    </g>
+
+    <!-- Friday Jummah: 90 min -->
+    <g transform="translate(455, 90)">
+      <rect x="0" y="0" width="410" height="200" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+      <circle cx="36" cy="36" r="18" fill="#3b82f6"/>
+      <text x="36" y="43" fill="#ffffff" font-size="17" text-anchor="middle">🕌</text>
+      <text x="66" y="32" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="800">Friday Jummah Prayer</text>
+      <text x="66" y="50" fill="#2563eb" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600">Special Friday Congregation</text>
+
+      <g transform="translate(20, 72)">
+        <rect x="0" y="0" width="370" height="52" rx="8" fill="#ffffff" stroke="#bfdbfe"/>
+        <text x="16" y="24" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800">Default Alarm: 90 Minutes Before</text>
+        <text x="16" y="42" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">Allows you plenty of time to leave home or work &amp; reach the mosque.</text>
+      </g>
+
+      <text x="20" y="155" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">
+        ✓ Injected automatically into every Friday Jummah prayer event!
+      </text>
+    </g>
+
+    <!-- Transition Note to Page 4 -->
+    <g transform="translate(24, 310)">
+      <rect x="0" y="0" width="842" height="60" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="16" y="26" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">
+        HOW TO CHOOSE THE RINGTONE / AZAN SOUND FOR METHOD 2:
+      </text>
+      <text x="16" y="46" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5">
+        The sound selection stays the exact same as in Method 1! Please turn to <strong>Page 4</strong> for the illustrated sound customization guide on Android &amp; iOS.
+      </text>
+    </g>
+
+  </g>
+
+  <!-- ================= PAGE 3 FOOTER ================= -->
+  <g transform="translate(0, 1315)">
+    <rect x="0" y="0" width="950" height="35" fill="#0b1715"/>
+    <text x="475" y="22" fill="#a7f3d0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" text-anchor="middle">
+      Page 3 of 4: Method 2 &amp; Automated Alarms  ·  Turn to Page 4 for Azan Ringtone &amp; Sound Settings
+    </text>
+  </g>
+</svg>
+

@@ -19,6 +19,10 @@ import pytesseract
 from supabase import create_client
 
 from drive_timetable import fetch_latest_timetable
+from prayer_time_ocr import (
+    extract_vertical_middle_column_times,
+    fill_missing_merged_prayer_times,
+)
 from timetable_dates import (
     parse_timetable_endpoints,
     resolve_timetable_dates,
@@ -929,15 +933,76 @@ def build_prayer_times_and_dates():
 
                 fallback_time = row_time
 
-            if fallback_time is None:
-                raise RuntimeError(
-                    f"Could not safely determine the time for {prayer}: "
-                    "rectangle OCR and whole-image/flexible-row "
-                    "fallbacks were missing, conflicting, or inconclusive. "
-                    "Stopping before calendar synchronization."
-                )
+            if fallback_time is not None:
+                prayer_times[prayer] = fallback_time
 
-            prayer_times[prayer] = fallback_time
+        if (
+            "Zohar" not in prayer_times
+            or "Assr" not in prayer_times
+            or "Maghrib" not in prayer_times
+            or "Ishaa" not in prayer_times
+        ):
+            try:
+                column_times = extract_vertical_middle_column_times(image)
+            except pytesseract.TesseractError as exc:
+                print(
+                    f"MIDDLE-COLUMN OCR FAILED: {exc}",
+                    flush=True,
+                )
+                column_times = []
+
+            formatted_column_times = [
+                value.strftime("%H:%M") if value is not None else None
+                for value in column_times
+            ]
+            print(
+                "MIDDLE-COLUMN OCR TOP-TO-BOTTOM TIMES: "
+                f"{formatted_column_times!r}",
+                flush=True,
+            )
+
+            fajr_time = prayer_times.get("Fajr")
+            if (
+                not column_times
+                or fajr_time is None
+                or column_times[0] != fajr_time
+            ):
+                print(
+                    "MIDDLE-COLUMN OCR REJECTED: "
+                    "the first column time does not match a validated "
+                    "Fajr time, so merged-row positions are uncertain.",
+                    flush=True,
+                )
+            else:
+                filled_prayers = fill_missing_merged_prayer_times(
+                    prayer_times,
+                    column_times,
+                )
+                if filled_prayers:
+                    print(
+                        "MIDDLE-COLUMN OCR FILLED MERGED PRAYER TIMES: "
+                        + ", ".join(
+                            f"{prayer}="
+                            f"{prayer_times[prayer].strftime('%H:%M')}"
+                            for prayer in filled_prayers
+                        ),
+                        flush=True,
+                    )
+
+        unresolved_prayers = [
+            prayer
+            for prayer, _, _ in rows
+            if prayer not in prayer_times
+        ]
+        if unresolved_prayers:
+            raise RuntimeError(
+                "Could not safely determine the time for "
+                + ", ".join(unresolved_prayers)
+                + ": rectangle OCR, whole-image/flexible-row OCR, and "
+                "the validated middle-column fallback were missing, "
+                "conflicting, or inconclusive. Stopping before calendar "
+                "synchronization."
+            )
 
     return config, timezone_obj, start_date, end_date, day_count, prayer_times
 

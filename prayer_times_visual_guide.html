@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A visual, step-by-step guide to adding Bait-us-Subuh prayer times to Android and iPhone calendars, setting reminders, and choosing notification sounds.">
+  <title>Prayer Times Automation — Visual User Guide</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #122a26;
+      --muted: #52645f;
+      --green: #146451;
+      --green-dark: #0e3c33;
+      --green-pale: #eaf6f1;
+      --blue: #2659a8;
+      --blue-pale: #edf3fc;
+      --gold: #a45b08;
+      --gold-pale: #fff5df;
+      --line: #d7e3de;
+      --paper: #fff;
+      --canvas: #edf2ef;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 16px/1.48 Arial, Helvetica, sans-serif;
+    }
+
+    a { color: var(--green); }
+
+    .toolbar {
+      width: min(900px, 100%);
+      margin: 0 auto 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .toolbar-title { font-weight: 800; }
+    .toolbar-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .button {
+      display: inline-block;
+      padding: 9px 13px;
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      background: var(--green);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .button.secondary { background: white; color: var(--green); }
+
+    .guide-page {
+      position: relative;
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto 24px;
+      padding: 15mm;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: 0 8px 30px rgb(15 40 33 / 12%);
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: -15mm -15mm 7mm;
+      padding: 9mm 15mm 6mm;
+      background: linear-gradient(130deg, var(--green-dark), #1b6a55);
+      color: white;
+    }
+
+    .page-header-copy { min-width: 0; flex: 1 1 55%; }
+    .page-header-art { display: block; width: 42%; max-height: 145px; object-fit: contain; }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #b7ead5;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: 30px; line-height: 1.15; }
+    .page-header p { margin: 0; color: #e2f5ed; font-size: 14px; }
+    h2 { margin-bottom: 8px; color: var(--green-dark); font-size: 21px; }
+    h3 { margin-bottom: 6px; font-size: 16px; }
+    p { margin-bottom: 10px; }
+    .intro { color: var(--muted); font-size: 15px; }
+
+    .grid { display: grid; gap: 12px; }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .card.green { border-color: #b8dfcd; background: var(--green-pale); }
+    .card.blue { border-color: #c6d8f3; background: var(--blue-pale); }
+    .card.gold { border-color: #f0d39a; background: var(--gold-pale); }
+
+    .label {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--green);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .blue .label { background: var(--blue); }
+    .gold .label { background: var(--gold); }
+
+    .steps {
+      display: grid;
+      gap: 8px;
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: step;
+    }
+
+    .steps li {
+      position: relative;
+      min-height: 32px;
+      padding: 5px 0 4px 39px;
+      counter-increment: step;
+    }
+
+    .steps li::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      content: counter(step);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .blue .steps li::before { background: var(--blue); }
+    .gold .steps li::before { background: var(--gold); }
+
+    .path {
+      margin: 9px 0;
+      padding: 9px 11px;
+      border-radius: 8px;
+      background: #f1f5f3;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .notice {
+      margin: 12px 0;
+      padding: 12px 14px;
+      border-left: 4px solid #d89218;
+      border-radius: 8px;
+      background: var(--gold-pale);
+      color: #643c0b;
+    }
+
+    .notice p:last-child, .card p:last-child { margin-bottom: 0; }
+    .big-number { color: var(--green); font-size: 27px; font-weight: 900; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+
+    #page-1 .card { padding: 10px; }
+    #page-1 .steps { gap: 5px; }
+    #page-1 .path { margin: 6px 0; padding: 7px 10px; }
+    #page-2 .steps { gap: 6px; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin: 14px 0;
+    }
+
+    .flow-step {
+      min-height: 92px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f7faf8;
+    }
+
+    .flow-step b {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--green);
+      font-size: 13px;
+    }
+
+    .flow-step span { color: var(--muted); font-size: 12px; }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .check {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f7faf8;
+      font-size: 13px;
+    }
+
+    .check::before { content: "✓  "; color: var(--green); font-weight: 900; }
+
+    .page-footer {
+      position: absolute;
+      right: 15mm;
+      bottom: 8mm;
+      left: 15mm;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    #page-4 { font-size: 14px; line-height: 1.36; }
+    #page-4 .steps { gap: 4px; }
+    #page-4 .card { padding: 10px; }
+    #page-4 .notice { margin: 8px 0; padding: 8px 10px; }
+
+    @media (max-width: 760px) {
+      body { padding: 12px 8px; }
+      .guide-page { width: 100%; min-height: 0; padding: 22px; }
+      .page-header { margin: -22px -22px 22px; padding: 25px 22px 20px; }
+      .page-header-art { width: 100%; max-height: 150px; }
+      .page-header { flex-direction: column; align-items: stretch; }
+      .two, .three { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .page-footer { position: static; margin-top: 24px; }
+    }
+
+    @page { size: A4; margin: 0; }
+
+    @media print {
+      html, body { width: 210mm; margin: 0; padding: 0; background: white; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar { display: none; }
+      .guide-page {
+        width: 210mm;
+        height: 297mm;
+        min-height: 297mm;
+        margin: 0;
+        padding: 15mm;
+        box-shadow: none;
+        break-after: page;
+        page-break-after: always;
+      }
+      .guide-page:last-of-type { break-after: auto; page-break-after: auto; }
+      .page-header { flex-direction: row; margin: -15mm -15mm 7mm; padding: 9mm 15mm 6mm; }
+      .page-header-art { width: 42%; max-height: 145px; }
+      .page-footer { position: absolute; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="toolbar" aria-label="Guide downloads">
+    <div class="toolbar-title">Prayer Times Automation · Visual User Guide</div>
+    <div class="toolbar-links">
+      <a class="button" href="prayer_times_visual_guide.pdf" download>Download the 4-page PDF</a>
+      <a class="button secondary" href="guide_images/visual_guide_page1.png" download>Page 1 image</a>
+      <a class="button secondary" href="guide_images/visual_guide_page2.png" download>Page 2 image</a>
+      <a class="button secondary" href="guide_images/visual_guide_page3.png" download>Page 3 image</a>
+      <a class="button secondary" href="guide_images/visual_guide_page4.png" download>Page 4 image</a>
+      <a class="button secondary" href="index.html">Back to the app</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="guide-page" id="page-1">
+      <header class="page-header">
+        <div class="page-header-copy">
+          <p class="eyebrow">Bait-us-Subuh · Simple setup guide</p>
+          <h1>Prayer Times Automation</h1>
+          <p>Choose how to add the timetable, then follow the matching reminder and sound steps.</p>
+        </div>
+        <img class="page-header-art" src="guide_images/visual_steps_connect.svg" alt="Pictorial steps: scan the QR code, tap Add directly, or sign in with Google." width="840" height="270">
+      </header>
+
+      <h2>Choose one of two ways to connect</h2>
+      <p class="intro">Both methods put Bait-us-Subuh prayer events in your calendar. Method 1 does not require Google sign-in. Method 2 uses your Google account to create and update events in your calendar.</p>
+
+      <div class="grid two">
+        <article class="card green">
+          <span class="label">Method 1 · no sign-in</span>
+          <h3>Add the public calendar subscription</h3>
+          <p>Use either option below. They both add the same Bait-us-Subuh calendar.</p>
+          <div class="path">Option 1: Scan the QR code shown on the app website.</div>
+          <ol class="steps">
+            <li>Scan the QR code shown on a poster or another screen.</li>
+            <li>Tap the link or calendar prompt that appears.</li>
+            <li>Choose <strong>Add</strong> or <strong>Subscribe</strong> to confirm.</li>
+          </ol>
+          <div class="path">Option 2: Tap “Click to Add without SCAN directly”.</div>
+          <ol class="steps">
+            <li>Open the app website on your phone.</li>
+            <li>Tap the green direct-add button under the QR code.</li>
+            <li>Confirm by choosing <strong>Add</strong> or <strong>Subscribe</strong>.</li>
+          </ol>
+        </article>
+
+        <article class="card blue">
+          <span class="label">Method 2 · Google sign-in</span>
+          <h3>Connect your Google Calendar</h3>
+          <ol class="steps">
+            <li>Tap <strong>Add Prayer Times via Google Login (OAuth)</strong>.</li>
+            <li>Choose the Google account where you want the events.</li>
+            <li>Review and approve the requested Calendar access.</li>
+            <li>Return to the app and wait for the connection confirmation.</li>
+          </ol>
+          <div class="notice">
+            <p><strong>Good to know:</strong> You sign in on Google’s page. Your Google password is not given to the Prayer Times Automation app.</p>
+          </div>
+          <p class="small muted">This method reads the current Bait-us-Subuh timetable image from the configured Google Drive folder, processes the prayer times, and syncs events to your connected calendar.</p>
+        </article>
+      </div>
+
+      <div class="notice">
+        <p><strong>Next:</strong> Method 1 needs a one-time default reminder rule on your phone. Method 2 already adds reminders to events. Both methods use your device’s calendar notification settings for sound.</p>
+      </div>
+      <div class="page-footer"><span>Prayer Times Automation</span><span>Page 1 of 4 · Choose a connection method</span></div>
+    </section>
+
+    <section class="guide-page" id="page-2">
+      <header class="page-header">
+        <div class="page-header-copy">
+          <p class="eyebrow">Method 1 · one-time reminder setup</p>
+          <h1>Set your prayer alert time</h1>
+          <p>Choose how long before each event you want a notification. This is a calendar default rule, not a phone alarm.</p>
+        </div>
+        <img class="page-header-art" src="guide_images/visual_steps_reminders.svg" alt="Android and iPhone calendar screens showing where to set a prayer reminder." width="840" height="270">
+      </header>
+
+      <div class="notice">
+        <p><strong>Do this after adding the calendar.</strong> In Google Calendar, set a default notification for the Bait-us-Subuh calendar. It applies to events on that calendar for your account. Choose your preferred lead time, such as 15 minutes before.</p>
+      </div>
+
+      <div class="grid two">
+        <article class="card green">
+          <span class="label">Android · Google Calendar app</span>
+          <h3>Set a default notification</h3>
+          <div class="path">Google Calendar → ☰ Menu → Settings → Bait-us-Subuh Timings</div>
+          <ol class="steps">
+            <li>Open the <strong>Google Calendar</strong> app.</li>
+            <li>Tap <strong>☰ Menu</strong>, then <strong>Settings</strong>.</li>
+            <li>Under your calendars, tap <strong>Bait-us-Subuh Timings</strong>.</li>
+            <li>Tap <strong>Add a notification</strong> under event notifications.</li>
+            <li>Choose your preferred time, for example <strong>15 minutes before</strong>.</li>
+            <li>Make sure Android allows Google Calendar notifications.</li>
+          </ol>
+        </article>
+
+        <article class="card blue">
+          <span class="label">iPhone / iPad · Google Calendar app</span>
+          <h3>Set a default notification</h3>
+          <div class="path">Google Calendar → ☰ Menu → Settings → Bait-us-Subuh</div>
+          <ol class="steps">
+            <li>Open the <strong>Google Calendar</strong> app and sign in to the Google account where you added the calendar.</li>
+            <li>Tap <strong>☰ Menu</strong>, then <strong>Settings</strong>.</li>
+            <li>Select <strong>Bait-us-Subuh Timings</strong> from the calendar list.</li>
+            <li>Tap <strong>Add another notification</strong>.</li>
+            <li>Choose your preferred lead time, such as <strong>15 minutes before</strong>.</li>
+            <li>On iPhone, open <strong>Settings → Notifications → Google Calendar</strong> and allow notifications and sounds.</li>
+          </ol>
+        </article>
+      </div>
+
+      <div class="card gold" style="margin-top: 12px">
+        <h3>One-time setup, with a useful distinction</h3>
+        <p>The notification is a default for events on this calendar in your Google account; it is not a permanent guarantee for every event in every app. Confirm that notifications are enabled and that future prayer events show the alert you selected.</p>
+      </div>
+
+      <p class="small muted" style="margin-top: 12px">If the calendar is missing from Settings, check that it is visible in the Google Calendar app and that the correct Google account is selected.</p>
+      <div class="page-footer"><span>Prayer Times Automation</span><span>Page 2 of 4 · Method 1 reminders</span></div>
+    </section>
+
+    <section class="guide-page" id="page-3">
+      <header class="page-header">
+        <div class="page-header-copy">
+          <p class="eyebrow">Method 2 · Google account connection</p>
+          <h1>Automatic timetable and reminders</h1>
+          <p>After you approve access, the service keeps your connected Google Calendar in sync with the current timetable.</p>
+        </div>
+        <img class="page-header-art" src="guide_images/visual_steps_sync.svg" alt="Pictorial flow: timetable image, automatic reading, calendar sync, and reminder." width="840" height="270">
+      </header>
+
+      <h2>What happens after you connect?</h2>
+      <div class="flow">
+        <div class="flow-step"><b>1 · Timetable image</b><span>The current Bait-us-Subuh timetable picture is placed in the configured Google Drive folder.</span></div>
+        <div class="flow-step"><b>2 · Time reading</b><span>The service reads the timetable image and identifies its dates and prayer times.</span></div>
+        <div class="flow-step"><b>3 · Calendar sync</b><span>Prayer events are created or updated in the Google Calendar you connected.</span></div>
+        <div class="flow-step"><b>4 · Reminder added</b><span>Each event receives its configured reminder automatically.</span></div>
+      </div>
+
+      <div class="grid two" style="margin-top: 18px">
+        <article class="card green">
+          <span class="label">Daily prayers</span>
+          <div class="big-number">15 minutes before</div>
+          <p>Default reminder for Fajr, Zohar/Zuhr, Assr/Asr, Maghrib, and Ishaa/Isha.</p>
+        </article>
+        <article class="card blue">
+          <span class="label">Friday prayer</span>
+          <div class="big-number">90 minutes before</div>
+          <p>Default reminder for the Friday Juma/Jummah event.</p>
+        </article>
+      </div>
+
+      <div class="notice" style="margin-top: 18px">
+        <p><strong>No manual reminder rule is needed for Method 2.</strong> These lead times are included by the service when it creates or updates each prayer event. To hear a sound, allow Google Calendar notifications on your phone and follow Page 4.</p>
+      </div>
+
+      <h2 style="margin-top: 24px">Quick check after connecting</h2>
+      <div class="checklist">
+        <div class="check">The correct Google account was selected.</div>
+        <div class="check">The Prayer Times calendar is visible.</div>
+        <div class="check">A daily event shows a 15-minute reminder.</div>
+        <div class="check">A Friday Juma event shows a 90-minute reminder.</div>
+      </div>
+      <div class="page-footer"><span>Prayer Times Automation</span><span>Page 3 of 4 · Method 2 automation</span></div>
+    </section>
+
+    <section class="guide-page" id="page-4">
+      <header class="page-header">
+        <div class="page-header-copy">
+          <p class="eyebrow">Sound settings · both methods</p>
+          <h1>Choose your notification sound</h1>
+          <p>The reminder time and the sound are separate settings. Sound is controlled by your phone and calendar app.</p>
+        </div>
+        <img class="page-header-art" src="guide_images/visual_steps_sound.svg" alt="Android sound selection and iPhone notification settings pictured on phones." width="840" height="270">
+      </header>
+
+      <div class="notice">
+        <p><strong>The app does not contain an Azan player or sound file.</strong> It creates calendar events and reminders; your phone’s calendar notification system plays the alert.</p>
+      </div>
+
+      <div class="grid two">
+        <article class="card green">
+          <span class="label">Android · choose a tone or audio file</span>
+          <h3>Google Calendar notification sound</h3>
+          <div class="path">Phone Settings → Apps → Google Calendar → Notifications → Calendar notifications → Sound</div>
+          <ol class="steps">
+            <li>Open the phone’s <strong>Settings</strong> app.</li>
+            <li>Tap <strong>Apps</strong> (menu names vary by manufacturer), then <strong>Google Calendar</strong>.</li>
+            <li>Tap <strong>Notifications</strong>, then <strong>Calendar notifications</strong> or the event reminder category.</li>
+            <li>Choose <strong>Sound</strong> and select a tone. If your phone offers a file browser, choose a downloaded Azan or other audio file.</li>
+            <li>If the file is not listed, follow your phone maker’s instructions for adding notification sounds; some Android phones require it in the Notifications or Ringtones folder.</li>
+          </ol>
+        </article>
+
+        <article class="card blue">
+          <span class="label">iPhone / iPad · Google Calendar</span>
+          <h3>Allow the calendar alert sound</h3>
+          <div class="path">iPhone Settings → Notifications → Google Calendar → Allow Notifications / Sounds</div>
+          <ol class="steps">
+            <li>Open iPhone <strong>Settings → Notifications → Google Calendar</strong>.</li>
+            <li>Turn on <strong>Allow Notifications</strong> and <strong>Sounds</strong>. Choose an alert style if offered.</li>
+            <li>In Google Calendar, open <strong>☰ Menu → Settings → Bait-us-Subuh</strong> to check its event notifications.</li>
+          </ol>
+          <div class="notice">
+            <p><strong>Custom Azan limitation:</strong> Google Calendar on iPhone does not provide Android’s “browse the phone for an MP3” sound picker. Enable app sounds in Notifications. If your iOS version offers <strong>Settings → Sounds &amp; Haptics → Default Alerts</strong>, you can choose a built-in system alert tone; it may not override sounds controlled by an individual app. An arbitrary downloaded MP3 cannot be assigned directly unless iOS and the app expose it as a selectable alert.</p>
+          </div>
+        </article>
+      </div>
+
+      <h2 style="margin-top: 18px">Before relying on an alert</h2>
+      <div class="checklist">
+        <div class="check">Calendar notifications are allowed.</div>
+        <div class="check">The phone is not muted or silencing alerts with Focus / Do Not Disturb.</div>
+        <div class="check">The correct calendar is visible and syncing.</div>
+        <div class="check">A test or upcoming event shows its reminder.</div>
+      </div>
+
+      <p class="small muted" style="margin-top: 16px">Google’s iPhone/iPad reminder steps: <a href="https://support.google.com/calendar/answer/37242?co=GENIE.Platform%3DiOS&amp;hl=en">Change Google Calendar notifications</a>. Android menu names and sound pickers vary by device and Android version.</p>
+      <div class="page-footer"><span>Prayer Times Automation</span><span>Page 4 of 4 · Sound and final checks</span></div>
+    </section>
+  </main>
+</body>
+</html>

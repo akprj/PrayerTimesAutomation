@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Official Visual Step-by-Step Pictorial Guide for Prayer Times Reminder Automation: Features, Method 1 (No Login QR/Direct), Method 2 (Google Login), Lifetime Alarms, and Custom Azan Sound Setup.">
+  <title>Prayer Times Automation — Official Pictorial User Guide</title>
+  <style>
+    :root {
+      --bg: #091312;
+      --card-bg: #ffffff;
+      --text-dark: #0f172a;
+      --text-muted: #475569;
+      --green-dark: #0f2923;
+      --green-mid: #164e40;
+      --green-bright: #10b981;
+      --green-light: #ecfdf5;
+      --blue-accent: #2563eb;
+      --blue-light: #eff6ff;
+      --amber-accent: #d97706;
+      --amber-light: #fffbeb;
+      --border-color: #cbd5e1;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: #f8fafc;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      width: min(960px, 100%);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 14px 20px;
+      background: #112622;
+      border: 1px solid #1f4a40;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #34d399;
+    }
+
+    .nav-brand span {
+      color: #94a3b8;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-emerald {
+      background: #10b981;
+      color: #064e3b;
+    }
+    .btn-emerald:hover {
+      background: #34d399;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Page Filter Tabs */
+    .tab-bar {
+      width: min(960px, 100%);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+      justify-content: center;
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border-radius: 30px;
+      background: #132724;
+      border: 1px solid #1f4a40;
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      background: #1a3c36;
+      color: #ffffff;
+    }
+
+    .tab-btn.active {
+      background: #10b981;
+      border-color: #34d399;
+      color: #064e3b;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Notice Banner */
+    .banner-notice {
+      width: min(960px, 100%);
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      color: #92400e;
+    }
+
+    .banner-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .banner-text h4 {
+      margin: 0 0 4px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #b45309;
+    }
+
+    .banner-text p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #78350f;
+    }
+
+    /* Main Container */
+    .main-container {
+      width: min(960px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      margin-bottom: 50px;
+    }
+
+    /* Page Section */
+    .guide-page-section {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease;
+    }
+
+    .page-header-strip {
+      background: linear-gradient(135deg, #0f2923, #164e40);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 2px solid #34d399;
+    }
+
+    .page-badge {
+      background: #10b981;
+      color: #064e3b;
+      font-weight: 900;
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .page-title-text {
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .page-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      border-radius: 6px;
+    }
+
+    /* Image Display */
+    .page-image-wrapper {
+      width: 100%;
+      background: #f8fafc;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .page-image-wrapper img {
+      width: 100%;
+      max-width: 880px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      display: block;
+      cursor: zoom-in;
+      transition: transform 0.2s ease;
+    }
+
+    .page-image-wrapper img:hover {
+      transform: scale(1.008);
+    }
+
+    /* Explanatory Cards below each image */
+    .page-explanation {
+      padding: 24px;
+      color: var(--text-dark);
+      background: #ffffff;
+    }
+
+    .explanation-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin-top: 14px;
+    }
+
+    .exp-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .exp-card.green {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .exp-card.blue {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .exp-card.amber {
+      background: #fffbeb;
+      border-color: #fde68a;
+    }
+
+    .exp-card h4 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .exp-card.green h4 { color: #14532d; }
+    .exp-card.blue h4 { color: #1e40af; }
+    .exp-card.amber h4 { color: #92400e; }
+
+    .exp-card p, .exp-card ul {
+      margin: 0;
+      font-size: 0.88rem;
+      color: #334155;
+    }
+
+    .exp-card ul {
+      padding-left: 20px;
+      margin-top: 6px;
+    }
+
+    .exp-card li {
+      margin-bottom: 4px;
+    }
+
+    /* Path Pill */
+    .path-pill {
+      display: inline-block;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 6px 0;
+    }
+
+    /* Footer */
+    footer {
+      width: min(960px, 100%);
+      text-align: center;
+      padding: 30px 20px;
+      color: #64748b;
+      font-size: 0.85rem;
+      border-top: 1px solid #1f3630;
+      margin-top: 20px;
+    }
+
+    footer a {
+      color: #34d399;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Lightbox Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(5px);
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal img {
+      max-width: 95%;
+      max-height: 95vh;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      color: #ffffff;
+      font-size: 2.2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .page-header-strip { padding: 12px 16px; }
+      .page-image-wrapper { padding: 8px; }
+      .page-explanation { padding: 16px; }
+      .tab-bar { gap: 4px; }
+      .tab-btn { padding: 8px 12px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= TOP NAVIGATION ================= -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      🕌 <span>Prayer Times Automation — Official Pictorial Guide</span>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="btn btn-emerald">← Back to App</a>
+      <a href="prayer_times_user_guide.pdf" download="prayer_times_user_guide.pdf" class="btn btn-outline">📥 Download PDF (4 Pages)</a>
+      <a href="user_guide_presentation.html" class="btn btn-outline">🖥️ Slides Presentation</a>
+      <a href="backend_logic_presentation.html" class="btn btn-outline">⚙️ Backend Deck</a>
+    </div>
+  </header>
+
+  <!-- ================= AUDIO CLARIFICATION NOTICE ================= -->
+  <div class="banner-notice">
+    <div class="banner-icon">ℹ️</div>
+    <div class="banner-text">
+      <h4>App Sound Disclaimer: No Built-In Audio Player</h4>
+      <p>
+        The Prayer Times Automation application does <strong>not</strong> include pre-packaged Azan sound files and does not play audio directly. All prayer reminders and alerts are triggered exclusively by your phone's built-in calendar notifications. You can easily choose any Azan MP3 or custom chime saved on your smartphone by following <strong>Page 4</strong> of this guide.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= FILTER / JUMP TABS ================= -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" onclick="filterPage('all')">📄 View All 4 Pages</button>
+    <button class="tab-btn" onclick="filterPage('p1')">1️⃣ Overview &amp; Method 1</button>
+    <button class="tab-btn" onclick="filterPage('p2')">2️⃣ Lifetime Alarms (Method 1)</button>
+    <button class="tab-btn" onclick="filterPage('p3')">3️⃣ Method 2 (Google Login)</button>
+    <button class="tab-btn" onclick="filterPage('p4')">4️⃣ Sound &amp; Azan Setup</button>
+  </nav>
+
+  <!-- ================= MAIN PAGES CONTAINER ================= -->
+  <main class="main-container">
+
+    <!-- ================= PAGE 1 ================= -->
+    <article class="guide-page-section" id="section-p1">
+      <div class="page-header-strip">
+        <div>
+          <span class="page-badge">Page 1 of 4</span>
+          <span class="page-title-text">App Overview &amp; Method 1 (Add Without Login)</span>
+        </div>
+        <div class="page-actions">
+          <a href="guide_images/page1_user_guide.png" download="page1_user_guide.png" class="btn btn-outline btn-sm">💾 Download Image</a>
+          <button class="btn btn-outline btn-sm" onclick="openModal('guide_images/page1_user_guide.png')">🔍 Enlarge</button>
+        </div>
+      </div>
+
+      <div class="page-image-wrapper">
+        <img src="guide_images/page1_user_guide.png" alt="Page 1: App Overview and Method 1 Add Calendar without Login" loading="lazy" onclick="openModal('guide_images/page1_user_guide.png')">
+      </div>
+
+      <div class="page-explanation">
+        <h3 style="margin-top:0; color:#0f172a;">What is this Application &amp; How Method 1 Works</h3>
+        <p>
+          The system synchronizes the official Bait-us-Subuh (Frankfurt) prayer schedule directly into your smartphone calendar. In <strong>Method 1</strong>, you subscribe anonymously with <em>no Google login</em> and <em>no password required</em>.
+        </p>
+
+        <div class="explanation-grid">
+          <div class="exp-card green">
+            <h4>📸 Option 1: Scan QR Code</h4>
+            <p>Point your smartphone camera at the QR code displayed on the screen. Tap the notification banner to add the Bait-us-Subuh calendar with a single tap.</p>
+          </div>
+
+          <div class="exp-card blue">
+            <h4>👆 Option 2: Direct Button</h4>
+            <p>If browsing directly on your mobile device, simply click <strong>"Click to Add without SCAN directly"</strong>. Your phone's calendar app will open immediately to confirm subscription.</p>
+          </div>
+
+          <div class="exp-card amber">
+            <h4>💡 Why Follow Page 2 Next?</h4>
+            <p>Public calendar feeds are silent by default due to smartphone security rules. Proceed to <strong>Page 2</strong> to set your desired lifetime alarm time (e.g. 15 minutes before) once!</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ================= PAGE 2 ================= -->
+    <article class="guide-page-section" id="section-p2">
+      <div class="page-header-strip">
+        <div>
+          <span class="page-badge">Page 2 of 4</span>
+          <span class="page-title-text">Method 1: Set Lifetime Prayer Alarms (Android &amp; Apple iOS)</span>
+        </div>
+        <div class="page-actions">
+          <a href="guide_images/page2_user_guide.png" download="page2_user_guide.png" class="btn btn-outline btn-sm">💾 Download Image</a>
+          <button class="btn btn-outline btn-sm" onclick="openModal('guide_images/page2_user_guide.png')">🔍 Enlarge</button>
+        </div>
+      </div>
+
+      <div class="page-image-wrapper">
+        <img src="guide_images/page2_user_guide.png" alt="Page 2: Method 1 Lifetime Prayer Alarms Setup on Android and Apple iOS" loading="lazy" onclick="openModal('guide_images/page2_user_guide.png')">
+      </div>
+
+      <div class="page-explanation">
+        <h3 style="margin-top:0; color:#0f172a;">One-Time Lifetime Alarm Setup for Method 1 Users</h3>
+        <p>
+          Because subscribed calendars cannot force loud alarms automatically without permission, you configure your notification time <strong>once</strong> in your calendar settings. This rule applies for a lifetime across all 5 daily prayers (Fajr, Zuhr, Asr, Maghrib, and Isha)!
+        </p>
+
+        <div class="explanation-grid">
+          <div class="exp-card green">
+            <h4>🤖 For Android Phones (Google Calendar)</h4>
+            <div class="path-pill">Google Calendar &gt; Menu (☰) &gt; Settings &gt; Bait-us-Subuh</div>
+            <ul>
+              <li>Open <strong>Google Calendar</strong> app on your Android phone.</li>
+              <li>Tap <strong>Menu (☰)</strong> &gt; scroll down and tap <strong>Settings (⚙️)</strong>.</li>
+              <li>Select <strong>"Bait-us-Subuh Timings"</strong>.</li>
+              <li>Tap <strong>"Add a notification"</strong> under default notifications.</li>
+              <li>Choose your desired time: e.g. <strong>15 minutes before</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="exp-card blue">
+            <h4>🍏 For Apple iPhone &amp; iPad (iOS)</h4>
+            <div class="path-pill">Apple Calendar &gt; Calendars &gt; Info (i) &gt; Event Alerts: ON</div>
+            <ul>
+              <li>Open built-in <strong>Calendar</strong> on iPhone.</li>
+              <li>Tap <strong>Calendars</strong> at the bottom center.</li>
+              <li>Tap the <strong>Info icon (i)</strong> next to "Bait-us-Subuh".</li>
+              <li>Toggle <strong>"Event Alerts"</strong> to <strong>ON</strong>.</li>
+              <li>Or in iPhone <strong>Settings &gt; Calendar &gt; Default Alert Times &gt; Events</strong>: select 15 minutes before.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ================= PAGE 3 ================= -->
+    <article class="guide-page-section" id="section-p3">
+      <div class="page-header-strip">
+        <div>
+          <span class="page-badge">Page 3 of 4</span>
+          <span class="page-title-text">Method 2: Google Account Login (Automatic Alarms Injection)</span>
+        </div>
+        <div class="page-actions">
+          <a href="guide_images/page3_user_guide.png" download="page3_user_guide.png" class="btn btn-outline btn-sm">💾 Download Image</a>
+          <button class="btn btn-outline btn-sm" onclick="openModal('guide_images/page3_user_guide.png')">🔍 Enlarge</button>
+        </div>
+      </div>
+
+      <div class="page-image-wrapper">
+        <img src="guide_images/page3_user_guide.png" alt="Page 3: Method 2 Google Account Login with Automatic Alarms Injection" loading="lazy" onclick="openModal('guide_images/page3_user_guide.png')">
+      </div>
+
+      <div class="page-explanation">
+        <h3 style="margin-top:0; color:#0f172a;">Method 2: Google Account Integration (OAuth 2.0)</h3>
+        <p>
+          Unlike Method 1 where you subscribe anonymously, Method 2 authorizes the app to manage prayer events directly in your personal Google Calendar.
+        </p>
+
+        <div class="explanation-grid">
+          <div class="exp-card green">
+            <h4>⚡ Pre-Configured Default Reminders</h4>
+            <p>Every event injected into your calendar automatically includes default notification alarms:</p>
+            <ul>
+              <li><strong>15 minutes before</strong> for all 5 daily prayers (Fajr, Zuhr, Asr, Maghrib, Isha).</li>
+              <li><strong>90 minutes before</strong> for Friday Jummah prayer.</li>
+            </ul>
+          </div>
+
+          <div class="exp-card blue">
+            <h4>🔄 Google Drive Timetable OCR Engine</h4>
+            <p>The backend automatically monitors the official Bait-us-Subuh Google Drive folder. Whenever a new schedule picture is uploaded, the OCR parser extracts prayer times and updates your calendar seamlessly.</p>
+          </div>
+
+          <div class="exp-card amber">
+            <h4>🔊 Sound Selection</h4>
+            <p>Even though alarms are injected automatically, the <em>sound tone</em> that rings is controlled by your phone's Google Calendar notification settings (see Page 4).</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ================= PAGE 4 ================= -->
+    <article class="guide-page-section" id="section-p4">
+      <div class="page-header-strip">
+        <div>
+          <span class="page-badge">Page 4 of 4</span>
+          <span class="page-title-text">Custom Sound &amp; Azan Ringtone Setup (Both Methods)</span>
+        </div>
+        <div class="page-actions">
+          <a href="guide_images/page4_user_guide.png" download="page4_user_guide.png" class="btn btn-outline btn-sm">💾 Download Image</a>
+          <button class="btn btn-outline btn-sm" onclick="openModal('guide_images/page4_user_guide.png')">🔍 Enlarge</button>
+        </div>
+      </div>
+
+      <div class="page-image-wrapper">
+        <img src="guide_images/page4_user_guide.png" alt="Page 4: Setting Desired Ringtone or Azan on Android and Apple iOS" loading="lazy" onclick="openModal('guide_images/page4_user_guide.png')">
+      </div>
+
+      <div class="page-explanation">
+        <h3 style="margin-top:0; color:#0f172a;">How to Select Azan or Any Desired Ringtone</h3>
+        <p>
+          Whether you connected via Method 1 (QR scan / direct button) or Method 2 (Google login), your phone's notification sound settings dictate what audio rings when prayer time arrives.
+        </p>
+
+        <div class="explanation-grid">
+          <div class="exp-card green">
+            <h4>🤖 Android: Google Calendar App Sound</h4>
+            <div class="path-pill">Settings &gt; Apps &gt; Google Calendar &gt; Notifications &gt; Sound</div>
+            <ul>
+              <li>Open phone <strong>Settings (⚙️)</strong> &gt; tap <strong>Apps</strong>.</li>
+              <li>Tap <strong>Google Calendar</strong> &gt; <strong>Notifications</strong>.</li>
+              <li>Tap <strong>Calendar notifications</strong> &gt; tap <strong>Sound</strong>.</li>
+              <li>Tap <strong>"+" / Add ringtone</strong> to browse files on your device.</li>
+              <li>Select your downloaded <strong>Azan MP3</strong> file!</li>
+              <li><em>Tip:</em> Place the MP3 in your phone's <code>Notifications</code> or <code>Ringtones</code> folder.</li>
+            </ul>
+          </div>
+
+          <div class="exp-card blue">
+            <h4>🍏 Apple iOS: Calendar Alert Sound</h4>
+            <div class="path-pill">Settings &gt; Notifications &gt; Calendar &gt; Sounds</div>
+            <ul>
+              <li>Open iPhone <strong>Settings (⚙️)</strong> &gt; tap <strong>Notifications</strong>.</li>
+              <li>Scroll down and tap <strong>Calendar</strong> (or <strong>Google Calendar</strong>).</li>
+              <li>Ensure <strong>Allow Notifications</strong> is toggled <strong>ON</strong>.</li>
+              <li>Tap <strong>Sounds</strong> and choose your desired alert tone.</li>
+              <li>Or select custom tone synced via iTunes / GarageBand.</li>
+              <li><em>Tip:</em> Ensure your iPhone physical mute switch is off and Focus allows Calendar.</li>
+            </ul>
+          </div>
+
+          <div class="exp-card amber">
+            <h4>📱 Device Recommendations</h4>
+            <ul>
+              <li><strong>Android:</strong> Google Calendar comes pre-installed on virtually all Android phones. No extra download needed.</li>
+              <li><strong>Apple iPhone:</strong> Works with Apple Calendar. For the smoothest experience, download the free <strong>Google Calendar</strong> app from the App Store.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- ================= LIGHTBOX MODAL ================= -->
+  <div class="modal" id="imageModal" onclick="closeModal()">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <img id="modalImg" src="" alt="Enlarged guide page">
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer>
+    <p>
+      Prayer Times Automation · Bait-us-Subuh Mosque, Frankfurt am Main<br>
+      Open Source Community Project · <a href="index.html">Home</a> · <a href="user_guide_presentation.html">User Guide Deck</a> · <a href="backend_logic_presentation.html">Technical Architecture</a>
+    </p>
+  </footer>
+
+  <!-- ================= INTERACTIVE SCRIPT ================= -->
+  <script>
+    function filterPage(target) {
+      const sections = {
+        p1: document.getElementById('section-p1'),
+        p2: document.getElementById('section-p2'),
+        p3: document.getElementById('section-p3'),
+        p4: document.getElementById('section-p4')
+      };
+
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (target === 'all') {
+        Object.values(sections).forEach(sec => sec.style.display = 'flex');
+      } else {
+        Object.keys(sections).forEach(key => {
+          sections[key].style.display = (key === target) ? 'flex' : 'none';
+        });
+        sections[target].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function openModal(src) {
+      const modal = document.getElementById('imageModal');
+      const img = document.getElementById('modalImg');
+      img.src = src;
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>

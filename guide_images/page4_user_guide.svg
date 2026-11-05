@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 1350" width="100%" height="100%">
+  <defs>
+    <filter id="p4Shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="p4HeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f2923"/>
+      <stop offset="100%" stop-color="#1a4d42"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="950" height="1350" fill="#f8fafc"/>
+
+  <!-- ================= HEADER SECTION ================= -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="950" height="140" fill="url(#p4HeaderGrad)"/>
+    
+    <text x="40" y="46" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" letter-spacing="-0.5">Setting Desired Ringtone or Azan</text>
+    <text x="40" y="74" fill="#a7f3d0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">SOUND SELECTION FOR METHOD 1 &amp; METHOD 2 (ANDROID &amp; APPLE iOS)</text>
+    <text x="40" y="100" fill="#d1fae5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="600">PAGE 4: HOW TO CHOOSE AZAN OR ANY CUSTOM RINGTONE FROM YOUR DEVICE</text>
+
+    <!-- Top Speaker Icon -->
+    <g transform="translate(800, 24)">
+      <circle cx="36" cy="46" r="30" fill="#143e35" stroke="#34d399" stroke-width="2"/>
+      <text x="36" y="55" fill="#34d399" font-size="28" text-anchor="middle">🔊</text>
+    </g>
+  </g>
+
+  <!-- ================= CLARIFICATION / NO BUILT-IN AZAN NOTICE ================= -->
+  <g transform="translate(30, 155)">
+    <rect x="0" y="0" width="890" height="95" rx="12" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5" filter="url(#p4Shadow)"/>
+    
+    <g transform="translate(24, 18)">
+      <circle cx="16" cy="16" r="14" fill="#ea580c"/>
+      <text x="16" y="22" fill="#ffffff" font-family="sans-serif" font-size="14" font-weight="900" text-anchor="middle">!</text>
+      
+      <text x="42" y="14" fill="#9a3412" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800">
+        IMPORTANT CLARIFICATION: THE APP DOES NOT HAVE A BUILT-IN AZAN AUDIO PLAYER
+      </text>
+      <text x="42" y="34" fill="#7c2d12" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">
+        The Prayer Times Reminder app itself contains no sound files. All alarm sounds are played strictly by your smartphone's calendar app.
+      </text>
+      <text x="42" y="52" fill="#9a3412" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">
+        To hear an Azan or your favorite chime, select any custom ringtone or Azan MP3 file stored on your phone via the steps below.
+      </text>
+    </g>
+  </g>
+
+  <!-- ================= SIDE-BY-SIDE SETUP: ANDROID VS APPLE IPHONE ================= -->
+  <g transform="translate(30, 265)">
+    <rect x="0" y="0" width="890" height="910" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#p4Shadow)"/>
+
+    <!-- Left Column: Android Sound Setup -->
+    <g transform="translate(24, 20)">
+      <rect x="0" y="0" width="405" height="865" rx="14" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
+      
+      <circle cx="28" cy="28" r="14" fill="#10b981"/>
+      <text x="28" y="34" fill="#ffffff" font-size="14" text-anchor="middle">🤖</text>
+      <text x="50" y="28" fill="#14532d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">FOR ANDROID PHONES</text>
+      <text x="50" y="46" fill="#15803d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600">Samsung, Google Pixel, Xiaomi, OnePlus, Motorola</text>
+
+      <!-- Path Badge -->
+      <g transform="translate(16, 58)">
+        <rect x="0" y="0" width="373" height="30" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+        <text x="10" y="19" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700">Settings &gt; Apps &gt; Google Calendar &gt; Notifications &gt; Sound</text>
+      </g>
+
+      <!-- Android Phone Mockup -->
+      <g transform="translate(16, 100)">
+        <rect x="0" y="0" width="230" height="260" rx="16" fill="#1e293b"/>
+        <rect x="6" y="6" width="218" height="248" rx="12" fill="#ffffff"/>
+        
+        <!-- App Header -->
+        <rect x="6" y="6" width="218" height="34" rx="8" fill="#174e40"/>
+        <text x="20" y="27" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">App Notifications</text>
+        <text x="180" y="27" fill="#a7f3d0" font-size="11">⚙️</text>
+
+        <!-- Settings Content -->
+        <g transform="translate(14, 50)">
+          <text x="0" y="12" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="800">GOOGLE CALENDAR NOTIFICATIONS</text>
+          
+          <rect x="0" y="22" width="190" height="38" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="10" y="38" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="700">Calendar notifications</text>
+          <text x="10" y="52" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9">Alert style &amp; sound</text>
+          
+          <rect x="0" y="68" width="190" height="60" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.4"/>
+          <text x="10" y="86" fill="#065f46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800">Sound / Ringtone:</text>
+          
+          <rect x="8" y="94" width="174" height="26" rx="4" fill="#ffffff" stroke="#10b981"/>
+          <text x="16" y="111" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800">🎵 Azan_Makkah.mp3</text>
+          <circle cx="166" cy="107" r="6" fill="#10b981"/>
+          <path d="M164 107 L165.5 108.5 L168.5 105.5" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+
+          <rect x="0" y="136" width="190" height="28" rx="5" fill="#f8fafc" stroke="#cbd5e1"/>
+          <text x="95" y="154" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">+ Add custom audio / Azan MP3</text>
+        </g>
+      </g>
+
+      <!-- Pointing Hand pointing at Sound selection -->
+      <g transform="translate(235, 235)">
+        <circle cx="12" cy="18" r="10" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.8"/>
+        <path d="M 12,18 C 12,6 15,-6 18,-18 C 19,-22 24,-22 25,-18 C 26,-11 25,12 25,18 C 28,14 33,12 37,14 C 40,15 41,19 39,23 C 43,20 48,19 51,22 C 54,25 53,30 50,33 C 53,32 58,33 59,38 C 60,45 53,53 47,60 C 38,68 28,72 17,70 C 8,68 0,60 2,48 C 3,40 9,33 12,18 Z" 
+              fill="#fed7aa" stroke="#7c2d12" stroke-width="2" stroke-linejoin="round"/>
+        <ellipse cx="21" cy="-14" rx="2.5" ry="3.5" fill="#ffffff" opacity="0.6"/>
+      </g>
+
+      <!-- Android Step Instructions -->
+      <g transform="translate(16, 375)">
+        <text x="0" y="16" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800">Step-by-Step for Android:</text>
+        <text x="0" y="38" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">1. Open phone <strong>Settings (⚙️)</strong> &gt; tap <strong>Apps</strong>.</text>
+        <text x="0" y="60" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">2. Tap <strong>Google Calendar</strong> from the app list.</text>
+        <text x="0" y="82" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">3. Tap <strong>Notifications</strong> &gt; <strong>Calendar notifications</strong>.</text>
+        <text x="0" y="104" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">4. Tap <strong>Sound</strong> (or Notification sound).</text>
+        <text x="0" y="126" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">5. Tap <strong>"+" or "Add ringtone"</strong> to browse your phone.</text>
+        <text x="0" y="148" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">6. Select your downloaded <strong>Azan MP3</strong> file!</text>
+
+        <!-- Pro Tip Box -->
+        <rect x="0" y="170" width="373" height="90" rx="8" fill="#dcfce7" stroke="#86efac"/>
+        <text x="12" y="192" fill="#14532d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800">💡 Tip: Where to place your Azan file</text>
+        <text x="12" y="212" fill="#166534" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">Copy or download your Azan MP3 file into your phone's</text>
+        <text x="12" y="228" fill="#166534" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5"><strong>"Notifications"</strong> or <strong>"Ringtones"</strong> folder so it</text>
+        <text x="12" y="244" fill="#166534" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">automatically shows up in your sound picker list.</text>
+      </g>
+    </g>
+
+    <!-- Right Column: Apple iOS Sound Setup -->
+    <g transform="translate(455, 20)">
+      <rect x="0" y="0" width="410" height="865" rx="14" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+      
+      <circle cx="28" cy="28" r="14" fill="#3b82f6"/>
+      <text x="28" y="34" fill="#ffffff" font-size="14" text-anchor="middle">🍏</text>
+      <text x="50" y="28" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">FOR APPLE IPHONE &amp; IPAD (iOS)</text>
+      <text x="50" y="46" fill="#2563eb" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600">iPhone (all iOS versions) &amp; iPad</text>
+
+      <!-- Path Badge -->
+      <g transform="translate(16, 58)">
+        <rect x="0" y="0" width="378" height="30" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+        <text x="10" y="19" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700">Settings &gt; Notifications &gt; Calendar &gt; Sounds</text>
+      </g>
+
+      <!-- iPhone Mockup -->
+      <g transform="translate(16, 100)">
+        <rect x="0" y="0" width="230" height="260" rx="22" fill="#0f172a"/>
+        <rect x="6" y="6" width="218" height="248" rx="18" fill="#ffffff"/>
+        
+        <!-- Dynamic Island / Notch -->
+        <rect x="80" y="10" width="60" height="10" rx="5" fill="#000000"/>
+
+        <!-- Header -->
+        <text x="18" y="34" fill="#2563eb" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">&lt; Notifications</text>
+        <text x="110" y="34" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" text-anchor="middle">Calendar</text>
+
+        <!-- iOS Content -->
+        <g transform="translate(14, 46)">
+          <rect x="0" y="0" width="190" height="32" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="10" y="20" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700">Allow Notifications</text>
+          <rect x="148" y="8" width="32" height="18" rx="9" fill="#22c55e"/>
+          <circle cx="169" cy="17" r="7" fill="#ffffff"/>
+
+          <rect x="0" y="38" width="190" height="64" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.4"/>
+          <text x="10" y="54" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800">Sounds / Alert Tone:</text>
+          
+          <rect x="8" y="62" width="174" height="28" rx="4" fill="#ffffff" stroke="#3b82f6"/>
+          <text x="16" y="80" fill="#1d4ed8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800">🔔 Desired Chime / Azan Tone</text>
+          <path d="M164 78 L168 82 L172 74" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/>
+
+          <rect x="0" y="110" width="190" height="42" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+          <text x="10" y="126" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="700">Lock Screen, Banners, Badges</text>
+          <text x="10" y="140" fill="#16a34a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8.5" font-weight="700">✓ All Alerts Enabled</text>
+        </g>
+      </g>
+
+      <!-- Pointing Hand pointing at iOS Sounds -->
+      <g transform="translate(235, 205)">
+        <circle cx="12" cy="18" r="10" fill="none" stroke="#2563eb" stroke-width="2.5" opacity="0.8"/>
+        <path d="M 12,18 C 12,6 15,-6 18,-18 C 19,-22 24,-22 25,-18 C 26,-11 25,12 25,18 C 28,14 33,12 37,14 C 40,15 41,19 39,23 C 43,20 48,19 51,22 C 54,25 53,30 50,33 C 53,32 58,33 59,38 C 60,45 53,53 47,60 C 38,68 28,72 17,70 C 8,68 0,60 2,48 C 3,40 9,33 12,18 Z" 
+              fill="#fed7aa" stroke="#7c2d12" stroke-width="2" stroke-linejoin="round"/>
+        <ellipse cx="21" cy="-14" rx="2.5" ry="3.5" fill="#ffffff" opacity="0.6"/>
+      </g>
+
+      <!-- Apple Step Instructions -->
+      <g transform="translate(16, 375)">
+        <text x="0" y="16" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800">Step-by-Step for Apple iOS:</text>
+        <text x="0" y="38" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">1. Open iPhone <strong>Settings (⚙️)</strong> &gt; <strong>Notifications</strong>.</text>
+        <text x="0" y="60" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">2. Tap <strong>Calendar</strong> (or <strong>Google Calendar</strong> app).</text>
+        <text x="0" y="82" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">3. Verify <strong>"Allow Notifications"</strong> is switched ON.</text>
+        <text x="0" y="104" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.8">4. Tap <strong>Sounds</strong> (or go to <strong>Sounds &amp; Haptics</strong>).</text>
+        <text x="0" y="126" fill="#1d4ed8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">5. Select your desired alert sound from tones list.</text>
+        <text x="0" y="148" fill="#1d4ed8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">6. Or pick custom tone synced via iTunes / GarageBand.</text>
+
+        <!-- Pro Tip Box -->
+        <rect x="0" y="170" width="378" height="90" rx="8" fill="#dbeafe" stroke="#93c5fd"/>
+        <text x="12" y="192" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800">💡 Tip: Unmute &amp; Focus Modes</text>
+        <text x="12" y="212" fill="#1e3a8a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">Ensure your iPhone physical silent/mute switch is off.</text>
+        <text x="12" y="228" fill="#1e3a8a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">In <strong>Settings &gt; Focus</strong>, allow Calendar notifications so</text>
+        <text x="12" y="244" fill="#1e3a8a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">prayer alerts are never muted by Do Not Disturb.</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= BOTTOM RECAP / APP DOWNLOAD NOTICE ================= -->
+  <g transform="translate(30, 1195)">
+    <rect x="0" y="0" width="890" height="125" rx="14" fill="#0f172a"/>
+    
+    <g transform="translate(24, 20)">
+      <text x="0" y="16" fill="#a7f3d0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800">
+        SUMMARY &amp; APP RECOMMENDATION:
+      </text>
+
+      <g transform="translate(0, 32)">
+        <text x="0" y="16" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">
+          🤖 Android:
+        </text>
+        <text x="80" y="16" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">
+          Google Calendar is already pre-installed on virtually all Android phones. No extra app download required.
+        </text>
+
+        <text x="0" y="40" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">
+          🍏 Apple iPhone:
+        </text>
+        <text x="105" y="40" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">
+          Works with built-in Apple Calendar. For the smoothest experience, download free Google Calendar from App Store.
+        </text>
+
+        <text x="0" y="62" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600">
+          Both Method 1 (QR scan / direct button) and Method 2 (Google login) share these exact device notification sound settings!
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

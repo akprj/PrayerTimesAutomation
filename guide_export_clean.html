@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Prayer Times Automation — Official Pictorial User Guide</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      line-height: 1.45;
+    }
+
+    /* Fixed A4 dimensions for perfect 950x1350 aspect ratio */
+    .page-container {
+      width: 950px;
+      height: 1350px;
+      background: #ffffff;
+      margin: 0 auto 30px;
+      padding: 32px 36px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+    }
+
+    .page-container:last-child {
+      page-break-after: avoid;
+      margin-bottom: 0;
+    }
+
+    /* ================= HEADER BAR ================= */
+    .header-bar {
+      background: linear-gradient(135deg, #09201a, #164e40);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 22px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border: 1.5px solid #143e34;
+      box-shadow: 0 6px 18px rgba(15, 41, 35, 0.16);
+    }
+
+    .header-left .sub-meta {
+      font-size: 11pt;
+      font-weight: 800;
+      color: #34d399;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .header-left h1 {
+      margin: 0 0 4px;
+      font-size: 22pt;
+      font-weight: 900;
+      letter-spacing: -0.4px;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .header-left .page-tag {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #d1fae5;
+    }
+
+    .header-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid #34d399;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26pt;
+      flex-shrink: 0;
+    }
+
+    /* ================= CARDS & BOXES ================= */
+    .card {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 18px 22px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      margin-bottom: 18px;
+    }
+
+    .card.green-accent {
+      border-color: #a7f3d0;
+      background: #f0fdf4;
+    }
+
+    .card.blue-accent {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+    }
+
+    .card.amber-accent {
+      border-color: #fde68a;
+      background: #fffbeb;
+    }
+
+    .card-title {
+      font-size: 13.5pt;
+      font-weight: 800;
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #0f172a;
+    }
+
+    .card-title.green { color: #14532d; }
+    .card-title.blue { color: #1e40af; }
+    .card-title.amber { color: #92400e; }
+
+    /* ================= NOTICE BANNER ================= */
+    .notice-box {
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      color: #78350f;
+    }
+
+    .notice-icon {
+      font-size: 18pt;
+      line-height: 1;
+      color: #d97706;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .notice-content h4 {
+      margin: 0 0 3px;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #92400e;
+    }
+
+    .notice-content p {
+      margin: 0;
+      font-size: 9.6pt;
+      line-height: 1.45;
+      color: #78350f;
+    }
+
+    /* ================= TWO COLUMN GRID ================= */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .col-box {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .col-box.col-green {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .col-box.col-blue {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .col-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .device-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13pt;
+      flex-shrink: 0;
+    }
+
+    .device-icon.android { background: #10b981; color: #ffffff; }
+    .device-icon.apple { background: #3b82f6; color: #ffffff; }
+
+    .col-header h3 {
+      margin: 0;
+      font-size: 13pt;
+      font-weight: 800;
+    }
+
+    .col-header span {
+      font-size: 8.8pt;
+      color: #64748b;
+      font-weight: 600;
+      display: block;
+    }
+
+    /* Path Pill */
+    .path-pill {
+      background: #ffffff;
+      border: 1.2px solid #cbd5e1;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 8.2pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+
+    /* ================= PHONE MOCKUP ================= */
+    .phone-mockup-wrapper {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 7px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .phone-screen {
+      background: #ffffff;
+      border-radius: 11px;
+      padding: 10px 12px;
+      font-size: 9pt;
+      color: #0f172a;
+    }
+
+    .phone-app-bar {
+      background: #164e40;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-weight: 700;
+      font-size: 8.5pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .phone-app-bar.blue { background: #1e40af; }
+
+    .phone-setting-row {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      padding: 7px 10px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .phone-setting-row.highlight-green {
+      background: #dcfce7;
+      border-color: #10b981;
+      font-weight: 700;
+      color: #065f46;
+    }
+
+    .phone-setting-row.highlight-blue {
+      background: #dbeafe;
+      border-color: #3b82f6;
+      font-weight: 700;
+      color: #1e40af;
+    }
+
+    /* Pointing Hand Graphic */
+    .pointing-hand {
+      position: absolute;
+      right: -8px;
+      bottom: -8px;
+      width: 48px;
+      height: 48px;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+    }
+
+    /* Step List */
+    .step-list {
+      margin: 0;
+      padding: 0 0 0 18px;
+      font-size: 9.4pt;
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    .step-list li {
+      margin-bottom: 4px;
+    }
+
+    .step-list strong {
+      color: #0f172a;
+    }
+
+    .success-badge {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 8.8pt;
+      font-weight: 700;
+      color: #14532d;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .success-badge.blue {
+      background: #dbeafe;
+      border-color: #93c5fd;
+      color: #1e40af;
+    }
+
+    /* ================= FOOTER META ================= */
+    .footer-bar {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.8pt;
+      color: #64748b;
+      margin-top: auto;
+    }
+
+    .footer-bar a {
+      color: #10b981;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    /* Option pill grid */
+    .pill-grid {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .pill-item {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 9.2pt;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-item.green {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #14532d;
+    }
+
+    .pill-item.blue {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1e40af;
+    }
+
+    /* Big Action Button */
+    .action-btn-mockup {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #10b981;
+      color: #064e3b;
+      font-weight: 800;
+      font-size: 10pt;
+      padding: 10px 16px;
+      border-radius: 9px;
+      border: 1.5px solid #059669;
+      box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3);
+      text-decoration: none;
+    }
+
+    /* Flow Steps */
+    .flow-steps {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .flow-card {
+      flex: 1;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    .flow-card .num-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 9.5pt;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 5px;
+    }
+
+    .flow-card h4 {
+      margin: 0 0 3px;
+      font-size: 10.2pt;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .flow-card p {
+      margin: 0;
+      font-size: 8.4pt;
+      color: #475569;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================= -->
+  <!-- PAGE 1: APP OVERVIEW & METHOD 1 (ADD WITHOUT LOGIN) -->
+  <!-- ========================================================================= -->
+  <div class="page-container" id="page-1">
+    <div>
+      <!-- Header -->
+      <div class="header-bar">
+        <div class="header-left">
+          <div class="sub-meta">Bait-us-Subuh Frankfurt · Official Timetable Sync</div>
+          <h1>Prayer Times Automation — User Guide</h1>
+          <div class="page-tag">PAGE 1 OF 4: APPLICATION OVERVIEW &amp; METHOD 1 (ADD CALENDAR WITHOUT LOGIN)</div>
+        </div>
+        <div class="header-icon">🕌</div>
+      </div>
+
+      <!-- App Intro Card -->
+      <div class="card" style="padding: 16px 20px;">
+        <div class="card-title">
+          <span>📱 What is this Application &amp; What Does It Do?</span>
+        </div>
+        <p style="margin: 0 0 10px; font-size: 10pt; color: #334155; line-height: 1.5;">
+          <strong>Prayer Times Automation</strong> connects the official Bait-us-Subuh (Frankfurt am Main) prayer timetable directly to your smartphone calendar. When an updated schedule picture is uploaded to the mosque Google Drive, the automated OCR backend reads all times and synchronizes all 5 daily prayers (<strong>Fajr, Zuhr, Asr, Maghrib, Isha</strong>) and <strong>Friday Jummah</strong> directly into your calendar.
+        </p>
+
+        <div class="pill-grid">
+          <div class="pill-item green">✓ 100% Official Mosque Timings</div>
+          <div class="pill-item green">✓ Weekly Auto Background Sync</div>
+          <div class="pill-item blue">✓ Supports Android &amp; Apple iOS</div>
+        </div>
+      </div>
+
+      <!-- Audio Disclaimer Notice -->
+      <div class="notice-box">
+        <div class="notice-icon">⚠️</div>
+        <div class="notice-content">
+          <h4>Clarification: The App Has No Built-In Azan Sound Player</h4>
+          <p>
+            The application itself does <strong>not</strong> contain built-in Azan audio files or an audio player. All prayer reminder alarms and rings are sounded exclusively by your smartphone's Calendar app notification settings. To play an Azan MP3 or custom chime, follow <strong>Page 4</strong> of this guide.
+          </p>
+        </div>
+      </div>
+
+      <!-- Method 1 Card -->
+      <div class="card green-accent" style="padding: 16px 20px; margin-bottom: 0;">
+        <div class="card-title green">
+          <span>1️⃣ Method 1: Add Calendar Without Login (100% Anonymous)</span>
+        </div>
+        <p style="margin: 0 0 12px; font-size: 9.8pt; color: #166534;">
+          No Google account login required · No password needed · Completely private subscription
+        </p>
+
+        <!-- Two Options Grid -->
+        <div class="two-col-grid" style="margin-bottom: 0;">
+          
+          <!-- Option 1: Scan QR Code -->
+          <div class="col-box" style="background:#ffffff; border: 1.5px solid #a7f3d0; position: relative;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <span style="background:#10b981; color:#064e3b; font-weight:800; font-size:8pt; padding:3px 8px; border-radius:12px;">OPTION 1</span>
+                <span style="font-size:8.6pt; font-weight:700; color:#047857;">For PC &amp; Tablet Screens</span>
+              </div>
+              <h4 style="margin:0 0 4px; font-size:11.5pt; font-weight:800; color:#0f172a;">Scan QR Code with Camera</h4>
+              <p style="margin:0 0 10px; font-size:9pt; color:#475569; line-height:1.4;">
+                Open your smartphone's built-in camera and point it at the QR code displayed on the screen.
+              </p>
+
+              <!-- QR illustration box -->
+              <div style="background:#f8fafc; border:1px dashed #94a3b8; border-radius:8px; padding:12px; text-align:center; margin-bottom:10px;">
+                <svg width="64" height="64" viewBox="0 0 100 100" style="margin: 0 auto; display:block;">
+                  <rect width="100" height="100" fill="#ffffff" rx="6"/>
+                  <rect x="8" y="8" width="28" height="28" fill="#0f172a" rx="3"/>
+                  <rect x="14" y="14" width="16" height="16" fill="#ffffff"/>
+                  <rect x="18" y="18" width="8" height="8" fill="#0f172a"/>
+                  <rect x="64" y="8" width="28" height="28" fill="#0f172a" rx="3"/>
+                  <rect x="70" y="14" width="16" height="16" fill="#ffffff"/>
+                  <rect x="74" y="18" width="8" height="8" fill="#0f172a"/>
+                  <rect x="8" y="64" width="28" height="28" fill="#0f172a" rx="3"/>
+                  <rect x="14" y="70" width="16" height="16" fill="#ffffff"/>
+                  <rect x="18" y="74" width="8" height="8" fill="#0f172a"/>
+                  <rect x="42" y="12" width="14" height="8" fill="#10b981"/>
+                  <rect x="42" y="26" width="8" height="14" fill="#0f172a"/>
+                  <rect x="56" y="26" width="14" height="8" fill="#0f172a"/>
+                  <rect x="42" y="46" width="14" height="14" fill="#10b981"/>
+                  <rect x="62" y="46" width="10" height="8" fill="#0f172a"/>
+                  <rect x="42" y="66" width="8" height="18" fill="#0f172a"/>
+                  <rect x="56" y="66" width="18" height="8" fill="#10b981"/>
+                  <rect x="80" y="66" width="12" height="26" fill="#0f172a"/>
+                </svg>
+                <div style="font-size:7.5pt; color:#64748b; font-weight:700; margin-top:5px;">CAMERA QR SCANNER</div>
+              </div>
+            </div>
+            <div style="font-size:8.4pt; color:#047857; font-weight:700; background:#ecfdf5; padding:6px 8px; border-radius:6px;">
+              ✓ Tap notification popup to add calendar!
+            </div>
+          </div>
+
+          <!-- Option 2: Direct Button -->
+          <div class="col-box" style="background:#ffffff; border: 1.5px solid #93c5fd; position: relative;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:8pt; padding:3px 8px; border-radius:12px;">OPTION 2</span>
+                <span style="font-size:8.6pt; font-weight:700; color:#1d4ed8;">For Mobile Browsers</span>
+              </div>
+              <h4 style="margin:0 0 4px; font-size:11.5pt; font-weight:800; color:#0f172a;">Click Direct "Add without SCAN"</h4>
+              <p style="margin:0 0 10px; font-size:9pt; color:#475569; line-height:1.4;">
+                If viewing the page directly on your smartphone, tap the direct button without scanning:
+              </p>
+
+              <!-- Button Mockup with Hand -->
+              <div style="position:relative; margin: 18px 0 22px; text-align:center;">
+                <div class="action-btn-mockup">
+                  <span>➕</span>
+                  <span>Click to Add without SCAN directly</span>
+                </div>
+
+                <!-- Pointing Hand SVG -->
+                <svg class="pointing-hand" style="top: 10px; right: 8px;" viewBox="0 0 60 60" fill="none">
+                  <ellipse cx="24" cy="24" rx="14" ry="14" fill="#38bdf8" opacity="0.3"/>
+                  <path d="M24 24 L28 8 C29 4 34 4 35 8 L35 24 C38 21 42 20 45 22 C48 24 48 28 45 31 C48 29 52 30 54 33 C56 37 54 41 51 44 C53 43 57 45 57 49 C57 56 49 62 43 66 C35 72 26 74 16 72 C8 70 2 62 4 52 L14 36 Z" 
+                        fill="#ffedd5" stroke="#9a3412" stroke-width="2.5" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div style="font-size:8.4pt; color:#1e40af; font-weight:700; background:#eff6ff; padding:6px 8px; border-radius:6px;">
+              ✓ Calendar app opens automatically to subscribe!
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Next Step Warning -->
+        <div style="margin-top: 12px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:8px 12px; font-size:8.8pt; color:#92400e; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:13pt;">🔔</span>
+          <span><strong>One-Time Action Needed:</strong> Subscribed public calendars are silent by default. <strong>Turn to Page 2</strong> to set your lifetime alarm time!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+      <div>Prayer Times Automation · Bait-us-Subuh Frankfurt am Main</div>
+      <div>Page 1 of 4 · <a href="#">Method 1: Connect Without Login</a></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PAGE 2: METHOD 1 LIFETIME ALARM SETUP (ANDROID & APPLE iOS) -->
+  <!-- ========================================================================= -->
+  <div class="page-container" id="page-2">
+    <div>
+      <!-- Header -->
+      <div class="header-bar">
+        <div class="header-left">
+          <div class="sub-meta">One-Time Lifetime Configuration · Android &amp; Apple iOS</div>
+          <h1>Method 1: Set Lifetime Prayer Alarms</h1>
+          <div class="page-tag">PAGE 2 OF 4: CONFIGURE DESIRED ALARM TIME BEFORE PRAYERS (LIFETIME RULE)</div>
+        </div>
+        <div class="header-icon">🔔</div>
+      </div>
+
+      <!-- Why Needed Box -->
+      <div class="notice-box">
+        <div class="notice-icon">💡</div>
+        <div class="notice-content">
+          <h4>Why Do Method 1 Users Need This One-Time Setup?</h4>
+          <p>
+            Modern smartphone operating systems (Android &amp; Apple iOS) deliberately prevent public calendar subscriptions from turning on loud alarms automatically without user consent. By configuring your notification time <strong>once</strong> in your calendar app settings, you establish a <strong>permanent lifetime rule</strong> for all 5 daily prayers (Fajr, Zuhr, Asr, Maghrib, and Isha)!
+          </p>
+        </div>
+      </div>
+
+      <!-- Side-by-Side: Android vs Apple iOS -->
+      <div class="two-col-grid" style="margin-bottom: 0;">
+
+        <!-- Left: Android Phones -->
+        <div class="col-box col-green">
+          <div>
+            <div class="col-header">
+              <div class="device-icon android">🤖</div>
+              <div>
+                <h3 style="color:#14532d;">FOR ANDROID PHONES</h3>
+                <span>Samsung, Google Pixel, Xiaomi, OnePlus, Motorola</span>
+              </div>
+            </div>
+
+            <div class="path-pill">Google Calendar &gt; Menu (☰) &gt; Settings &gt; Bait-us-Subuh</div>
+
+            <!-- Realistic Android Phone Mockup -->
+            <div class="phone-mockup-wrapper">
+              <div class="phone-screen">
+                <div class="phone-app-bar">
+                  <span>☰ Google Calendar</span>
+                  <span>⚙️</span>
+                </div>
+                <div style="font-size:7.5pt; color:#64748b; font-weight:700; margin-bottom:4px;">CALENDAR SETTINGS</div>
+                <div style="font-weight:800; font-size:8.8pt; margin-bottom:6px; color:#0f172a;">Bait-us-Subuh Timings</div>
+                
+                <div style="font-size:7.2pt; color:#64748b; margin-bottom:3px;">Default notifications:</div>
+                <div class="phone-setting-row highlight-green" style="position:relative;">
+                  <span>🔔 15 minutes before</span>
+                  <span style="font-size:7.5pt; color:#059669;">✓ Active</span>
+                </div>
+
+                <div class="phone-setting-row" style="color:#475569; justify-content:center; font-weight:700;">
+                  <span>+ Add a notification</span>
+                </div>
+              </div>
+
+              <!-- Pointing Hand -->
+              <svg class="pointing-hand" style="bottom: 12px; right: -6px;" viewBox="0 0 60 60" fill="none">
+                <ellipse cx="24" cy="24" rx="14" ry="14" fill="#34d399" opacity="0.3"/>
+                <path d="M24 24 L28 8 C29 4 34 4 35 8 L35 24 C38 21 42 20 45 22 C48 24 48 28 45 31 C48 29 52 30 54 33 C56 37 54 41 51 44 C53 43 57 45 57 49 C57 56 49 62 43 66 C35 72 26 74 16 72 C8 70 2 62 4 52 L14 36 Z" 
+                      fill="#ffedd5" stroke="#9a3412" stroke-width="2.5" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Steps -->
+            <ol class="step-list">
+              <li>Open the <strong>Google Calendar app</strong> on your phone.</li>
+              <li>Tap the <strong>Menu icon (☰)</strong> in top-left corner.</li>
+              <li>Scroll down and tap <strong>Settings (⚙️)</strong>.</li>
+              <li>Select <strong>"Bait-us-Subuh Timings"</strong> calendar.</li>
+              <li>Under default notifications, tap <strong>"Add a notification"</strong>.</li>
+              <li>Select your desired reminder time: e.g. <strong>15 minutes before</strong>.</li>
+            </ol>
+          </div>
+
+          <div class="success-badge">
+            <span>✓</span> Done! Google Calendar will now alert you for every prayer!
+          </div>
+        </div>
+
+        <!-- Right: Apple iPhone & iPad -->
+        <div class="col-box col-blue">
+          <div>
+            <div class="col-header">
+              <div class="device-icon apple">🍏</div>
+              <div>
+                <h3 style="color:#1e40af;">FOR APPLE IPHONE &amp; IPAD</h3>
+                <span>iPhone (all iOS versions) &amp; iPad</span>
+              </div>
+            </div>
+
+            <div class="path-pill">Apple Calendar &gt; Calendars &gt; Info (i) &gt; Event Alerts: ON</div>
+
+            <!-- Realistic Apple iPhone Mockup -->
+            <div class="phone-mockup-wrapper">
+              <div class="phone-screen">
+                <div class="phone-app-bar blue" style="justify-content:center; position:relative;">
+                  <span style="position:absolute; left:8px; font-size:7.5pt;">&lt; Back</span>
+                  <span>Bait-us-Subuh Info</span>
+                </div>
+                
+                <div class="phone-setting-row" style="margin-top:6px;">
+                  <span>Calendar Name</span>
+                  <span style="color:#64748b; font-weight:600;">Bait-us-Subuh</span>
+                </div>
+
+                <div class="phone-setting-row highlight-blue" style="margin-top:4px;">
+                  <span>Event Alerts</span>
+                  <span style="background:#22c55e; color:#ffffff; font-size:7pt; font-weight:800; padding:2px 6px; border-radius:10px;">ON</span>
+                </div>
+
+                <div class="phone-setting-row" style="margin-top:4px;">
+                  <span>Default Alert Time</span>
+                  <span style="color:#2563eb; font-weight:700;">15 min before</span>
+                </div>
+              </div>
+
+              <!-- Pointing Hand -->
+              <svg class="pointing-hand" style="bottom: 12px; right: -6px;" viewBox="0 0 60 60" fill="none">
+                <ellipse cx="24" cy="24" rx="14" ry="14" fill="#60a5fa" opacity="0.3"/>
+                <path d="M24 24 L28 8 C29 4 34 4 35 8 L35 24 C38 21 42 20 45 22 C48 24 48 28 45 31 C48 29 52 30 54 33 C56 37 54 41 51 44 C53 43 57 45 57 49 C57 56 49 62 43 66 C35 72 26 74 16 72 C8 70 2 62 4 52 L14 36 Z" 
+                      fill="#ffedd5" stroke="#9a3412" stroke-width="2.5" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Steps -->
+            <ol class="step-list">
+              <li>Open the built-in <strong>Calendar app</strong> on your iPhone.</li>
+              <li>Tap <strong>Calendars</strong> at the bottom center.</li>
+              <li>Find and tap the <strong>Info icon (i)</strong> next to <em>Bait-us-Subuh</em>.</li>
+              <li>Ensure <strong>"Event Alerts"</strong> toggle is switched <strong>ON</strong>.</li>
+              <li>In iPhone <strong>Settings &gt; Calendar &gt; Default Alert Times</strong>, set Events to <strong>15 minutes before</strong> (or use iOS Google Calendar app).</li>
+            </ol>
+          </div>
+
+          <div class="success-badge blue">
+            <span>✓</span> Done! Your iPhone will now alert you for every prayer!
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+      <div>Prayer Times Automation · Bait-us-Subuh Frankfurt am Main</div>
+      <div>Page 2 of 4 · <a href="#">Lifetime Prayer Alarms Setup</a></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PAGE 3: METHOD 2 GOOGLE ACCOUNT LOGIN (OAUTH 2.0) -->
+  <!-- ========================================================================= -->
+  <div class="page-container" id="page-3">
+    <div>
+      <!-- Header -->
+      <div class="header-bar">
+        <div class="header-left">
+          <div class="sub-meta">Automatic Timetable Sync &amp; Automatic Alarms Injection</div>
+          <h1>Method 2: Google Account Login</h1>
+          <div class="page-tag">PAGE 3 OF 4: 15 MIN BEFORE FOR DAILY PRAYERS · 90 MIN BEFORE FOR JUMMAH</div>
+        </div>
+        <div class="header-icon">⚡</div>
+      </div>
+
+      <!-- Method 2 Intro Card -->
+      <div class="card blue-accent" style="padding: 16px 20px; margin-bottom: 16px;">
+        <div class="card-title blue">
+          <span>2️⃣ Method 2: Google Account Integration (OAuth 2.0)</span>
+        </div>
+        <p style="margin: 0 0 10px; font-size: 10pt; color: #1e3a8a; line-height: 1.5;">
+          Unlike Method 1 where you subscribe anonymously, <strong>Method 2</strong> authorizes the Prayer Times engine to manage prayer timings directly in your personal Google Calendar account.
+        </p>
+        <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:8px; padding:8px 14px; font-size:9.2pt; font-weight:800; color:#1d4ed8; display:flex; align-items:center; gap:8px;">
+          <span>⭐</span>
+          <span>The Big Advantage: Reminder alarms are created AUTOMATICALLY with every prayer event!</span>
+        </div>
+      </div>
+
+      <!-- 3-Step Flow Diagram -->
+      <div class="flow-steps">
+        <div class="flow-card">
+          <div class="num-badge">1</div>
+          <h4>Google Login</h4>
+          <p>Member clicks "Sign in with Google" and grants calendar permission.</p>
+        </div>
+        <div class="flow-card" style="border-color:#10b981;">
+          <div class="num-badge" style="background:#10b981;">2</div>
+          <h4>Drive OCR Scan</h4>
+          <p>Backend reads official timetable image uploaded to Google Drive.</p>
+        </div>
+        <div class="flow-card" style="border-color:#2563eb;">
+          <div class="num-badge" style="background:#2563eb;">3</div>
+          <h4>Auto Reminder Injection</h4>
+          <p>Events synced directly with pre-set reminder alarms included!</p>
+        </div>
+      </div>
+
+      <!-- Auto Alarm Details Grid -->
+      <div class="two-col-grid" style="margin-bottom: 16px;">
+        
+        <!-- Daily Prayers (15 min) -->
+        <div class="col-box col-green">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="background:#10b981; color:#ffffff; font-weight:800; font-size:7.5pt; padding:2px 8px; border-radius:10px;">DAILY PRAYERS</span>
+              <span style="font-size:8.4pt; font-weight:800; color:#047857;">5 Prayers Daily</span>
+            </div>
+            <h4 style="margin:0 0 4px; font-size:11.5pt; font-weight:800; color:#14532d;">🔔 15 Minutes Before</h4>
+            <p style="margin:0 0 10px; font-size:9pt; color:#334155; line-height:1.4;">
+              Fajr, Zuhr, Asr, Maghrib, and Isha events are automatically saved with a <strong>15-minute prior alarm</strong>.
+            </p>
+            <div style="background:#ffffff; border:1px solid #bbf7d0; border-radius:6px; padding:6px 10px; font-size:8.4pt; color:#15803d;">
+              ✓ Gives you ample time for Wudu (ablution) and getting ready for Salat.
+            </div>
+          </div>
+        </div>
+
+        <!-- Jummah Prayer (90 min) -->
+        <div class="col-box col-blue">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:7.5pt; padding:2px 8px; border-radius:10px;">FRIDAY JUMMAH</span>
+              <span style="font-size:8.4pt; font-weight:800; color:#1d4ed8;">Every Friday</span>
+            </div>
+            <h4 style="margin:0 0 4px; font-size:11.5pt; font-weight:800; color:#1e40af;">🕌 90 Minutes Before (1h 30m)</h4>
+            <p style="margin:0 0 10px; font-size:9pt; color:#334155; line-height:1.4;">
+              Friday Jummah prayer is automatically configured with a <strong>90-minute prior alarm</strong>.
+            </p>
+            <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:6px; padding:6px 10px; font-size:8.4pt; color:#1d4ed8;">
+              ✓ Ample time to prepare, travel to Bait-us-Subuh mosque, and attend the Friday sermon.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Mockup showing auto-injected event -->
+      <div class="card" style="padding: 12px 18px; background:#f8fafc; border-color:#cbd5e1; margin-bottom: 0;">
+        <div style="font-size:8.2pt; font-weight:800; color:#475569; margin-bottom:6px; text-transform:uppercase;">
+          Calendar Event Preview (Automatically Generated by Server):
+        </div>
+        <div style="background:#ffffff; border:1.5px solid #10b981; border-radius:10px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:800; font-size:10.5pt; color:#0f172a;">🕌 Zuhr Prayer — Bait-us-Subuh</div>
+            <div style="font-size:8.5pt; color:#64748b;">Today · 13:30 – 14:00 · Official Timetable Sync</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="background:#ecfdf5; border:1px solid #10b981; color:#065f46; font-weight:800; font-size:8.5pt; padding:4px 10px; border-radius:6px;">
+              🔔 15m before (Default)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+      <div>Prayer Times Automation · Bait-us-Subuh Frankfurt am Main</div>
+      <div>Page 3 of 4 · <a href="#">Method 2: Google Account Login</a></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PAGE 4: SETTING DESIRED RINGTONE OR AZAN (BOTH METHODS) -->
+  <!-- ========================================================================= -->
+  <div class="page-container" id="page-4">
+    <div>
+      <!-- Header -->
+      <div class="header-bar">
+        <div class="header-left">
+          <div class="sub-meta">Sound Selection for Method 1 &amp; Method 2 · Android &amp; Apple iOS</div>
+          <h1>Setting Desired Ringtone or Azan</h1>
+          <div class="page-tag">PAGE 4 OF 4: HOW TO CHOOSE AZAN OR ANY CUSTOM RINGTONE FROM YOUR DEVICE</div>
+        </div>
+        <div class="header-icon">🔊</div>
+      </div>
+
+      <!-- Critical Sound Clarification Banner -->
+      <div class="notice-box">
+        <div class="notice-icon">📢</div>
+        <div class="notice-content">
+          <h4>Important: How Sound Actually Works on Both Methods</h4>
+          <p>
+            Whether you connected via <strong>Method 1 (QR scan / direct button)</strong> or <strong>Method 2 (Google login)</strong>, all notification ringtones are sounded exclusively by your phone's Calendar notification system. To hear an Azan or your favorite chime, simply select any audio file already stored on your device using the steps below!
+          </p>
+        </div>
+      </div>
+
+      <!-- Side-by-Side: Android Sound vs iOS Sound -->
+      <div class="two-col-grid" style="margin-bottom: 16px;">
+
+        <!-- Left: Android Sound Setup -->
+        <div class="col-box col-green">
+          <div>
+            <div class="col-header">
+              <div class="device-icon android">🤖</div>
+              <div>
+                <h3 style="color:#14532d;">ANDROID: GOOGLE CALENDAR SOUND</h3>
+                <span>Samsung, Pixel, Xiaomi, OnePlus, Motorola</span>
+              </div>
+            </div>
+
+            <div class="path-pill">Settings &gt; Apps &gt; Google Calendar &gt; Notifications &gt; Sound</div>
+
+            <!-- Phone mockup -->
+            <div class="phone-mockup-wrapper">
+              <div class="phone-screen">
+                <div class="phone-app-bar">
+                  <span>App Notifications</span>
+                  <span>⚙️</span>
+                </div>
+                <div style="font-size:7.5pt; color:#64748b; font-weight:700; margin-bottom:4px;">CALENDAR NOTIFICATIONS</div>
+                
+                <div class="phone-setting-row" style="margin-bottom:3px;">
+                  <span>Calendar notifications</span>
+                  <span style="color:#10b981; font-weight:700;">Active</span>
+                </div>
+
+                <div class="phone-setting-row highlight-green">
+                  <span>Sound / Ringtone:</span>
+                  <span style="font-weight:800;">🎵 Azan_Makkah.mp3</span>
+                </div>
+
+                <div class="phone-setting-row" style="color:#475569; justify-content:center; font-weight:700;">
+                  <span>+ Add custom audio / Azan MP3</span>
+                </div>
+              </div>
+
+              <!-- Pointing Hand -->
+              <svg class="pointing-hand" style="bottom: 12px; right: -6px;" viewBox="0 0 60 60" fill="none">
+                <ellipse cx="24" cy="24" rx="14" ry="14" fill="#34d399" opacity="0.3"/>
+                <path d="M24 24 L28 8 C29 4 34 4 35 8 L35 24 C38 21 42 20 45 22 C48 24 48 28 45 31 C48 29 52 30 54 33 C56 37 54 41 51 44 C53 43 57 45 57 49 C57 56 49 62 43 66 C35 72 26 74 16 72 C8 70 2 62 4 52 L14 36 Z" 
+                      fill="#ffedd5" stroke="#9a3412" stroke-width="2.5" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Steps -->
+            <ol class="step-list">
+              <li>Open phone <strong>Settings (⚙️)</strong> &gt; tap <strong>Apps</strong>.</li>
+              <li>Tap <strong>Google Calendar</strong> &gt; tap <strong>Notifications</strong>.</li>
+              <li>Tap <strong>Calendar notifications</strong> &gt; tap <strong>Sound</strong>.</li>
+              <li>Tap <strong>"+" / "Add ringtone"</strong> to browse files.</li>
+              <li>Select your downloaded <strong>Azan MP3</strong> file!</li>
+            </ol>
+          </div>
+
+          <div style="background:#ffffff; border:1px dashed #86efac; border-radius:6px; padding:6px 8px; font-size:7.8pt; color:#166534; margin-top:8px;">
+            💡 <strong>Tip:</strong> Copy your Azan MP3 into your phone's <code>Notifications</code> or <code>Ringtones</code> folder so it shows in the list.
+          </div>
+        </div>
+
+        <!-- Right: Apple iOS Sound Setup -->
+        <div class="col-box col-blue">
+          <div>
+            <div class="col-header">
+              <div class="device-icon apple">🍏</div>
+              <div>
+                <h3 style="color:#1e40af;">APPLE iOS: CALENDAR ALERT SOUND</h3>
+                <span>iPhone &amp; iPad (Apple or Google Calendar app)</span>
+              </div>
+            </div>
+
+            <div class="path-pill">Settings &gt; Notifications &gt; Calendar &gt; Sounds</div>
+
+            <!-- iPhone mockup -->
+            <div class="phone-mockup-wrapper">
+              <div class="phone-screen">
+                <div class="phone-app-bar blue" style="justify-content:center; position:relative;">
+                  <span style="position:absolute; left:8px; font-size:7.5pt;">&lt; Back</span>
+                  <span>Calendar Notifications</span>
+                </div>
+                
+                <div class="phone-setting-row" style="margin-top:6px;">
+                  <span>Allow Notifications</span>
+                  <span style="background:#22c55e; color:#ffffff; font-size:7pt; font-weight:800; padding:2px 6px; border-radius:10px;">ON</span>
+                </div>
+
+                <div class="phone-setting-row highlight-blue" style="margin-top:4px;">
+                  <span>Sounds / Alert Tone:</span>
+                  <span style="font-weight:800;">🔔 Azan Tone / Chime</span>
+                </div>
+
+                <div class="phone-setting-row" style="margin-top:4px;">
+                  <span>Banners &amp; Lock Screen</span>
+                  <span style="color:#2563eb; font-weight:700;">✓ Enabled</span>
+                </div>
+              </div>
+
+              <!-- Pointing Hand -->
+              <svg class="pointing-hand" style="bottom: 12px; right: -6px;" viewBox="0 0 60 60" fill="none">
+                <ellipse cx="24" cy="24" rx="14" ry="14" fill="#60a5fa" opacity="0.3"/>
+                <path d="M24 24 L28 8 C29 4 34 4 35 8 L35 24 C38 21 42 20 45 22 C48 24 48 28 45 31 C48 29 52 30 54 33 C56 37 54 41 51 44 C53 43 57 45 57 49 C57 56 49 62 43 66 C35 72 26 74 16 72 C8 70 2 62 4 52 L14 36 Z" 
+                      fill="#ffedd5" stroke="#9a3412" stroke-width="2.5" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Steps -->
+            <ol class="step-list">
+              <li>Open iPhone <strong>Settings (⚙️)</strong> &gt; tap <strong>Notifications</strong>.</li>
+              <li>Scroll down and tap <strong>Calendar</strong> (or Google Calendar).</li>
+              <li>Verify <strong>"Allow Notifications"</strong> is switched <strong>ON</strong>.</li>
+              <li>Tap <strong>Sounds</strong> (or go to <strong>Sounds &amp; Haptics</strong>).</li>
+              <li>Select your desired chime or custom Azan tone!</li>
+            </ol>
+          </div>
+
+          <div style="background:#ffffff; border:1px dashed #93c5fd; border-radius:6px; padding:6px 8px; font-size:7.8pt; color:#1e40af; margin-top:8px;">
+            💡 <strong>Tip:</strong> Ensure your iPhone physical mute switch is off and Calendar notifications are allowed in <strong>Settings &gt; Focus</strong>.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- App Download Recommendation Box -->
+      <div class="card" style="padding: 12px 16px; background:#0f172a; color:#ffffff; border:none; margin-bottom: 0;">
+        <div style="font-size:9.2pt; font-weight:800; color:#34d399; margin-bottom:4px;">
+          SUMMARY &amp; APP RECOMMENDATIONS:
+        </div>
+        <div style="font-size:8.6pt; color:#cbd5e1; line-height:1.45;">
+          • <strong>Android:</strong> Google Calendar is pre-installed on virtually all Android phones. No extra download needed.<br>
+          • <strong>Apple iPhone:</strong> Works with Apple Calendar. For the smoothest Google sync experience, download the free <strong>Google Calendar app</strong> from the Apple App Store.
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+      <div>Prayer Times Automation · Bait-us-Subuh Frankfurt am Main</div>
+      <div>Page 4 of 4 · <a href="#">Sound &amp; Custom Azan Setup</a></div>
+    </div>
+  </div>
+
+</body>
+</html>
+

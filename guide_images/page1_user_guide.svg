@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 1350" width="100%" height="100%">
+  <defs>
+    <filter id="p1Shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="p1HeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f2923"/>
+      <stop offset="100%" stop-color="#1a4d42"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="950" height="1350" fill="#f8fafc"/>
+
+  <!-- ================= HEADER SECTION ================= -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="950" height="140" fill="url(#p1HeaderGrad)"/>
+    
+    <text x="40" y="46" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" letter-spacing="-0.5">Prayer Times Automation — Visual User Guide</text>
+    <text x="40" y="74" fill="#a7f3d0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">BAIT-US-SUBUH FRANKFURT · OFFICIAL TIMETABLE SYNC</text>
+    <text x="40" y="100" fill="#d1fae5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="600">PAGE 1: APP OVERVIEW &amp; METHOD 1 (ADD CALENDAR WITHOUT LOGIN)</text>
+
+    <!-- Top Graphic: Mosque + Sync + Phone -->
+    <g transform="translate(770, 18)">
+      <circle cx="25" cy="50" r="26" fill="#143e35" stroke="#34d399" stroke-width="2"/>
+      <path d="M15 63 L35 63 L35 52 C35 42, 25 35, 25 35 C25 35, 15 42, 15 52 Z" fill="#34d399"/>
+      <circle cx="25" cy="30" r="3" fill="#fbbf24"/>
+      <path d="M58 38 C65 46, 65 54, 58 62" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M66 30 C76 43, 76 57, 66 70" fill="none" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="76" y="18" width="36" height="64" rx="7" fill="#1e293b" stroke="#94a3b8" stroke-width="1.8"/>
+      <rect x="80" y="25" width="28" height="50" rx="4" fill="#ffffff"/>
+      <rect x="84" y="32" width="20" height="16" rx="2" fill="#10b981"/>
+      <circle cx="94" cy="40" r="3.5" fill="#ffffff"/>
+    </g>
+  </g>
+
+  <!-- ================= APP INTRO & FEATURES ================= -->
+  <g transform="translate(30, 160)">
+    <rect x="0" y="0" width="890" height="180" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#p1Shadow)"/>
+    
+    <g transform="translate(24, 22)">
+      <text x="0" y="14" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">WHAT IS THIS APPLICATION &amp; WHAT DOES IT DO?</text>
+      <text x="0" y="38" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="500">
+        Prayer Times Automation automatically connects the official Bait-us-Subuh (Frankfurt) prayer timetable directly to your smartphone calendar. The system reads the latest schedule uploaded to Google Drive, processes the times, and automatically adds all 5 daily prayers (Fajr, Zuhr, Asr, Maghrib, Isha) and Friday Jummah into your calendar.
+      </text>
+      
+      <!-- Feature Pills Grid -->
+      <g transform="translate(0, 68)">
+        <rect x="0" y="0" width="270" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
+        <text x="12" y="22" fill="#14532d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="700">✓ 100% Official Mosque Timings</text>
+
+        <rect x="285" y="0" width="270" height="34" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
+        <text x="12" y="22" fill="#14532d" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="700">✓ Weekly Automatic Background Sync</text>
+
+        <rect x="570" y="0" width="272" height="34" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+        <text x="12" y="22" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="700">✓ Works on Android &amp; Apple iOS</text>
+      </g>
+
+      <!-- Audio Clarification Notice -->
+      <g transform="translate(0, 112)">
+        <rect x="0" y="0" width="842" height="26" rx="4" fill="#fffbeb" stroke="#fde68a"/>
+        <text x="10" y="17" fill="#92400e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="700">
+          ⚠️ Sound Notice: The app syncs calendar events. Sound/Azan is played by your phone's calendar notification settings.
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= METHOD 1 TITLE & OVERVIEW ================= -->
+  <g transform="translate(30, 360)">
+    <rect x="0" y="0" width="890" height="950" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#p1Shadow)"/>
+    
+    <!-- Big Section Header -->
+    <g transform="translate(24, 24)">
+      <rect x="0" y="0" width="130" height="30" rx="6" fill="#174e40"/>
+      <text x="65" y="20" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800" text-anchor="middle">METHOD 1</text>
+      <text x="145" y="22" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800">
+        Adding Calendar WITHOUT Google Account Login
+      </text>
+      <text x="0" y="52" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600">
+        Anonymous subscription feed: zero permissions requested, no Google login required. Choose Option 1 or Option 2 below:
+      </text>
+    </g>
+
+    <line x1="24" y1="90" x2="866" y2="90" stroke="#e2e8f0" stroke-width="1.5"/>
+
+    <!-- Option 1: QR Code Scan -->
+    <g transform="translate(24, 110)">
+      <rect x="0" y="0" width="405" height="340" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      
+      <!-- Option Badge -->
+      <g transform="translate(18, 16)">
+        <rect x="0" y="0" width="90" height="26" rx="5" fill="#0f172a"/>
+        <text x="45" y="17" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" text-anchor="middle">OPTION 1</text>
+        <text x="102" y="18" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="800">Scan QR Code with Camera</text>
+      </g>
+
+      <!-- QR Pattern & Viewfinder Graphic -->
+      <g transform="translate(132, 60)">
+        <rect x="0" y="0" width="140" height="140" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+        <rect x="14" y="14" width="32" height="32" fill="#0f172a" rx="3"/>
+        <rect x="19" y="19" width="22" height="22" fill="#ffffff"/>
+        <rect x="24" y="24" width="12" height="12" fill="#0f172a"/>
+
+        <rect x="94" y="14" width="32" height="32" fill="#0f172a" rx="3"/>
+        <rect x="99" y="19" width="22" height="22" fill="#ffffff"/>
+        <rect x="104" y="24" width="12" height="12" fill="#0f172a"/>
+
+        <rect x="14" y="94" width="32" height="32" fill="#0f172a" rx="3"/>
+        <rect x="19" y="99" width="22" height="22" fill="#ffffff"/>
+        <rect x="24" y="104" width="12" height="12" fill="#0f172a"/>
+
+        <rect x="56" y="20" width="14" height="14" fill="#0f172a"/>
+        <rect x="62" y="58" width="20" height="20" fill="#10b981" rx="3"/>
+        <rect x="94" y="66" width="22" height="12" fill="#0f172a"/>
+        <rect x="56" y="98" width="20" height="12" fill="#0f172a"/>
+
+        <!-- Camera Viewfinder Brackets -->
+        <path d="M -8,20 L -8,-8 L 20,-8" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 148,20 L 148,-8 L 120,-8" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M -8,120 L -8,148 L 20,148" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 148,120 L 148,148 L 120,148" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- Steps Description -->
+      <g transform="translate(20, 225)">
+        <text x="0" y="16" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800">1. Open your phone camera</text>
+        <text x="0" y="34" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5">2. Aim at the QR code on the flyer or website</text>
+        <text x="0" y="52" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5">3. Tap the calendar link banner that appears</text>
+        <text x="0" y="72" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">4. Tap "Add" or "Subscribe" to confirm ✓</text>
+      </g>
+    </g>
+
+    <!-- Option 2: Click Direct Button -->
+    <g transform="translate(455, 110)">
+      <rect x="0" y="0" width="410" height="340" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      
+      <!-- Option Badge -->
+      <g transform="translate(18, 16)">
+        <rect x="0" y="0" width="90" height="26" rx="5" fill="#174e40"/>
+        <text x="45" y="17" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" text-anchor="middle">OPTION 2</text>
+        <text x="102" y="18" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="800">Click "Add Directly" Button</text>
+      </g>
+
+      <!-- Green Direct Button Mockup -->
+      <g transform="translate(18, 55)">
+        <rect x="0" y="0" width="374" height="54" rx="10" fill="#174e40"/>
+        <circle cx="28" cy="27" r="14" fill="#10b981"/>
+        <path d="M22 27 L26 31 L34 23" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+        <text x="52" y="26" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800">Click to Add without SCAN directly</text>
+        <text x="52" y="42" fill="#a7f3d0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10">Direkt ohne Scan zum Kalender hinzufügen</text>
+      </g>
+
+      <!-- Calendar Confirmation Prompt Mockup -->
+      <g transform="translate(18, 125)">
+        <rect x="0" y="0" width="240" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="12" y="20" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700">GOOGLE CALENDAR PROMPT</text>
+        <text x="12" y="38" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">Add 'Bait-us-Subuh Timings'?</text>
+        
+        <rect x="150" y="44" width="76" height="24" rx="5" fill="#10b981"/>
+        <text x="188" y="60" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" text-anchor="middle">Add ✓</text>
+      </g>
+
+      <!-- Pointing Hand pointing at Add -->
+      <g transform="translate(260, 122)">
+        <circle cx="12" cy="18" r="10" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.8"/>
+        <path d="M 12,18 C 12,6 15,-6 18,-18 C 19,-22 24,-22 25,-18 C 26,-11 25,12 25,18 C 28,14 33,12 37,14 C 40,15 41,19 39,23 C 43,20 48,19 51,22 C 54,25 53,30 50,33 C 53,32 58,33 59,38 C 60,45 53,53 47,60 C 38,68 28,72 17,70 C 8,68 0,60 2,48 C 3,40 9,33 12,18 Z" 
+              fill="#fed7aa" stroke="#7c2d12" stroke-width="2" stroke-linejoin="round"/>
+        <ellipse cx="21" cy="-14" rx="2.5" ry="3.5" fill="#ffffff" opacity="0.6"/>
+      </g>
+
+      <!-- Steps Description -->
+      <g transform="translate(20, 225)">
+        <text x="0" y="16" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800">1. On phone browser, tap the green button above</text>
+        <text x="0" y="34" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5">2. Google Calendar opens automatically</text>
+        <text x="0" y="52" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5">3. Tap the "Add" confirmation button</text>
+        <text x="0" y="72" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">4. All 5 prayer times appear immediately!</text>
+      </g>
+    </g>
+
+    <!-- Bottom Feature Benefits Banner for Method 1 -->
+    <g transform="translate(24, 470)">
+      <rect x="0" y="0" width="842" height="100" rx="12" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.5"/>
+      <text x="24" y="26" fill="#065f46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="800">WHY CHOOSE METHOD 1?</text>
+
+      <g transform="translate(24, 46)">
+        <circle cx="8" cy="8" r="7" fill="#10b981"/>
+        <path d="M5 8 L7 10 L11 6" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="22" y="12" fill="#065f46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">100% Anonymous</text>
+        <text x="22" y="26" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">No login or password needed</text>
+      </g>
+
+      <g transform="translate(300, 46)">
+        <circle cx="8" cy="8" r="7" fill="#10b981"/>
+        <path d="M5 8 L7 10 L11 6" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="22" y="12" fill="#065f46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">Zero Permissions</text>
+        <text x="22" y="26" fill="#047857" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">No access to personal emails</text>
+      </g>
+
+      <g transform="translate(580, 46)">
+        <circle cx="8" cy="8" r="7" fill="#3b82f6"/>
+        <path d="M5 8 C5 5, 11 5, 11 8 C11 11, 5 11, 5 8" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+        <text x="22" y="12" fill="#1e40af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">Weekly Auto-Sync</text>
+        <text x="22" y="26" fill="#2563eb" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">Calendar refreshes automatically</text>
+      </g>
+    </g>
+
+    <!-- Important note transitioning to Page 2 -->
+    <g transform="translate(24, 590)">
+      <rect x="0" y="0" width="842" height="60" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+      <circle cx="26" cy="30" r="14" fill="#f59e0b"/>
+      <text x="26" y="36" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="900" text-anchor="middle">!</text>
+      <text x="52" y="26" fill="#92400e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="800">
+        NEXT STEP FOR METHOD 1 USERS: TURN ON NOTIFICATIONS ONCE (SEE PAGE 2)
+      </text>
+      <text x="52" y="44" fill="#78350f" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">
+        Because anonymous subscription feeds do not force loud alarms automatically, please follow the quick one-time setup on Page 2!
+      </text>
+    </g>
+
+  </g>
+
+  <!-- ================= PAGE 1 FOOTER ================= -->
+  <g transform="translate(0, 1315)">
+    <rect x="0" y="0" width="950" height="35" fill="#0b1715"/>
+    <text x="475" y="22" fill="#a7f3d0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" text-anchor="middle">
+      Page 1 of 4: Overview &amp; Method 1 Add  ·  Turn to Page 2 for Notification &amp; Alarm Setup
+    </text>
+  </g>
+</svg>

@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" width="100%" height="100%">
+  <defs>
+    <filter id="shadow-s2" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="hand-glow2" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Container Box -->
+  <rect x="0" y="0" width="900" height="320" rx="18" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" filter="url(#shadow-s2)"/>
+
+  <!-- Step Header -->
+  <circle cx="50" cy="46" r="22" fill="#0f172a"/>
+  <text x="50" y="54" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="900" text-anchor="middle">2</text>
+
+  <text x="88" y="42" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800">Set Prayer Alarms Manually (Method 1 Only)</text>
+  <text x="88" y="62" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="600">One-time setup in Google Calendar Settings: Enables timely notifications for all 5 prayers</text>
+
+  <line x1="24" y1="80" x2="876" y2="80" stroke="#f1f5f9" stroke-width="2"/>
+
+  <!-- LEFT: Realistic Google Calendar Smartphone UI Mockup -->
+  <g transform="translate(36, 96)">
+    <!-- Smartphone Bezel -->
+    <rect x="0" y="0" width="260" height="200" rx="16" fill="#1e293b" filter="url(#shadow-s2)"/>
+    <rect x="6" y="6" width="248" height="188" rx="12" fill="#ffffff"/>
+
+    <!-- App Header Bar -->
+    <rect x="6" y="6" width="248" height="34" rx="10" fill="#174e40"/>
+    <!-- Menu Hamburger -->
+    <line x1="18" y1="18" x2="30" y2="18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <line x1="18" y1="23" x2="30" y2="23" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <line x1="18" y1="28" x2="30" y2="28" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <text x="38" y="27" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">Google Calendar</text>
+
+    <!-- Calendar Settings Panel -->
+    <g transform="translate(14, 46)">
+      <text x="0" y="10" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="800">SETTINGS &gt; CALENDARS</text>
+      <text x="0" y="26" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800">Bait-us-Subuh Timings</text>
+
+      <!-- Default Notification Section -->
+      <rect x="0" y="34" width="232" height="52" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="10" y="50" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="600">Default notifications:</text>
+
+      <!-- Selected reminder row -->
+      <rect x="8" y="56" width="216" height="24" rx="5" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+      <text x="14" y="72" fill="#065f46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="800">🔔 15 minutes before</text>
+      <!-- Green check -->
+      <circle cx="210" cy="68" r="7" fill="#10b981"/>
+      <path d="M207 68 L209 70 L213 66" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+
+      <!-- Add another notification button -->
+      <rect x="0" y="94" width="232" height="26" rx="6" fill="#e2e8f0"/>
+      <text x="116" y="111" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" text-anchor="middle">+ Add a notification</text>
+    </g>
+  </g>
+
+  <!-- MIDDLE: Exact Navigation Breadcrumb & Pointing Hand -->
+  <g transform="translate(320, 100)">
+    <rect x="0" y="0" width="300" height="28" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="10" y="18" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="700">☰ Menu &gt; ⚙️ Settings &gt; Bait-us-Subuh</text>
+
+    <text x="0" y="50" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800">1. Open Google Calendar App</text>
+    <text x="0" y="70" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800">2. Select "Bait-us-Subuh Timings"</text>
+    <text x="0" y="90" fill="#0f172a" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800">3. Tap "Add a notification"</text>
+
+    <!-- Time Selection Buttons -->
+    <g transform="translate(0, 104)">
+      <rect x="0" y="0" width="135" height="34" rx="8" fill="#10b981"/>
+      <text x="67" y="22" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" text-anchor="middle">✓ 15 min before</text>
+
+      <rect x="145" y="0" width="135" height="34" rx="8" fill="#e2e8f0"/>
+      <text x="212" y="22" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" text-anchor="middle">30 min before</text>
+    </g>
+
+    <!-- Pointing Hand pointing to 15 min button -->
+    <g transform="translate(100, 110)" filter="url(#hand-glow2)">
+      <circle cx="12" cy="18" r="10" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.8"/>
+      <path d="M 12,18 C 12,6 15,-6 18,-18 C 19,-22 24,-22 25,-18 C 26,-11 25,12 25,18 C 28,14 33,12 37,14 C 40,15 41,19 39,23 C 43,20 48,19 51,22 C 54,25 53,30 50,33 C 53,32 58,33 59,38 C 60,45 53,53 47,60 C 38,68 28,72 17,70 C 8,68 0,60 2,48 C 3,40 9,33 12,18 Z" 
+            fill="#fed7aa" stroke="#7c2d12" stroke-width="2" stroke-linejoin="round"/>
+      <ellipse cx="21" cy="-14" rx="2.5" ry="3.5" fill="#ffffff" opacity="0.6"/>
+    </g>
+
+    <text x="0" y="174" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">
+      Tip: You can add two alerts (e.g. 30 min before to prepare, and 5 min before for Jama'at).
+    </text>
+  </g>
+
+  <!-- RIGHT: Crucial "Why" Callout Box -->
+  <g transform="translate(640, 100)">
+    <rect x="0" y="0" width="230" height="180" rx="14" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    
+    <g transform="translate(16, 20)">
+      <circle cx="12" cy="12" r="11" fill="#f59e0b"/>
+      <text x="12" y="17" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="900" text-anchor="middle">!</text>
+      <text x="32" y="16" fill="#92400e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800">Only Done ONCE!</text>
+    </g>
+
+    <text x="16" y="58" fill="#78350f" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600">
+      Modern phone privacy rules prevent shared public feeds from sounding alarms automatically.
+    </text>
+
+    <text x="16" y="98" fill="#92400e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">
+      Once set, Google Calendar applies this rule to all 5 prayers:
+    </text>
+
+    <text x="16" y="122" fill="#b45309" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5">
+      ✓ Fajr  ✓ Zuhr/Jummah<br>✓ Asr   ✓ Maghrib   ✓ Isha
+    </text>
+
+    <rect x="14" y="146" width="202" height="22" rx="4" fill="#fef3c7"/>
+    <text x="115" y="161" fill="#92400e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" text-anchor="middle">Forever automated!</text>
+  </g>
+</svg>

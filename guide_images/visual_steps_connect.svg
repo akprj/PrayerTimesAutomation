@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 270" role="img" aria-labelledby="title desc">
+  <title id="title">Three ways to add the prayer calendar</title>
+  <desc id="desc">Illustrations show scanning a QR code with a phone, tapping the direct-add button, and approving Google Calendar access.</desc>
+  <defs>
+    <linearGradient id="glass" x2="0" y2="1">
+      <stop stop-color="#f8ffff"/>
+      <stop offset="1" stop-color="#dcebe6"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0 0 8 4 0 8Z" fill="#9ae6c5"/>
+    </marker>
+  </defs>
+  <g font-family="Arial, sans-serif">
+    <g transform="translate(15 14)">
+      <rect width="250" height="238" rx="20" fill="#164b40" stroke="#55c69a" stroke-width="2"/>
+      <circle cx="27" cy="27" r="17" fill="#42c895"/><text x="27" y="33" fill="#10382e" font-size="17" font-weight="800" text-anchor="middle">1</text>
+      <text x="53" y="33" fill="#fff" font-size="18" font-weight="700">SCAN THE QR</text>
+      <rect x="44" y="56" width="116" height="142" rx="17" fill="#102c2b" stroke="#bcebdd" stroke-width="3"/>
+      <rect x="51" y="64" width="102" height="126" rx="11" fill="url(#glass)"/>
+      <path d="M80 91h24v24H80zM84 95h16v16H84zM126 91h16v16h-16zM130 95h8v8h-8zM80 137h24v24H80zM84 141h16v16H84zM119 130h8v8h-8zM133 143h10v10h-10zM116 163h8v8h-8z" fill="#153d35"/>
+      <path d="M107 203h31" stroke="#48d6a0" stroke-width="4" stroke-linecap="round"/>
+      <path d="M190 92c22 9 22 42 0 51M198 82c32 17 32 56 0 72" fill="none" stroke="#59a9ff" stroke-width="5" stroke-linecap="round"/>
+      <path d="M186 163 176 174l15 1 4-9Z" fill="#ffd3a2" stroke="#7d4627" stroke-width="2"/>
+      <text x="126" y="224" fill="#d9f5e9" font-size="14" text-anchor="middle">Point camera • tap link</text>
+    </g>
+    <path d="M270 132h22" stroke="#9ae6c5" stroke-width="4" marker-end="url(#arrow)"/>
+    <g transform="translate(298 14)">
+      <rect width="250" height="238" rx="20" fill="#164b40" stroke="#55c69a" stroke-width="2"/>
+      <circle cx="27" cy="27" r="17" fill="#42c895"/><text x="27" y="33" fill="#10382e" font-size="17" font-weight="800" text-anchor="middle">2</text>
+      <text x="53" y="33" fill="#fff" font-size="18" font-weight="700">ADD DIRECTLY</text>
+      <rect x="34" y="64" width="182" height="137" rx="13" fill="#f3faf7"/>
+      <rect x="34" y="64" width="182" height="32" rx="12" fill="#205a4d"/>
+      <circle cx="53" cy="80" r="8" fill="#7adbb1"/><text x="68" y="85" fill="#fff" font-size="12" font-weight="700">Prayer calendar</text>
+      <rect x="48" y="108" width="154" height="39" rx="8" fill="#e1eee9" stroke="#bfd8ce"/>
+      <text x="59" y="132" fill="#24443a" font-size="12">Bait-us-Subuh</text>
+      <rect x="48" y="157" width="154" height="30" rx="8" fill="#16a578"/>
+      <text x="125" y="177" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">ADD CALENDAR</text>
+      <path d="M205 203c4-17 10-34 11-43 1-7 9-7 10 0l1 20c5-7 13-6 14 2 6-4 13 0 11 8 7 0 9 6 5 12l-12 17c-8 9-26 8-36-2Z" fill="#ffd3a2" stroke="#7d4627" stroke-width="2"/>
+      <text x="125" y="224" fill="#d9f5e9" font-size="14" text-anchor="middle">Tap the green button</text>
+    </g>
+    <path d="M553 132h22" stroke="#9ae6c5" stroke-width="4" marker-end="url(#arrow)"/>
+    <g transform="translate(582 14)">
+      <rect width="243" height="238" rx="20" fill="#164b40" stroke="#78b8ff" stroke-width="2"/>
+      <circle cx="27" cy="27" r="17" fill="#67a6ff"/><text x="27" y="33" fill="#102f61" font-size="17" font-weight="800" text-anchor="middle">3</text>
+      <text x="53" y="33" fill="#fff" font-size="18" font-weight="700">GOOGLE SIGN-IN</text>
+      <rect x="52" y="57" width="139" height="147" rx="19" fill="#102c2b" stroke="#c4dcff" stroke-width="3"/>
+      <rect x="59" y="65" width="125" height="131" rx="13" fill="url(#glass)"/>
+      <circle cx="121" cy="91" r="18" fill="#4385f5"/>
+      <text x="121" y="98" fill="#fff" font-size="22" font-weight="700" text-anchor="middle">G</text>
+      <rect x="73" y="119" width="97" height="11" rx="5" fill="#739087"/>
+      <rect x="82" y="140" width="79" height="25" rx="7" fill="#275f9f"/>
+      <text x="121" y="157" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">ALLOW</text>
+      <path d="M197 158 211 171l27-33" fill="none" stroke="#55d99e" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="121" y="224" fill="#d9f5e9" font-size="14" text-anchor="middle">Choose account • approve</text>
+    </g>
+  </g>
+</svg>
