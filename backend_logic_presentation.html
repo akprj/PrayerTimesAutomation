@@ -338,8 +338,10 @@
         <article class="card"><h3>Tier 2 · whole-image scan</h3><p>Parse explicit prayer/time pairs on the same OCR line. A second scan uses 4× resize, thresholding to reduce a pale watermark, token coordinates, and confidence scores.</p></article>
         <article class="card"><h3>Tier 3 · targeted fallback</h3><p>If a prayer is still unresolved, crop its full-width row with padding, scan several image-threshold variants, and require a clear repeated vote.</p></article>
       </div>
-      <div class="callout warn"><p>If a prayer still has no safe, unambiguous time, raise an error and stop before writing any calendar events. Do not silently invent or accept a dubious time.</p></div>
-      <p class="source">Code: <code>extract_original_whole_image_times()</code>, <code>extract_second_whole_image_times()</code>, <code>select_whole_image_fallback()</code>, and <code>extract_flexible_prayer_row_time()</code>.</p>
+      <div class="callout warn">
+        <p><strong>Tier 4 · merged-time middle-column fallback:</strong> If Zohar or Maghrib is unread, scan its combined row band in the middle time column. Accept a time only with repeated OCR agreement and a matching vertical position—no Fajr-first assumption. Use it for both Zohar/Assr or Maghrib/Ishaa and create one combined entry. A normally read primary prayer remains separate. If the time is still uncertain, stop before calendar writes.</p>
+      </div>
+      <p class="source">Code: <code>extract_original_whole_image_times()</code>, <code>extract_second_whole_image_times()</code>, <code>select_whole_image_fallback()</code>, <code>extract_flexible_prayer_row_time()</code>, and the middle-column helpers in <code>prayer_time_ocr.py</code>.</p>
     </section>
 
     <section class="slide">
@@ -353,6 +355,7 @@
         <li><strong>Band retry:</strong> if any of six expected prayers has zero or multiple candidate times, locate reliable Fajr and Juma anchors in the same column, crop the intervening full-width band, and scan it as a text block.</li>
         <li><strong>Consensus selection:</strong> union original/second whole-image candidates. More than one distinct time means disagreement and rejection; exactly one is accepted.</li>
         <li><strong>Flexible row vote:</strong> scan the row in contrast plus thresholds 145, 180, 210. A valid time must win uniquely with at least two votes. If it disagrees with any whole-image candidate, reject it.</li>
+        <li><strong>Merged-row fallback:</strong> use repeated OCR agreement and vertical position in the middle-column Zohar–Assr and Maghrib bands. Only unread Zohar or Maghrib triggers a shared pair time; a normally read primary remains separate.</li>
       </ul>
       <p class="source">The rectangle scan is preferred; fallback logic is only used when its strict parse or time validation fails.</p>
     </section>
@@ -492,12 +495,13 @@ Start = DST Sunday                → end = following Friday</pre>
         <li>Iterate each inclusive calendar date from start through the resolved day count.</li>
         <li>Start with Fajr, Zohar, Assr, Maghrib, Ishaa.</li>
         <li>On Friday (weekday 4), either replace Zohar with Juma or append Juma, based on config.</li>
+        <li>When fallback recovers a shared time, create one <code>Zohar Assr Jama (combined)</code> or <code>Maghrib Isha Jama (combined)</code> event. Otherwise keep separate events when both individual times are resolved; unresolved times still fail closed.</li>
         <li>Combine each date and OCR time in the configured timezone.</li>
-        <li>Set end time five minutes after start.</li>
-        <li>Build the summary, explanatory description, timezone-aware start/end, and a popup reminder using that prayer's configured offset.</li>
-        <li>Hash calendar ID + ISO date + canonical prayer name for a stable event ID.</li>
+        <li>Send the OCR-fetched start time and a five-minute event end. The Calendar API does not accept <code>endTimeUnspecified</code> as a writable insert/patch field, so the calendar may display the five-minute range.</li>
+        <li>Build a popup reminder using the primary prayer's configured offset. Description: <code>Bait us Subuh [Prayer name] Start Time: HH:MM on YYYY-MM-DD.</code></li>
+        <li>Hash calendar ID + ISO date + event label for a stable event ID.</li>
       </ol>
-      <pre>event key = "prayer-timings|calendar_id|YYYY-MM-DD|Prayer"
+      <pre>event key = "prayer-timings|calendar_id|YYYY-MM-DD|Event label"
 event ID  = SHA-256(event key)</pre>
       <p class="source">A distinct ID per calendar prevents the Master Feed's event identity from colliding with an individual calendar's identity.</p>
     </section>

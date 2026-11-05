@@ -1161,12 +1161,6 @@ def event_matches_desired(existing, desired):
         if existing.get(field, "") != desired.get(field, ""):
             return False
 
-    if existing.get("endTimeUnspecified", False) != desired.get(
-        "endTimeUnspecified",
-        False,
-    ):
-        return False
-
     for field in ("start", "end"):
         existing_part = existing.get(field, {})
         desired_part = desired[field]
@@ -1296,7 +1290,6 @@ def insert_event_handling_deleted(service, calendar_id, body):
                     "description",
                     "start",
                     "end",
-                    "endTimeUnspecified",
                     "reminders",
                 )
             }
@@ -1512,7 +1505,6 @@ def sync_member(
                     "dateTime": end_at.isoformat(),
                     "timeZone": timezone_obj.key,
                 },
-                "endTimeUnspecified": True,
                 "reminders": {
                     "useDefault": False,
                     "overrides": [
