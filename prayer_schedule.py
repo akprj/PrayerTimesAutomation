@@ -11,6 +11,10 @@ def format_prayer_entry_time(starts_at):
     return starts_at.strftime("%H:%M")
 
 
+def format_prayer_entry_date(current_date):
+    return current_date.strftime("%d-%m-%Y")
+
+
 def prayer_event_duration_minutes(event_label):
     if event_label in COMBINED_PRAYER_LABELS.values():
         return 10

@@ -498,7 +498,7 @@ Start = DST Sunday                → end = following Friday</pre>
         <li>When fallback recovers a shared time, create one <code>Zohar Assr Jama (combined)</code> or <code>Maghrib Isha Jama (combined)</code> event. Otherwise keep separate events when both individual times are resolved; unresolved times still fail closed.</li>
         <li>Combine each date and OCR time in the configured timezone.</li>
         <li>Set each event's native calendar end from its type: five minutes after the OCR start for individual prayers, and 10 minutes after the OCR start for combined prayers. The Calendar API does not accept <code>endTimeUnspecified</code> as a writable insert/patch field.</li>
-        <li>Build a popup reminder using the primary prayer's configured offset. All descriptions, including combined prayers, show only the OCR start time: <code>Bait us Subuh [Prayer name] Start Time: HH:MM on YYYY-MM-DD.</code></li>
+        <li>Build a popup reminder using the primary prayer's configured offset. All descriptions, including combined prayers, show only the OCR start time and format the date day-month-year: <code>Bait us Subuh [Prayer name] Start Time: HH:MM on DD-MM-YYYY.</code></li>
         <li>Hash calendar ID + ISO date + event label for a stable event ID.</li>
       </ol>
       <pre>event key = "prayer-timings|calendar_id|YYYY-MM-DD|Event label"

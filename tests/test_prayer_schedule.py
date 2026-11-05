@@ -3,6 +3,7 @@ from datetime import datetime
 
 from prayer_schedule import (
     build_daily_prayer_entries,
+    format_prayer_entry_date,
     format_prayer_entry_time,
     prayer_event_duration_minutes,
 )
@@ -64,6 +65,14 @@ class DailyPrayerEntriesTests(unittest.TestCase):
 
 
 class PrayerEntryTimeFormatTests(unittest.TestCase):
+    def test_description_date_uses_day_month_year(self):
+        current_date = datetime(2026, 10, 18).date()
+
+        self.assertEqual(
+            format_prayer_entry_date(current_date),
+            "18-10-2026",
+        )
+
     def test_combined_entry_description_shows_only_ocr_start_time(self):
         starts_at = datetime(2026, 11, 2, 13, 30)
 
