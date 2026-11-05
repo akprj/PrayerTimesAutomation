@@ -1,6 +1,10 @@
 import unittest
+from datetime import datetime
 
-from prayer_schedule import build_daily_prayer_entries
+from prayer_schedule import (
+    build_daily_prayer_entries,
+    format_prayer_entry_time,
+)
 
 
 class DailyPrayerEntriesTests(unittest.TestCase):
@@ -55,6 +59,27 @@ class DailyPrayerEntriesTests(unittest.TestCase):
                     "Maghrib",
                 ),
             ],
+        )
+
+
+class PrayerEntryTimeFormatTests(unittest.TestCase):
+    def test_combined_entry_shows_ten_minute_time_range(self):
+        starts_at = datetime(2026, 11, 2, 13, 30)
+
+        self.assertEqual(
+            format_prayer_entry_time(
+                "Zohar Assr Jama (combined)",
+                starts_at,
+            ),
+            "13:30 to 13:40",
+        )
+
+    def test_individual_entry_shows_only_ocr_start_time(self):
+        starts_at = datetime(2026, 11, 2, 6, 20)
+
+        self.assertEqual(
+            format_prayer_entry_time("Fajr", starts_at),
+            "06:20",
         )
 
 

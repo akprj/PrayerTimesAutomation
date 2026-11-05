@@ -22,6 +22,7 @@ from drive_timetable import fetch_latest_timetable
 from prayer_schedule import (
     COMBINED_PRAYER_LABELS,
     build_daily_prayer_entries,
+    format_prayer_entry_time,
 )
 from prayer_time_ocr import (
     extract_vertical_middle_column_observations,
@@ -1494,8 +1495,8 @@ def sync_member(
                 "description": (
                     f"Dear member, Assalam-u-Alaikum, it's time to Prepare for {event_label} Prayer.\n\n"
                     f"Bait us Subuh {event_label} Start Time: "
-                    f"{starts_at:%H:%M} "
-                    f"on {current_date.isoformat()}."
+                    f"{format_prayer_entry_time(event_label, starts_at)}"
+                    f" on {current_date.isoformat()}."
                 ),
                 "start": {
                     "dateTime": starts_at.isoformat(),

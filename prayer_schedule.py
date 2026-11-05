@@ -1,7 +1,19 @@
+from datetime import timedelta
+
+
 COMBINED_PRAYER_LABELS = {
     ("Zohar", "Assr"): "Zohar Assr Jama (combined)",
     ("Maghrib", "Ishaa"): "Maghrib Isha Jama (combined)",
 }
+
+
+def format_prayer_entry_time(event_label, starts_at):
+    start_time = starts_at.strftime("%H:%M")
+    if event_label not in COMBINED_PRAYER_LABELS.values():
+        return start_time
+
+    end_time = (starts_at + timedelta(minutes=10)).strftime("%H:%M")
+    return f"{start_time} to {end_time}"
 
 
 def build_daily_prayer_entries(prayers, combined_prayer_pairs):
