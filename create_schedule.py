@@ -23,6 +23,7 @@ from prayer_schedule import (
     COMBINED_PRAYER_LABELS,
     build_daily_prayer_entries,
     format_prayer_entry_time,
+    prayer_event_duration_minutes,
 )
 from prayer_time_ocr import (
     extract_vertical_middle_column_observations,
@@ -1442,8 +1443,6 @@ def sync_member(
         "friday_replaces_zohar", False
     )
     regular_prayers = ["Fajr", "Zohar", "Assr", "Maghrib", "Ishaa"]
-    duration_minutes = 5
-
     total_attempted = 0
     totals = {
         "created": 0,
@@ -1478,7 +1477,7 @@ def sync_member(
                 tzinfo=timezone_obj,
             )
             end_at = starts_at + timedelta(
-                minutes=duration_minutes
+                minutes=prayer_event_duration_minutes(event_label)
             )
             minutes = reminder_minutes[reminder_prayer]
 
@@ -1495,7 +1494,7 @@ def sync_member(
                 "description": (
                     f"Dear member, Assalam-u-Alaikum, it's time to Prepare for {event_label} Prayer.\n\n"
                     f"Bait us Subuh {event_label} Start Time: "
-                    f"{format_prayer_entry_time(event_label, starts_at)}"
+                    f"{format_prayer_entry_time(starts_at)}"
                     f" on {current_date.isoformat()}."
                 ),
                 "start": {

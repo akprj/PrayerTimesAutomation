@@ -4,6 +4,7 @@ from datetime import datetime
 from prayer_schedule import (
     build_daily_prayer_entries,
     format_prayer_entry_time,
+    prayer_event_duration_minutes,
 )
 
 
@@ -63,24 +64,34 @@ class DailyPrayerEntriesTests(unittest.TestCase):
 
 
 class PrayerEntryTimeFormatTests(unittest.TestCase):
-    def test_combined_entry_shows_ten_minute_time_range(self):
+    def test_combined_entry_description_shows_only_ocr_start_time(self):
         starts_at = datetime(2026, 11, 2, 13, 30)
 
         self.assertEqual(
             format_prayer_entry_time(
-                "Zohar Assr Jama (combined)",
                 starts_at,
             ),
-            "13:30 to 13:40",
+            "13:30",
         )
 
     def test_individual_entry_shows_only_ocr_start_time(self):
         starts_at = datetime(2026, 11, 2, 6, 20)
 
         self.assertEqual(
-            format_prayer_entry_time("Fajr", starts_at),
+            format_prayer_entry_time(starts_at),
             "06:20",
         )
+
+    def test_combined_event_has_ten_minute_native_duration(self):
+        self.assertEqual(
+            prayer_event_duration_minutes(
+                "Zohar Assr Jama (combined)"
+            ),
+            10,
+        )
+
+    def test_individual_event_keeps_five_minute_native_duration(self):
+        self.assertEqual(prayer_event_duration_minutes("Fajr"), 5)
 
 
 if __name__ == "__main__":
