@@ -19,8 +19,12 @@ import pytesseract
 from supabase import create_client
 
 from drive_timetable import fetch_latest_timetable
+from prayer_schedule import (
+    COMBINED_PRAYER_LABELS,
+    build_daily_prayer_entries,
+)
 from prayer_time_ocr import (
-    extract_vertical_middle_column_times,
+    extract_vertical_middle_column_observations,
     fill_missing_merged_prayer_times,
 )
 from timetable_dates import (
@@ -133,6 +137,7 @@ def fetch_latest_prayer_event_date(service, calendar_id, timezone_obj):
         "Maghrib",
         "Ishaa",
         "Juma",
+        *COMBINED_PRAYER_LABELS.values(),
     }
 
     try:
@@ -806,6 +811,7 @@ def build_prayer_times_and_dates():
     ]
 
     prayer_times = {}
+    combined_prayer_pairs = set()
     second_whole_image_times = None
 
     with timetable_image as image:
@@ -943,51 +949,53 @@ def build_prayer_times_and_dates():
             or "Ishaa" not in prayer_times
         ):
             try:
-                column_times = extract_vertical_middle_column_times(image)
+                column_observations = (
+                    extract_vertical_middle_column_observations(image)
+                )
             except pytesseract.TesseractError as exc:
                 print(
                     f"MIDDLE-COLUMN OCR FAILED: {exc}",
                     flush=True,
                 )
-                column_times = []
+                column_observations = []
 
-            formatted_column_times = [
-                value.strftime("%H:%M") if value is not None else None
-                for value in column_times
+            formatted_column_observations = [
+                (
+                    round(position, 3),
+                    value.strftime("%H:%M") if value is not None else None,
+                )
+                for position, value in column_observations
             ]
             print(
-                "MIDDLE-COLUMN OCR TOP-TO-BOTTOM TIMES: "
-                f"{formatted_column_times!r}",
+                "MIDDLE-COLUMN OCR TOP-TO-BOTTOM OBSERVATIONS "
+                "(normalized_y, time): "
+                f"{formatted_column_observations!r}",
                 flush=True,
             )
 
-            fajr_time = prayer_times.get("Fajr")
-            if (
-                not column_times
-                or fajr_time is None
-                or column_times[0] != fajr_time
-            ):
+            prayer_row_bounds = {
+                prayer: (top, bottom)
+                for prayer, top, bottom in rows
+            }
+            filled_prayers = fill_missing_merged_prayer_times(
+                prayer_times,
+                column_observations,
+                prayer_row_bounds,
+            )
+            if filled_prayers:
                 print(
-                    "MIDDLE-COLUMN OCR REJECTED: "
-                    "the first column time does not match a validated "
-                    "Fajr time, so merged-row positions are uncertain.",
+                    "MIDDLE-COLUMN OCR FILLED MERGED PRAYER TIMES: "
+                    + ", ".join(
+                        f"{prayer}="
+                        f"{prayer_times[prayer].strftime('%H:%M')}"
+                        for prayer in filled_prayers
+                    ),
                     flush=True,
                 )
-            else:
-                filled_prayers = fill_missing_merged_prayer_times(
-                    prayer_times,
-                    column_times,
-                )
-                if filled_prayers:
-                    print(
-                        "MIDDLE-COLUMN OCR FILLED MERGED PRAYER TIMES: "
-                        + ", ".join(
-                            f"{prayer}="
-                            f"{prayer_times[prayer].strftime('%H:%M')}"
-                            for prayer in filled_prayers
-                        ),
-                        flush=True,
-                    )
+                if "Zohar" in filled_prayers:
+                    combined_prayer_pairs.add(("Zohar", "Assr"))
+                if "Maghrib" in filled_prayers:
+                    combined_prayer_pairs.add(("Maghrib", "Ishaa"))
 
         unresolved_prayers = [
             prayer
@@ -1004,7 +1012,15 @@ def build_prayer_times_and_dates():
                 "synchronization."
             )
 
-    return config, timezone_obj, start_date, end_date, day_count, prayer_times
+    return (
+        config,
+        timezone_obj,
+        start_date,
+        end_date,
+        day_count,
+        prayer_times,
+        combined_prayer_pairs,
+    )
 
 def choose_target_calendar(service):
     preferred_prefixes = [
@@ -1333,6 +1349,7 @@ def sync_member(
     start_date,
     day_count,
     prayer_times,
+    combined_prayer_pairs,
 ):
     email = member.get("email") or "(unknown)"
     member_id = member["id"]
@@ -1448,7 +1465,12 @@ def sync_member(
             else:
                 prayers.append("Juma")
 
-        for prayer in prayers:
+        for event_label, prayer, reminder_prayer in (
+            build_daily_prayer_entries(
+                prayers,
+                combined_prayer_pairs,
+            )
+        ):
             starts_at = datetime.combine(
                 current_date,
                 prayer_times[prayer],
@@ -1457,20 +1479,20 @@ def sync_member(
             end_at = starts_at + timedelta(
                 minutes=duration_minutes
             )
-            minutes = reminder_minutes[prayer]
+            minutes = reminder_minutes[reminder_prayer]
 
             event_id = stable_event_id(
                 calendar_id,
                 current_date,
-                prayer,
+                event_label,
             )
 
 
             body = {
                 "id": event_id,
-                "summary": prayer,
+                "summary": event_label,
                 "description": (
-                    f"Dear member, Assalam-u-Alaikum, it's time to Prepare for {prayer} Prayer.\n\n"
+                    f"Dear member, Assalam-u-Alaikum, it's time to Prepare for {event_label} Prayer.\n\n"
                     f"Prayer Timings Automation: start time "
                     f"{starts_at:%H:%M} "
                     f"on {current_date.isoformat()}."
@@ -1550,7 +1572,7 @@ def sync_member(
 
             print(
                 f"{label}: {current_date:%Y-%m-%d} "
-                f"{prayer:<8} at {starts_at:%H:%M}",
+                f"{event_label:<30} at {starts_at:%H:%M}",
                 flush=True,
             )
 
@@ -1576,6 +1598,7 @@ def main(all_members=False, member_id=None):
         end_date,
         day_count,
         prayer_times,
+        combined_prayer_pairs,
     ) = build_prayer_times_and_dates()
 
     if start_date is None or end_date is None:
@@ -1666,6 +1689,7 @@ def main(all_members=False, member_id=None):
                 start_date,
                 day_count,
                 prayer_times,
+                combined_prayer_pairs,
             )
             print("Central Master Calendar sync completed successfully.\n", flush=True)
         except Exception as exc:
@@ -1698,6 +1722,7 @@ def main(all_members=False, member_id=None):
                 start_date,
                 day_count,
                 prayer_times,
+                combined_prayer_pairs,
             )
             successful_members += 1
 

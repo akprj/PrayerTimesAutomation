@@ -10,9 +10,13 @@ _TIME_PATTERN = re.compile(
 )
 _MIDDLE_COLUMN_BOUNDS = (0.32, 0.70)
 _VERTICAL_BOUNDS = (0.14, 0.80)
+_MERGED_FALLBACK_BANDS = (
+    (0.275, 0.455),
+    (0.480, 0.560),
+)
 
 
-def _time_candidates_from_data(data):
+def _time_candidates_from_data(data, minimum_confidence=30):
     words = []
 
     for index, raw_text in enumerate(data["text"]):
@@ -24,7 +28,7 @@ def _time_candidates_from_data(data):
             confidence = float(data["conf"][index])
         except (TypeError, ValueError):
             continue
-        if confidence < 30:
+        if confidence < minimum_confidence:
             continue
 
         left = int(data["left"][index])
@@ -104,10 +108,18 @@ def _time_candidates_from_data(data):
     return candidates
 
 
-def _times_for_scan(data, scale, vertical_offset):
+def _times_for_scan(
+    data,
+    scale,
+    vertical_offset,
+    minimum_confidence=30,
+):
     observations = [
         (vertical_offset + center_y / scale, candidate)
-        for center_y, candidate in _time_candidates_from_data(data)
+        for center_y, candidate in _time_candidates_from_data(
+            data,
+            minimum_confidence,
+        )
     ]
     observations.sort(key=lambda item: item[0])
 
@@ -125,8 +137,8 @@ def _times_for_scan(data, scale, vertical_offset):
     ]
 
 
-def extract_vertical_middle_column_times(image):
-    """Read distinct, vertically ordered times from the timetable's time column."""
+def extract_vertical_middle_column_observations(image):
+    """Read times and their normalized vertical positions from the time column."""
     left = int(image.width * _MIDDLE_COLUMN_BOUNDS[0])
     right = int(image.width * _MIDDLE_COLUMN_BOUNDS[1])
     top = int(image.height * _VERTICAL_BOUNDS[0])
@@ -181,6 +193,59 @@ def extract_vertical_middle_column_times(image):
         for variant in variants:
             variant.close()
 
+    for band_top, band_bottom in _MERGED_FALLBACK_BANDS:
+        band_y = int(image.height * band_top)
+        band_bottom_y = int(image.height * band_bottom)
+        with image.crop((left, band_y, right, band_bottom_y)) as band:
+            grayscale = ImageOps.grayscale(band)
+            try:
+                enlarged = grayscale.resize(
+                    (
+                        grayscale.width * source_scale,
+                        grayscale.height * source_scale,
+                    ),
+                    Image.Resampling.LANCZOS,
+                )
+            finally:
+                grayscale.close()
+
+        try:
+            contrasted = ImageOps.autocontrast(enlarged)
+        finally:
+            enlarged.close()
+
+        band_variants = [contrasted]
+        band_variants.extend(
+            contrasted.point(
+                lambda pixel, cutoff=threshold: (
+                    0 if pixel < cutoff else 255
+                )
+            )
+            for threshold in (145, 180)
+        )
+        try:
+            for variant in band_variants:
+                data = pytesseract.image_to_data(
+                    variant,
+                    lang="eng",
+                    config=(
+                        "--oem 3 --psm 7 "
+                        "-c tessedit_char_whitelist=0123456789:.,"
+                    ),
+                    output_type=pytesseract.Output.DICT,
+                )
+                scans.append(
+                    _times_for_scan(
+                        data,
+                        source_scale,
+                        band_y,
+                        minimum_confidence=0,
+                    )
+                )
+        finally:
+            for variant in band_variants:
+                variant.close()
+
     observations = sorted(
         (
             (center_y, scan_index, candidate)
@@ -215,7 +280,7 @@ def extract_vertical_middle_column_times(image):
             clusters[-1]["positions"]
         ) / len(clusters[-1]["positions"])
 
-    ordered_times = []
+    ordered_observations = []
     for cluster in clusters:
         votes = {}
         for candidates in cluster["votes"].values():
@@ -225,7 +290,9 @@ def extract_vertical_middle_column_times(image):
             votes[candidate] = votes.get(candidate, 0) + 1
 
         if not votes:
-            ordered_times.append(None)
+            ordered_observations.append(
+                (cluster["center_y"] / image.height, None)
+            )
             continue
 
         highest_vote_count = max(votes.values())
@@ -234,36 +301,63 @@ def extract_vertical_middle_column_times(image):
             for candidate, count in votes.items()
             if count == highest_vote_count
         ]
-        ordered_times.append(
-            winners[0] if highest_vote_count >= 2 and len(winners) == 1
-            else None
+        ordered_observations.append(
+            (
+                cluster["center_y"] / image.height,
+                winners[0]
+                if highest_vote_count >= 2 and len(winners) == 1
+                else None,
+            )
         )
 
-    return ordered_times
+    return ordered_observations
 
 
-def fill_missing_merged_prayer_times(prayer_times, column_times):
-    """Assign merged pair times when Zohar or Maghrib is unresolved."""
+def extract_vertical_middle_column_times(image):
+    """Read distinct, vertically ordered times from the timetable's time column."""
+    return [
+        value
+        for _, value in extract_vertical_middle_column_observations(image)
+    ]
+
+
+def fill_missing_merged_prayer_times(
+    prayer_times,
+    column_observations,
+    row_bounds,
+):
+    """Fill merged prayer pairs from OCR times positioned in their row."""
     filled = []
 
-    for first, second, column_index in (
-        ("Zohar", "Assr", 1),
-        ("Maghrib", "Ishaa", 2),
+    for first, second, band_start, band_end in (
+        (
+            "Zohar",
+            "Assr",
+            row_bounds["Zohar"][0],
+            row_bounds["Assr"][1],
+        ),
+        (
+            "Maghrib",
+            "Ishaa",
+            row_bounds["Maghrib"][0],
+            row_bounds["Maghrib"][1],
+        ),
     ):
-        if column_index >= len(column_times):
+        row_times = {
+            value
+            for position, value in column_observations
+            if band_start <= position <= band_end and value is not None
+        }
+        if len(row_times) != 1:
+            continue
+        column_time = next(iter(row_times))
+
+        if first in prayer_times:
             continue
 
-        column_time = column_times[column_index]
-        if column_time is None:
-            continue
-
-        if first not in prayer_times:
-            prayer_times[first] = column_time
-            filled.append(first)
-            if prayer_times.get(second) != column_time:
-                prayer_times[second] = column_time
-                filled.append(second)
-        elif second not in prayer_times:
+        prayer_times[first] = column_time
+        filled.append(first)
+        if prayer_times.get(second) != column_time:
             prayer_times[second] = column_time
             filled.append(second)
 
