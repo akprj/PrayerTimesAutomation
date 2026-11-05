@@ -33,6 +33,9 @@ SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
     "openid",
 ]
+MASTER_CALENDAR_SCOPES = [
+    "https://www.googleapis.com/auth/calendar",
+]
 
 cipher = Fernet(
     os.environ["TOKEN_ENCRYPTION_KEY"].encode("utf-8")
@@ -1271,14 +1274,25 @@ def sync_member(
 
     print(f"\n--- Syncing target: {email} ---", flush=True)
 
-    # 1. NEW INTERCEPT: Check if we are running the central Master Calendar
+            # 1. NEW INTERCEPT: Check if we are running the central Master Calendar
     if member.get("is_master_calendar"):
-        # We reuse your main admin credentials securely saved in Render's environment
-        admin_refresh_token = decrypt_refresh_token(
-            os.environ["ADMIN_MANAGEMENT_REFRESH_TOKEN"]
+        # Look for the file in Render's secure secret path first
+        secret_path = "/etc/secrets/service_account.json"
+        
+        # Fallback to local execution directory if running locally on your computer
+        if not os.path.exists(secret_path):
+            secret_path = "service_account.json"
+            
+        if not os.path.exists(secret_path):
+            raise FileNotFoundError(
+                f"CRITICAL: service_account.json is missing! Checked: {secret_path}"
+            )
+            
+        from google.oauth2 import service_account
+        credentials = service_account.Credentials.from_service_account_file(
+            secret_path,
+            scopes=MASTER_CALENDAR_SCOPES,
         )
-        credentials = build_member_credentials(admin_refresh_token)
-
         service = build(
             "calendar",
             "v3",
@@ -1287,6 +1301,7 @@ def sync_member(
         )
         # Directly target the public calendar string without running search matches
         calendar_id = member["calendar_id"]
+        
     else:
         # 2. STANDARD LOGIC: Keep your existing code for individual OAuth users completely untouched
         refresh_token = decrypt_refresh_token(
@@ -1302,6 +1317,9 @@ def sync_member(
         )
 
         calendar_id = resolve_member_calendar(service, member)
+
+
+
 
     if start_date is None or day_count is None:
         last_event_date = fetch_latest_prayer_event_date(
@@ -1485,7 +1503,6 @@ def sync_member(
 
 
 
-
 def main(all_members=False, member_id=None):
     (
         config,
@@ -1587,7 +1604,21 @@ def main(all_members=False, member_id=None):
             )
             print("Central Master Calendar sync completed successfully.\n", flush=True)
         except Exception as exc:
-            print(f"CRITICAL WARNING: Central Master Calendar sync failed: {exc}", flush=True)
+            error_summary = re.sub(
+                r"(?i)(['\"]?(?:access_token|id_token|refresh_token|private_key)['\"]?\s*:\s*['\"])[^'\"]+(['\"])",
+                r"\1[REDACTED]\2",
+                str(exc),
+            )
+            error_summary = re.sub(
+                r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b",
+                "[REDACTED TOKEN]",
+                error_summary,
+            )
+            print(
+                "CRITICAL WARNING: Central Master Calendar sync failed: "
+                f"{error_summary}",
+                flush=True,
+            )
             failed_members += 1
 
     # =========================================================================
