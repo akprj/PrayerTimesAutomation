@@ -3,7 +3,8 @@ name: PrayerTimesScheduleRun (Friday Cron)
 on:
   schedule:
     # 09:59 PM UTC on Fridays (Matches your first Render schedule)
-    - cron: '59 21 * * 5'
+    #- cron: '59 21 * * 5'
+    - cron: '37 1 * * *'
   workflow_dispatch: # Allows manual trigger from the GitHub Actions dashboard
 
 jobs:
