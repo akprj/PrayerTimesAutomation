@@ -325,40 +325,105 @@ def fill_missing_merged_prayer_times(
     prayer_times,
     column_observations,
     row_bounds,
+    initially_unread_prayers=None,
 ):
-    """Fill merged prayer pairs from OCR times positioned in their row."""
+    """Fill merged prayer pairs after their primary row OCR is inconclusive."""
     filled = []
+    initial_scan_status_available = initially_unread_prayers is not None
+    initially_unread_prayers = initially_unread_prayers or set()
 
-    for first, second, band_start, band_end in (
+    for first, second, band_start, band_end, fallback_index in (
         (
             "Zohar",
             "Assr",
             row_bounds["Zohar"][0],
             row_bounds["Assr"][1],
+            1,
         ),
         (
             "Maghrib",
             "Ishaa",
             row_bounds["Maghrib"][0],
-            row_bounds["Maghrib"][1],
+            row_bounds["Ishaa"][1],
+            3,
         ),
     ):
+        if initial_scan_status_available:
+            if (
+                first not in initially_unread_prayers
+                and second not in initially_unread_prayers
+            ):
+                continue
+        elif first in prayer_times:
+            continue
+
         row_times = {
             value
             for position, value in column_observations
             if band_start <= position <= band_end and value is not None
         }
-        if len(row_times) != 1:
+        if len(row_times) == 1:
+            column_time = next(iter(row_times))
+        elif (
+            initial_scan_status_available
+            and second in initially_unread_prayers
+            and first in prayer_times
+            and second == "Assr"
+        ):
+            column_time = prayer_times[first]
+        elif (
+            initial_scan_status_available
+            and first in initially_unread_prayers
+            and len(column_observations) > fallback_index
+        ):
+            column_time = column_observations[fallback_index][1]
+        elif not initial_scan_status_available and first not in prayer_times:
+            column_time = None
+        else:
             continue
-        column_time = next(iter(row_times))
 
-        if first in prayer_times:
+        if column_time is None:
             continue
 
         prayer_times[first] = column_time
-        filled.append(first)
-        if prayer_times.get(second) != column_time:
-            prayer_times[second] = column_time
-            filled.append(second)
+        prayer_times[second] = column_time
+        filled.extend((first, second))
+
+    return filled
+
+
+def fill_missing_outer_prayer_times(
+    prayer_times,
+    column_observations,
+    initially_unread_prayers,
+    resolved_merged_prayers=(),
+):
+    """Recover Fajr, Ishaa, and Juma from fixed column positions."""
+    filled = []
+
+    if "Fajr" in initially_unread_prayers:
+        if column_observations and column_observations[0][1] is not None:
+            prayer_times["Fajr"] = column_observations[0][1]
+            filled.append("Fajr")
+
+    if (
+        "Ishaa" in initially_unread_prayers
+        and "Ishaa" not in resolved_merged_prayers
+    ):
+        if (
+            len(column_observations) >= 2
+            and column_observations[-2][1] is not None
+        ):
+            prayer_times["Ishaa"] = column_observations[-2][1]
+            filled.append("Ishaa")
+
+    if "Juma" in initially_unread_prayers or "Juma" not in prayer_times:
+        juma_time = (
+            column_observations[-1][1]
+            if column_observations
+            else None
+        )
+        prayer_times["Juma"] = juma_time or time(13, 15)
+        filled.append("Juma")
 
     return filled

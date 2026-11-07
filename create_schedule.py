@@ -29,6 +29,7 @@ from prayer_schedule import (
 from prayer_time_ocr import (
     extract_vertical_middle_column_observations,
     fill_missing_merged_prayer_times,
+    fill_missing_outer_prayer_times,
 )
 from timetable_dates import (
     parse_timetable_endpoints,
@@ -816,6 +817,7 @@ def build_prayer_times_and_dates():
     prayer_times = {}
     combined_prayer_pairs = set()
     second_whole_image_times = None
+    initially_unread_prayers = set()
 
     with timetable_image as image:
         width, height = image.size
@@ -894,6 +896,8 @@ def build_prayer_times_and_dates():
 
                 continue
 
+            initially_unread_prayers.add(prayer)
+
             if second_whole_image_times is None:
                 try:
                     second_whole_image_times = (
@@ -946,10 +950,8 @@ def build_prayer_times_and_dates():
                 prayer_times[prayer] = fallback_time
 
         if (
-            "Zohar" not in prayer_times
-            or "Assr" not in prayer_times
-            or "Maghrib" not in prayer_times
-            or "Ishaa" not in prayer_times
+            any(prayer not in prayer_times for prayer, _, _ in rows)
+            or bool(initially_unread_prayers)
         ):
             try:
                 column_observations = (
@@ -984,6 +986,7 @@ def build_prayer_times_and_dates():
                 prayer_times,
                 column_observations,
                 prayer_row_bounds,
+                initially_unread_prayers,
             )
             if filled_prayers:
                 print(
@@ -998,6 +1001,29 @@ def build_prayer_times_and_dates():
                 if "Zohar" in filled_prayers:
                     combined_prayer_pairs.add(("Zohar", "Assr"))
                 if "Maghrib" in filled_prayers:
+                    combined_prayer_pairs.add(("Maghrib", "Ishaa"))
+
+            filled_outer_prayers = fill_missing_outer_prayer_times(
+                prayer_times,
+                column_observations,
+                initially_unread_prayers,
+                filled_prayers,
+            )
+            if filled_outer_prayers:
+                print(
+                    "MIDDLE-COLUMN OCR FILLED OUTER PRAYER TIMES: "
+                    + ", ".join(
+                        f"{prayer}="
+                        f"{prayer_times[prayer].strftime('%H:%M')}"
+                        for prayer in filled_outer_prayers
+                    ),
+                    flush=True,
+                )
+                if (
+                    "Ishaa" in filled_outer_prayers
+                    and prayer_times.get("Ishaa")
+                    == prayer_times.get("Maghrib")
+                ):
                     combined_prayer_pairs.add(("Maghrib", "Ishaa"))
 
         unresolved_prayers = [
